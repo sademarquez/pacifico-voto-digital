@@ -2,7 +2,7 @@
 import { useState } from "react";
 import { Button } from "@/components/ui/button";
 import { Sheet, SheetContent, SheetTrigger } from "@/components/ui/sheet";
-import { Menu, Users, MapPin, User, Home, Heart } from "lucide-react";
+import { Menu, Users, MapPin, User, Home, Heart, BarChart3 } from "lucide-react";
 import { Link, useLocation } from "react-router-dom";
 
 const Navigation = () => {
@@ -11,8 +11,9 @@ const Navigation = () => {
 
   const navigationItems = [
     { href: "/", label: "Inicio", icon: Home },
+    { href: "/dashboard", label: "Dashboard", icon: BarChart3 },
     { href: "/registro", label: "Registro", icon: User },
-    { href: "/mapa-alertas", label: "Mapa de Alertas", icon: MapPin },
+    { href: "/mapa-alertas", label: "Mapa", icon: MapPin },
     { href: "/liderazgo", label: "Liderazgo", icon: Users },
   ];
 
@@ -29,8 +30,8 @@ const Navigation = () => {
             <div className="w-10 h-10 gradient-primary rounded-full flex items-center justify-center shadow-lg">
               <Heart className="text-white w-5 h-5" />
             </div>
-            <span className="font-bold text-xl bg-gradient-to-r from-purple-600 via-purple-500 to-pink-500 bg-clip-text text-transparent">
-              Mi Campaña
+            <span className="font-bold text-xl bg-gradient-to-r from-cyan-500 via-purple-500 to-pink-500 bg-clip-text text-transparent">
+              Wramba Fxiw
             </span>
           </Link>
 
@@ -42,7 +43,7 @@ const Navigation = () => {
                 to={item.href}
                 className={`flex items-center space-x-2 px-4 py-2 rounded-full transition-all duration-300 font-medium ${
                   isActiveRoute(item.href)
-                    ? 'bg-gradient-to-r from-purple-500 to-pink-500 text-white shadow-lg'
+                    ? 'bg-gradient-to-r from-cyan-500 to-purple-500 text-white shadow-lg'
                     : 'text-purple-600 hover:bg-purple-50 hover:text-purple-700'
                 }`}
               >
@@ -50,7 +51,7 @@ const Navigation = () => {
                 <span>{item.label}</span>
               </Link>
             ))}
-            <Button className="bg-gradient-to-r from-purple-600 to-pink-600 hover:from-purple-700 hover:to-pink-700 text-white shadow-lg rounded-full px-6">
+            <Button className="bg-gradient-to-r from-cyan-500 to-purple-600 hover:from-cyan-600 hover:to-purple-700 text-white shadow-lg rounded-full px-6">
               Mi Perfil
             </Button>
           </div>
@@ -63,7 +64,7 @@ const Navigation = () => {
                   <Menu className="w-6 h-6" />
                 </Button>
               </SheetTrigger>
-              <SheetContent side="right" className="w-[300px] sm:w-[400px] bg-gradient-to-br from-purple-50 to-white">
+              <SheetContent side="right" className="w-[300px] sm:w-[400px] bg-gradient-to-br from-cyan-50 to-purple-50">
                 <div className="flex flex-col space-y-4 mt-8">
                   {navigationItems.map((item) => (
                     <Link
@@ -72,7 +73,7 @@ const Navigation = () => {
                       onClick={() => setIsOpen(false)}
                       className={`flex items-center space-x-3 p-3 rounded-xl transition-all duration-300 ${
                         isActiveRoute(item.href)
-                          ? 'bg-gradient-to-r from-purple-500 to-pink-500 text-white shadow-lg'
+                          ? 'bg-gradient-to-r from-cyan-500 to-purple-500 text-white shadow-lg'
                           : 'text-purple-600 hover:bg-purple-100'
                       }`}
                     >
@@ -80,7 +81,7 @@ const Navigation = () => {
                       <span className="font-medium">{item.label}</span>
                     </Link>
                   ))}
-                  <Button className="bg-gradient-to-r from-purple-600 to-pink-600 hover:from-purple-700 hover:to-pink-700 text-white mt-6 rounded-full">
+                  <Button className="bg-gradient-to-r from-cyan-500 to-purple-600 hover:from-cyan-600 hover:to-purple-700 text-white mt-6 rounded-full">
                     Mi Perfil
                   </Button>
                 </div>
