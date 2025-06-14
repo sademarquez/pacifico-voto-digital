@@ -34,7 +34,7 @@ const Chatbot = ({ isMinimized = false, onToggleMinimize, onClose }: ChatbotProp
   const [messages, setMessages] = useState<Message[]>([
     {
       id: '1',
-      content: '¡Hola! Soy tu asistente de campaña. Estoy aquí para mantener nuestro compromiso fuerte y responder tus dudas sobre nuestra propuesta política. ¿En qué puedo ayudarte?',
+      content: '¡Hola! Soy tu asistente de campaña de MI CAMPAÑA 2025. Estoy aquí para ayudarte con información sobre nuestras propuestas, transparencia y honestidad. ¿En qué puedo ayudarte?',
       sender: 'bot',
       timestamp: new Date()
     }
@@ -67,14 +67,14 @@ const Chatbot = ({ isMinimized = false, onToggleMinimize, onClose }: ChatbotProp
 
   const generateBotResponse = async (userMessage: string): Promise<string> => {
     if (!apiKey) {
-      return "Para usar el chatbot necesitas configurar tu API key de Google Gemini. Es gratuita y puedes obtenerla en https://makersuite.google.com/app/apikey";
+      return "Para usar el chatbot necesitas configurar tu API key de Google Gemini. Es gratuita y puedes obtenerla en https://aistudio.google.com/app/apikey";
     }
 
     try {
-      const prompt = `Eres un asistente de campaña política comprometido con la transparencia y honestidad. 
-      Tu candidato es "Candidato" con el lema "Wramba Fxiw 2024 - Transparencia y Honestidad".
+      const prompt = `Eres un asistente de campaña política de "MI CAMPAÑA 2025" comprometido con la transparencia y honestidad.
       
       Contexto de la campaña:
+      - Lema: "MI CAMPAÑA 2025 - Transparencia y Honestidad"
       - Enfoque en transparencia y lucha contra la corrupción
       - Trabajo territorial con líderes comunitarios
       - Registro y seguimiento de votantes
@@ -88,7 +88,7 @@ const Chatbot = ({ isMinimized = false, onToggleMinimize, onClose }: ChatbotProp
       
       Responde máximo en 150 palabras:`;
 
-      const response = await fetch(`https://generativelanguage.googleapis.com/v1beta/models/gemini-pro:generateContent?key=${apiKey}`, {
+      const response = await fetch(`https://generativelanguage.googleapis.com/v1beta/models/gemini-2.0-flash:generateContent?key=${apiKey}`, {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
@@ -103,13 +103,29 @@ const Chatbot = ({ isMinimized = false, onToggleMinimize, onClose }: ChatbotProp
       });
 
       if (!response.ok) {
-        throw new Error('Error en la API de Gemini');
+        const errorData = await response.json();
+        console.error('Gemini API Error:', errorData);
+        
+        if (response.status === 400) {
+          return "Tu API key parece ser inválida. Por favor verifica que esté correcta en https://aistudio.google.com/app/apikey";
+        }
+        
+        throw new Error(`Error ${response.status}: ${errorData.error?.message || 'Error desconocido'}`);
       }
 
       const data = await response.json();
-      return data.candidates[0]?.content?.parts[0]?.text || "Disculpa, no pude procesar tu mensaje. ¿Puedes intentar de nuevo?";
+      
+      if (data.candidates && data.candidates[0]?.content?.parts?.[0]?.text) {
+        return data.candidates[0].content.parts[0].text;
+      } else {
+        console.error('Respuesta inesperada de Gemini:', data);
+        return "Disculpa, no pude procesar tu mensaje. ¿Puedes intentar de nuevo?";
+      }
     } catch (error) {
       console.error('Error calling Gemini API:', error);
+      if (error instanceof Error) {
+        return `Error técnico: ${error.message}. Verifica tu conexión y API key.`;
+      }
       return "Hubo un problema técnico. Por favor intenta más tarde o verifica tu conexión.";
     }
   };
@@ -141,6 +157,13 @@ const Chatbot = ({ isMinimized = false, onToggleMinimize, onClose }: ChatbotProp
       setMessages(prev => [...prev, botMessage]);
     } catch (error) {
       console.error('Error generating response:', error);
+      const errorMessage: Message = {
+        id: (Date.now() + 1).toString(),
+        content: "Hubo un error al generar la respuesta. Por favor intenta de nuevo.",
+        sender: 'bot',
+        timestamp: new Date()
+      };
+      setMessages(prev => [...prev, errorMessage]);
     } finally {
       setIsLoading(false);
     }
@@ -153,7 +176,7 @@ const Chatbot = ({ isMinimized = false, onToggleMinimize, onClose }: ChatbotProp
   if (isMinimized) {
     return (
       <Card className="fixed bottom-4 right-4 w-16 h-16 cursor-pointer shadow-2xl hover:shadow-3xl transition-all duration-300 transform hover:scale-105" onClick={onToggleMinimize}>
-        <CardContent className="p-0 h-full flex items-center justify-center bg-gradient-to-r from-slate-600 to-stone-600 rounded-lg">
+        <CardContent className="p-0 h-full flex items-center justify-center bg-gradient-to-r from-blue-600 to-blue-700 rounded-lg">
           <MessageSquare className="w-8 h-8 text-white" />
         </CardContent>
       </Card>
@@ -161,12 +184,12 @@ const Chatbot = ({ isMinimized = false, onToggleMinimize, onClose }: ChatbotProp
   }
 
   return (
-    <Card className="fixed bottom-4 right-4 w-96 h-[500px] shadow-2xl border-slate-200 bg-white z-50">
-      <CardHeader className="bg-gradient-to-r from-slate-600 to-stone-600 text-white rounded-t-lg p-4">
+    <Card className="fixed bottom-4 right-4 w-96 h-[500px] shadow-2xl border-blue-200 bg-white z-50">
+      <CardHeader className="bg-gradient-to-r from-blue-700 to-blue-800 text-white rounded-t-lg p-4">
         <div className="flex items-center justify-between">
           <div className="flex items-center space-x-2">
             <Bot className="w-6 h-6" />
-            <CardTitle className="text-lg">Asistente de Campaña</CardTitle>
+            <CardTitle className="text-lg">Asistente MI CAMPAÑA</CardTitle>
           </div>
           <div className="flex space-x-1">
             <Button 
@@ -188,14 +211,14 @@ const Chatbot = ({ isMinimized = false, onToggleMinimize, onClose }: ChatbotProp
           </div>
         </div>
         <Badge className="bg-white/20 text-white w-fit">
-          Transparencia y Honestidad
+          Transparencia y Honestidad 2025
         </Badge>
       </CardHeader>
 
       <CardContent className="p-0 flex flex-col h-[400px]">
         {!apiKey && (
-          <div className="p-4 bg-amber-50 border-b border-amber-200">
-            <p className="text-sm text-amber-800 mb-2">
+          <div className="p-4 bg-blue-50 border-b border-blue-200">
+            <p className="text-sm text-blue-800 mb-2">
               Configura tu API Key de Google Gemini (gratuita):
             </p>
             <div className="flex space-x-2">
@@ -208,11 +231,14 @@ const Chatbot = ({ isMinimized = false, onToggleMinimize, onClose }: ChatbotProp
               <Button
                 size="sm"
                 onClick={() => saveApiKey(apiKey)}
-                className="bg-slate-600 hover:bg-slate-700"
+                className="bg-blue-600 hover:bg-blue-700"
               >
                 Guardar
               </Button>
             </div>
+            <p className="text-xs text-blue-600 mt-1">
+              Obtén tu API key en: https://aistudio.google.com/app/apikey
+            </p>
           </div>
         )}
 
@@ -226,12 +252,12 @@ const Chatbot = ({ isMinimized = false, onToggleMinimize, onClose }: ChatbotProp
                 <div
                   className={`max-w-[80%] p-3 rounded-lg ${
                     message.sender === 'user'
-                      ? 'bg-slate-600 text-white'
-                      : 'bg-gray-100 text-slate-800'
+                      ? 'bg-blue-600 text-white'
+                      : 'bg-gray-100 text-blue-800'
                   } shadow-sm`}
                 >
                   <div className="flex items-start space-x-2">
-                    {message.sender === 'bot' && <Bot className="w-4 h-4 mt-1 text-slate-600" />}
+                    {message.sender === 'bot' && <Bot className="w-4 h-4 mt-1 text-blue-600" />}
                     {message.sender === 'user' && <User className="w-4 h-4 mt-1 text-white" />}
                     <p className="text-sm">{message.content}</p>
                   </div>
@@ -246,9 +272,9 @@ const Chatbot = ({ isMinimized = false, onToggleMinimize, onClose }: ChatbotProp
               <div className="flex justify-start">
                 <div className="bg-gray-100 p-3 rounded-lg shadow-sm">
                   <div className="flex items-center space-x-2">
-                    <Bot className="w-4 h-4 text-slate-600" />
-                    <Loader2 className="w-4 h-4 animate-spin text-slate-600" />
-                    <span className="text-sm text-slate-600">Escribiendo...</span>
+                    <Bot className="w-4 h-4 text-blue-600" />
+                    <Loader2 className="w-4 h-4 animate-spin text-blue-600" />
+                    <span className="text-sm text-blue-600">Escribiendo...</span>
                   </div>
                 </div>
               </div>
@@ -265,7 +291,7 @@ const Chatbot = ({ isMinimized = false, onToggleMinimize, onClose }: ChatbotProp
                 variant="outline"
                 size="sm"
                 onClick={() => handleQuickReply(reply)}
-                className="text-xs border-slate-300 text-slate-700 hover:bg-slate-100"
+                className="text-xs border-blue-300 text-blue-700 hover:bg-blue-100"
               >
                 {reply}
               </Button>
@@ -283,7 +309,7 @@ const Chatbot = ({ isMinimized = false, onToggleMinimize, onClose }: ChatbotProp
             <Button
               onClick={() => handleSendMessage()}
               disabled={isLoading || !inputMessage.trim()}
-              className="bg-slate-600 hover:bg-slate-700"
+              className="bg-blue-600 hover:bg-blue-700"
             >
               <Send className="w-4 h-4" />
             </Button>
