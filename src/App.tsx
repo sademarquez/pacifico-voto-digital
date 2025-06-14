@@ -1,3 +1,4 @@
+
 import { BrowserRouter, Routes, Route } from "react-router-dom";
 import { Toaster } from "@/components/ui/toaster"
 import Index from "./pages/Index";
@@ -19,6 +20,7 @@ import {
 } from '@tanstack/react-query'
 import Navigation from "./components/Navigation";
 import RedAyudantes from "./pages/RedAyudantes";
+import ChatbotProvider from "./components/ChatbotProvider";
 
 function App() {
   const queryClient = new QueryClient()
@@ -45,6 +47,7 @@ function App() {
             <Route path="/red-ayudantes" element={<RedAyudantes />} />
             <Route path="*" element={<NotFound />} />
           </Routes>
+          <ChatbotProvider />
         </div>
       </BrowserRouter>
     </QueryClientProvider>
