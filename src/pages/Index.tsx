@@ -1,3 +1,4 @@
+
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
@@ -108,7 +109,7 @@ const Index = () => {
             <h1 className="text-3xl font-bold mb-2">Candidato</h1>
             <p className="text-xl opacity-90">¡Qué gusto que nos visites!</p>
             <Badge className="mt-3 bg-white/20 text-white border-white/30">
-              Wramba Fxiw 2024 - Transparencia y Honestidad
+              MI CAMPAÑA 2024 - Transparencia y Honestidad
             </Badge>
           </div>
         </div>
@@ -146,12 +147,24 @@ const Index = () => {
 
         {/* Redes Sociales */}
         <div className="mt-12 flex justify-center space-x-6">
-          <Button size="lg" className="rounded-lg bg-slate-600 hover:bg-slate-700 shadow-sm">
-            <Facebook className="w-6 h-6" />
-          </Button>
-          <Button size="lg" className="rounded-lg bg-gray-600 hover:bg-gray-700 shadow-sm">
-            <Instagram className="w-6 h-6" />
-          </Button>
+          <a 
+            href="https://www.facebook.com/profile.php?id=61575665316561" 
+            target="_blank" 
+            rel="noopener noreferrer"
+          >
+            <Button size="lg" className="rounded-lg bg-slate-600 hover:bg-slate-700 shadow-sm">
+              <Facebook className="w-6 h-6" />
+            </Button>
+          </a>
+          <a 
+            href="https://www.instagram.com/micampanaia/" 
+            target="_blank" 
+            rel="noopener noreferrer"
+          >
+            <Button size="lg" className="rounded-lg bg-gray-600 hover:bg-gray-700 shadow-sm">
+              <Instagram className="w-6 h-6" />
+            </Button>
+          </a>
           <Button size="lg" className="rounded-lg bg-zinc-700 hover:bg-zinc-800 shadow-sm">
             <Music className="w-6 h-6" />
           </Button>
