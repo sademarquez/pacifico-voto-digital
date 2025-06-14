@@ -1,27 +1,31 @@
-
-import React from 'react';
-import { Toaster } from "@/components/ui/toaster";
-import { Toaster as Sonner } from "@/components/ui/sonner";
-import { TooltipProvider } from "@/components/ui/tooltip";
-import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import { BrowserRouter, Routes, Route } from "react-router-dom";
-import Navigation from "./components/Navigation";
+import { Toaster } from "@/components/ui/toaster"
 import Index from "./pages/Index";
+import NotFound from "./pages/NotFound";
 import Registro from "./pages/Registro";
 import MapaAlertas from "./pages/MapaAlertas";
 import Liderazgo from "./pages/Liderazgo";
-import ReportePublicidad from "./pages/ReportePublicidad";
 import Estructura from "./pages/Estructura";
+import ReportePublicidad from "./pages/ReportePublicidad";
+import LugarVotacion from "./pages/LugarVotacion";
+import UbicacionVotantes from "./pages/UbicacionVotantes";
 import Dashboard from "./pages/Dashboard";
-import NotFound from "./pages/NotFound";
+import Mensajes from "./pages/Mensajes";
+import Configuracion from "./pages/Configuracion";
+import Informes from "./pages/Informes";
+import {
+  QueryClient,
+  QueryClientProvider,
+} from '@tanstack/react-query'
+import Navigation from "./components/Navigation";
+import RedAyudantes from "./pages/RedAyudantes";
 
-const queryClient = new QueryClient();
+function App() {
+  const queryClient = new QueryClient()
 
-const App = () => (
-  <QueryClientProvider client={queryClient}>
-    <TooltipProvider>
+  return (
+    <QueryClientProvider client={queryClient}>
       <Toaster />
-      <Sonner />
       <BrowserRouter>
         <div className="min-h-screen bg-background">
           <Navigation />
@@ -30,20 +34,21 @@ const App = () => (
             <Route path="/registro" element={<Registro />} />
             <Route path="/mapa-alertas" element={<MapaAlertas />} />
             <Route path="/liderazgo" element={<Liderazgo />} />
-            <Route path="/reporte-publicidad" element={<ReportePublicidad />} />
             <Route path="/estructura" element={<Estructura />} />
+            <Route path="/reporte-publicidad" element={<ReportePublicidad />} />
+            <Route path="/lugar-votacion" element={<LugarVotacion />} />
+            <Route path="/ubicacion-votantes" element={<UbicacionVotantes />} />
             <Route path="/dashboard" element={<Dashboard />} />
-            <Route path="/informes" element={<Dashboard />} />
-            <Route path="/lugar-votacion" element={<MapaAlertas />} />
-            <Route path="/ubicacion-votantes" element={<MapaAlertas />} />
-            <Route path="/mensajes" element={<Dashboard />} />
-            <Route path="/configuracion" element={<Dashboard />} />
+            <Route path="/mensajes" element={<Mensajes />} />
+            <Route path="/configuracion" element={<Configuracion />} />
+            <Route path="/informes" element={<Informes />} />
+            <Route path="/red-ayudantes" element={<RedAyudantes />} />
             <Route path="*" element={<NotFound />} />
           </Routes>
         </div>
       </BrowserRouter>
-    </TooltipProvider>
-  </QueryClientProvider>
-);
+    </QueryClientProvider>
+  );
+}
 
 export default App;

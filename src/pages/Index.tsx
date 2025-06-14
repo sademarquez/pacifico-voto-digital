@@ -1,4 +1,3 @@
-
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
@@ -14,7 +13,8 @@ import {
   Settings,
   Facebook,
   Instagram,
-  Music
+  Music,
+  Network
 } from "lucide-react";
 import { Link } from "react-router-dom";
 
@@ -40,6 +40,13 @@ const Index = () => {
       icon: Building2,
       href: "/estructura",
       color: "bg-stone-600"
+    },
+    {
+      title: "Red de Ayudantes",
+      description: "Sistema de comunicación y organización territorial",
+      icon: Network,
+      href: "/red-ayudantes",
+      color: "bg-slate-700"
     },
     {
       title: "Informes",

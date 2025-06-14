@@ -1,8 +1,7 @@
-
 import { useState } from "react";
 import { Button } from "@/components/ui/button";
 import { Sheet, SheetContent, SheetTrigger } from "@/components/ui/sheet";
-import { Menu, Users, MapPin, User, Home, Shield, BarChart3 } from "lucide-react";
+import { Menu, Users, MapPin, User, Home, Shield, BarChart3, Network } from "lucide-react";
 import { Link, useLocation } from "react-router-dom";
 
 const Navigation = () => {
@@ -15,6 +14,7 @@ const Navigation = () => {
     { href: "/registro", label: "Registro", icon: User },
     { href: "/mapa-alertas", label: "Mapa", icon: MapPin },
     { href: "/liderazgo", label: "Liderazgo", icon: Users },
+    { href: "/red-ayudantes", label: "Red Ayudantes", icon: Network }
   ];
 
   const isActiveRoute = (href: string) => {
