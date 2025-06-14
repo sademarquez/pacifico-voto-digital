@@ -31,14 +31,14 @@ const Login = () => {
       
       if (success) {
         toast({
-          title: "Bienvenido",
+          title: "¡Bienvenido!",
           description: "Has iniciado sesión correctamente",
         });
         navigate("/");
       } else {
         toast({
-          title: "Error",
-          description: "Email o contraseña incorrectos. Verifica las credenciales demo.",
+          title: "Error de Acceso",
+          description: "Email o contraseña incorrectos. Usa las credenciales demo mostradas abajo.",
           variant: "destructive"
         });
       }
@@ -73,7 +73,7 @@ const Login = () => {
                 type="email"
                 value={email}
                 onChange={(e) => setEmail(e.target.value)}
-                placeholder="usuario@micampaña.com"
+                placeholder="usuario@demo.com"
                 className="border-blue-200 focus:border-blue-500"
                 required
               />
@@ -113,22 +113,26 @@ const Login = () => {
           </form>
 
           <div className="mt-6 p-4 bg-blue-50 rounded-lg border border-blue-200">
-            <h3 className="font-medium text-sm text-blue-700 mb-2">👥 Usuarios Demo Funcionales:</h3>
-            <div className="space-y-2 text-xs text-blue-600">
-              <div className="bg-white p-2 rounded border-l-4 border-red-400">
-                <p><strong>🔴 MASTER:</strong> master@micampaña.com</p>
-                <p className="text-gray-600">• Puede crear usuarios Candidato</p>
+            <h3 className="font-medium text-sm text-blue-700 mb-3">🔐 CREDENCIALES DEMO FUNCIONALES:</h3>
+            <div className="space-y-3 text-xs text-blue-600">
+              <div className="bg-white p-3 rounded border-l-4 border-red-400">
+                <p className="font-bold text-red-600">🔴 MASTER:</p>
+                <p className="font-mono bg-gray-100 p-1 rounded">master@demo.com</p>
+                <p className="text-gray-600 mt-1">• Puede crear usuarios Candidato</p>
               </div>
-              <div className="bg-white p-2 rounded border-l-4 border-blue-400">
-                <p><strong>🔵 CANDIDATO:</strong> candidato@micampaña.com</p>
-                <p className="text-gray-600">• Puede crear usuarios Votante</p>
+              <div className="bg-white p-3 rounded border-l-4 border-blue-400">
+                <p className="font-bold text-blue-600">🔵 CANDIDATO:</p>
+                <p className="font-mono bg-gray-100 p-1 rounded">candidato@demo.com</p>
+                <p className="text-gray-600 mt-1">• Puede crear usuarios Votante</p>
               </div>
-              <div className="bg-white p-2 rounded border-l-4 border-green-400">
-                <p><strong>🟢 VOTANTE:</strong> votante@micampaña.com</p>
-                <p className="text-gray-600">• Usuario final del sistema</p>
+              <div className="bg-white p-3 rounded border-l-4 border-green-400">
+                <p className="font-bold text-green-600">🟢 VOTANTE:</p>
+                <p className="font-mono bg-gray-100 p-1 rounded">votante@demo.com</p>
+                <p className="text-gray-600 mt-1">• Usuario final del sistema</p>
               </div>
-              <div className="mt-3 p-2 bg-yellow-100 rounded text-center">
-                <p><strong>🔑 Contraseña para todos:</strong> <code className="bg-yellow-200 px-1 rounded">micampaña2025</code></p>
+              <div className="mt-4 p-3 bg-yellow-100 rounded text-center border border-yellow-300">
+                <p className="font-bold text-yellow-800">🔑 CONTRASEÑA PARA TODOS:</p>
+                <p className="font-mono text-lg bg-yellow-200 px-2 py-1 rounded mt-1 text-yellow-900">demo2025</p>
               </div>
             </div>
           </div>

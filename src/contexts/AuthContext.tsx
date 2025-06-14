@@ -17,23 +17,23 @@ interface AuthContextType {
 
 const AuthContext = createContext<AuthContextType | undefined>(undefined);
 
-// Demo users with functional credentials
+// Demo users with functional credentials - usando emails simples sin caracteres especiales
 const demoUsers: User[] = [
   {
     id: '1',
-    email: 'master@micampaña.com',
+    email: 'master@demo.com',
     name: 'Usuario Master',
     role: 'master'
   },
   {
     id: '2',
-    email: 'candidato@micampaña.com',
+    email: 'candidato@demo.com',
     name: 'Usuario Candidato',
     role: 'candidato'
   },
   {
     id: '3',
-    email: 'votante@micampaña.com',
+    email: 'votante@demo.com',
     name: 'Usuario Votante',
     role: 'votante'
   }
@@ -46,13 +46,15 @@ export const AuthProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
     console.log('Attempting login with:', email, password);
     
     // Check if password is correct
-    if (password !== 'micampaña2025') {
+    if (password !== 'demo2025') {
       console.log('Invalid password');
       return false;
     }
 
-    // Find user by email
-    const foundUser = demoUsers.find(u => u.email.toLowerCase() === email.toLowerCase());
+    // Find user by email (case insensitive and trim whitespace)
+    const foundUser = demoUsers.find(u => 
+      u.email.toLowerCase().trim() === email.toLowerCase().trim()
+    );
     
     if (foundUser) {
       console.log('User found:', foundUser);
@@ -60,7 +62,8 @@ export const AuthProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
       return true;
     }
     
-    console.log('User not found');
+    console.log('User not found for email:', email);
+    console.log('Available emails:', demoUsers.map(u => u.email));
     return false;
   };
 
