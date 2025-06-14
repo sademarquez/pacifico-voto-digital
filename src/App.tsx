@@ -14,6 +14,7 @@ import Dashboard from "./pages/Dashboard";
 import Mensajes from "./pages/Mensajes";
 import Configuracion from "./pages/Configuracion";
 import Informes from "./pages/Informes";
+import Login from "./pages/Login";
 import {
   QueryClient,
   QueryClientProvider,
@@ -21,35 +22,39 @@ import {
 import Navigation from "./components/Navigation";
 import RedAyudantes from "./pages/RedAyudantes";
 import ChatbotProvider from "./components/ChatbotProvider";
+import { AuthProvider } from "./contexts/AuthContext";
 
 function App() {
   const queryClient = new QueryClient()
 
   return (
     <QueryClientProvider client={queryClient}>
-      <Toaster />
-      <BrowserRouter>
-        <div className="min-h-screen bg-background">
-          <Navigation />
-          <Routes>
-            <Route path="/" element={<Index />} />
-            <Route path="/registro" element={<Registro />} />
-            <Route path="/mapa-alertas" element={<MapaAlertas />} />
-            <Route path="/liderazgo" element={<Liderazgo />} />
-            <Route path="/estructura" element={<Estructura />} />
-            <Route path="/reporte-publicidad" element={<ReportePublicidad />} />
-            <Route path="/lugar-votacion" element={<LugarVotacion />} />
-            <Route path="/ubicacion-votantes" element={<UbicacionVotantes />} />
-            <Route path="/dashboard" element={<Dashboard />} />
-            <Route path="/mensajes" element={<Mensajes />} />
-            <Route path="/configuracion" element={<Configuracion />} />
-            <Route path="/informes" element={<Informes />} />
-            <Route path="/red-ayudantes" element={<RedAyudantes />} />
-            <Route path="*" element={<NotFound />} />
-          </Routes>
-          <ChatbotProvider />
-        </div>
-      </BrowserRouter>
+      <AuthProvider>
+        <Toaster />
+        <BrowserRouter>
+          <div className="min-h-screen bg-background">
+            <Navigation />
+            <Routes>
+              <Route path="/" element={<Index />} />
+              <Route path="/login" element={<Login />} />
+              <Route path="/registro" element={<Registro />} />
+              <Route path="/mapa-alertas" element={<MapaAlertas />} />
+              <Route path="/liderazgo" element={<Liderazgo />} />
+              <Route path="/estructura" element={<Estructura />} />
+              <Route path="/reporte-publicidad" element={<ReportePublicidad />} />
+              <Route path="/lugar-votacion" element={<LugarVotacion />} />
+              <Route path="/ubicacion-votantes" element={<UbicacionVotantes />} />
+              <Route path="/dashboard" element={<Dashboard />} />
+              <Route path="/mensajes" element={<Mensajes />} />
+              <Route path="/configuracion" element={<Configuracion />} />
+              <Route path="/informes" element={<Informes />} />
+              <Route path="/red-ayudantes" element={<RedAyudantes />} />
+              <Route path="*" element={<NotFound />} />
+            </Routes>
+            <ChatbotProvider />
+          </div>
+        </BrowserRouter>
+      </AuthProvider>
     </QueryClientProvider>
   );
 }
