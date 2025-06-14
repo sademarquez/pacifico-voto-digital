@@ -1,263 +1,284 @@
 
 import { useState, useEffect } from "react";
+import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
-import { Button } from "@/components/ui/button";
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
-import { AlertTriangle, MapPin, Clock, User, Filter } from "lucide-react";
+import { useToast } from "@/hooks/use-toast";
+import { AlertTriangle, Plus, Filter, Users, MapPin } from "lucide-react";
+import MapaInteractivo from "@/components/MapaInteractivo";
 
-// Datos de ejemplo para las alertas
-const alertasEjemplo = [
-  {
-    id: 1,
-    tipoAlerta: "Falla de Servicio Público",
-    descripcion: "Corte de energía eléctrica en el sector desde las 6:00 AM",
-    municipio: "Buenaventura",
-    barrioVereda: "Barrio Bellavista",
-    reportadoPor: "María González",
-    fechaReporte: "2024-01-15 08:30",
-    estado: "Abierta",
-    prioridad: "Alta"
-  },
-  {
-    id: 2,
-    tipoAlerta: "Problema de Seguridad",
-    descripcion: "Aumento de robos en la zona comercial durante las noches",
-    municipio: "Tumaco",
-    barrioVereda: "Centro",
-    reportadoPor: "Carlos Ramírez",
-    fechaReporte: "2024-01-14 20:15",
-    estado: "En Proceso",
-    prioridad: "Media"
-  },
-  {
-    id: 3,
-    tipoAlerta: "Necesidad Comunitaria",
-    descripcion: "Familias damnificadas por inundación requieren ayuda humanitaria",
-    municipio: "Quibdó",
-    barrioVereda: "Vereda El Progreso",
-    reportadoPor: "Ana Mosquera",
-    fechaReporte: "2024-01-13 14:20",
-    estado: "Resuelta",
-    prioridad: "Crítica"
-  },
-  {
-    id: 4,
-    tipoAlerta: "Emergencia Médica",
-    descripcion: "Necesidad urgente de medicamentos para diabetes en el puesto de salud",
-    municipio: "Guapi",
-    barrioVereda: "Centro",
-    reportadoPor: "Dr. Luis Parra",
-    fechaReporte: "2024-01-12 16:45",
-    estado: "En Proceso",
-    prioridad: "Crítica"
-  }
-];
+interface Alerta {
+  id: string;
+  municipio: string;
+  tipo: string;
+  severidad: 'baja' | 'media' | 'alta' | 'crítica';
+  descripcion: string;
+  lat: number;
+  lng: number;
+  fecha: string;
+  lider?: string;
+}
 
 const MapaAlertas = () => {
-  const [alertas, setAlertas] = useState(alertasEjemplo);
-  const [filtroTipo, setFiltroTipo] = useState("todas");
-  const [filtroEstado, setFiltroEstado] = useState("todas");
-  const [alertasFiltradas, setAlertasFiltradas] = useState(alertasEjemplo);
+  const { toast } = useToast();
+  const [alertas, setAlertas] = useState<Alerta[]>([]);
+  const [filtroSeveridad, setFiltroSeveridad] = useState<string>("todas");
+  const [alertaSeleccionada, setAlertaSeleccionada] = useState<Alerta | null>(null);
 
+  // Datos simulados de alertas en el Cauca
   useEffect(() => {
-    let filtradas = alertas;
+    const alertasSimuladas: Alerta[] = [
+      {
+        id: "1",
+        municipio: "Popayán",
+        tipo: "Inundación",
+        severidad: "alta",
+        descripcion: "Desbordamiento del río Molino en el sector urbano",
+        lat: 2.4448,
+        lng: -76.6147,
+        fecha: "2024-06-14",
+        lider: "María González"
+      },
+      {
+        id: "2",
+        municipio: "Timbío",
+        tipo: "Deslizamiento",
+        severidad: "crítica",
+        descripcion: "Deslizamiento de tierra en la vía principal",
+        lat: 2.3547,
+        lng: -76.6829,
+        fecha: "2024-06-13",
+        lider: "Carlos Rodríguez"
+      },
+      {
+        id: "3",
+        municipio: "Silvia",
+        tipo: "Incendio Forestal",
+        severidad: "media",
+        descripcion: "Incendio controlado en zona rural",
+        lat: 2.6156,
+        lng: -76.3831,
+        fecha: "2024-06-12",
+        lider: "Ana Muñoz"
+      },
+      {
+        id: "4",
+        municipio: "Santander de Quilichao",
+        tipo: "Sequía",
+        severidad: "baja",
+        descripcion: "Escasez de agua en algunas veredas",
+        lat: 3.0097,
+        lng: -76.4847,
+        fecha: "2024-06-11"
+      },
+      {
+        id: "5",
+        municipio: "Cajibío",
+        tipo: "Granizada",
+        severidad: "media",
+        descripcion: "Granizada afectó cultivos de café",
+        lat: 2.5506,
+        lng: -76.8733,
+        fecha: "2024-06-10",
+        lider: "Pedro López"
+      },
+      {
+        id: "6",
+        municipio: "Toribío",
+        tipo: "Conflicto Armado",
+        severidad: "crítica",
+        descripcion: "Enfrentamientos reportados en zona rural",
+        lat: 3.0167,
+        lng: -76.0833,
+        fecha: "2024-06-09",
+        lider: "Rosa Piñacué"
+      }
+    ];
+    setAlertas(alertasSimuladas);
+  }, []);
 
-    if (filtroTipo !== "todas") {
-      filtradas = filtradas.filter(alerta => alerta.tipoAlerta === filtroTipo);
-    }
+  const alertasFiltradas = alertas.filter(alerta => 
+    filtroSeveridad === "todas" || alerta.severidad === filtroSeveridad
+  );
 
-    if (filtroEstado !== "todas") {
-      filtradas = filtradas.filter(alerta => alerta.estado === filtroEstado);
-    }
+  const handleAlertaClick = (alerta: Alerta) => {
+    setAlertaSeleccionada(alerta);
+    toast({
+      title: "Alerta Seleccionada",
+      description: `${alerta.tipo} en ${alerta.municipio}`,
+    });
+  };
 
-    setAlertasFiltradas(filtradas);
-  }, [alertas, filtroTipo, filtroEstado]);
-
-  const getEstadoColor = (estado: string) => {
-    switch (estado) {
-      case "Abierta": return "bg-red-100 text-red-800";
-      case "En Proceso": return "bg-yellow-100 text-yellow-800";
-      case "Resuelta": return "bg-green-100 text-green-800";
-      default: return "bg-gray-100 text-gray-800";
+  const getSeverityColor = (severidad: string) => {
+    switch (severidad) {
+      case 'baja': return 'bg-green-100 text-green-800 border-green-200';
+      case 'media': return 'bg-yellow-100 text-yellow-800 border-yellow-200';
+      case 'alta': return 'bg-orange-100 text-orange-800 border-orange-200';
+      case 'crítica': return 'bg-red-100 text-red-800 border-red-200';
+      default: return 'bg-gray-100 text-gray-800 border-gray-200';
     }
   };
 
-  const getPrioridadColor = (prioridad: string) => {
-    switch (prioridad) {
-      case "Crítica": return "bg-red-500";
-      case "Alta": return "bg-orange-500";
-      case "Media": return "bg-yellow-500";
-      case "Baja": return "bg-green-500";
-      default: return "bg-gray-500";
-    }
+  const conteoSeveridad = {
+    crítica: alertas.filter(a => a.severidad === 'crítica').length,
+    alta: alertas.filter(a => a.severidad === 'alta').length,
+    media: alertas.filter(a => a.severidad === 'media').length,
+    baja: alertas.filter(a => a.severidad === 'baja').length,
   };
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-red-50 via-white to-orange-50 py-8">
-      <div className="container mx-auto px-4">
-        {/* Header */}
-        <div className="text-center mb-8">
-          <h1 className="text-3xl font-bold text-gray-800 mb-4 flex items-center justify-center">
-            <AlertTriangle className="w-8 h-8 mr-3 text-red-600" />
-            Mapa de Alertas en Tiempo Real
-          </h1>
-          <p className="text-lg text-gray-600">
-            Monitoreo y seguimiento de emergencias comunitarias
-          </p>
+    <div className="container mx-auto px-4 py-8 space-y-6">
+      {/* Header */}
+      <div className="text-center space-y-4">
+        <div className="gradient-primary rounded-full w-16 h-16 flex items-center justify-center mx-auto mb-4">
+          <MapPin className="text-white w-8 h-8" />
         </div>
+        <h1 className="text-3xl md:text-4xl font-bold bg-gradient-to-r from-purple-600 via-purple-500 to-pink-500 bg-clip-text text-transparent">
+          Mapa de Alertas del Cauca
+        </h1>
+        <p className="text-purple-600 max-w-2xl mx-auto">
+          Monitoreo en tiempo real de emergencias y situaciones críticas en el departamento del Cauca
+        </p>
+      </div>
 
-        {/* Estadísticas Rápidas */}
-        <div className="grid grid-cols-2 md:grid-cols-4 gap-4 mb-8">
-          <Card className="text-center border-l-4 border-l-red-500">
-            <CardContent className="p-4">
-              <div className="text-2xl font-bold text-red-600">
-                {alertas.filter(a => a.estado === "Abierta").length}
-              </div>
-              <div className="text-sm text-gray-600">Alertas Abiertas</div>
-            </CardContent>
-          </Card>
-          <Card className="text-center border-l-4 border-l-yellow-500">
-            <CardContent className="p-4">
-              <div className="text-2xl font-bold text-yellow-600">
-                {alertas.filter(a => a.estado === "En Proceso").length}
-              </div>
-              <div className="text-sm text-gray-600">En Proceso</div>
-            </CardContent>
-          </Card>
-          <Card className="text-center border-l-4 border-l-green-500">
-            <CardContent className="p-4">
-              <div className="text-2xl font-bold text-green-600">
-                {alertas.filter(a => a.estado === "Resuelta").length}
-              </div>
-              <div className="text-sm text-gray-600">Resueltas</div>
-            </CardContent>
-          </Card>
-          <Card className="text-center border-l-4 border-l-blue-500">
-            <CardContent className="p-4">
-              <div className="text-2xl font-bold text-blue-600">
-                {alertas.filter(a => a.prioridad === "Crítica").length}
-              </div>
-              <div className="text-sm text-gray-600">Críticas</div>
-            </CardContent>
-          </Card>
-        </div>
-
-        {/* Filtros */}
-        <Card className="mb-8">
-          <CardHeader>
-            <CardTitle className="flex items-center">
-              <Filter className="w-5 h-5 mr-2" />
-              Filtros
-            </CardTitle>
-          </CardHeader>
-          <CardContent>
-            <div className="grid md:grid-cols-3 gap-4">
-              <div>
-                <label className="block text-sm font-medium mb-2">Tipo de Alerta</label>
-                <Select value={filtroTipo} onValueChange={setFiltroTipo}>
-                  <SelectTrigger>
-                    <SelectValue />
-                  </SelectTrigger>
-                  <SelectContent>
-                    <SelectItem value="todas">Todas las alertas</SelectItem>
-                    <SelectItem value="Falla de Servicio Público">Falla de Servicio Público</SelectItem>
-                    <SelectItem value="Problema de Seguridad">Problema de Seguridad</SelectItem>
-                    <SelectItem value="Necesidad Comunitaria">Necesidad Comunitaria</SelectItem>
-                    <SelectItem value="Emergencia Médica">Emergencia Médica</SelectItem>
-                  </SelectContent>
-                </Select>
-              </div>
-              <div>
-                <label className="block text-sm font-medium mb-2">Estado</label>
-                <Select value={filtroEstado} onValueChange={setFiltroEstado}>
-                  <SelectTrigger>
-                    <SelectValue />
-                  </SelectTrigger>
-                  <SelectContent>
-                    <SelectItem value="todas">Todos los estados</SelectItem>
-                    <SelectItem value="Abierta">Abierta</SelectItem>
-                    <SelectItem value="En Proceso">En Proceso</SelectItem>
-                    <SelectItem value="Resuelta">Resuelta</SelectItem>
-                  </SelectContent>
-                </Select>
-              </div>
-              <div className="flex items-end">
-                <Button className="w-full bg-blue-600 hover:bg-blue-700">
-                  Reportar Nueva Alerta
-                </Button>
-              </div>
-            </div>
+      {/* Estadísticas Rápidas */}
+      <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
+        <Card className="text-center border-red-200">
+          <CardContent className="p-4">
+            <div className="text-2xl font-bold text-red-600">{conteoSeveridad.crítica}</div>
+            <div className="text-sm text-red-700">Críticas</div>
           </CardContent>
         </Card>
-
-        {/* Lista de Alertas */}
-        <div className="space-y-4">
-          {alertasFiltradas.map((alerta) => (
-            <Card key={alerta.id} className="hover:shadow-lg transition-shadow duration-300">
-              <CardContent className="p-6">
-                <div className="flex flex-col md:flex-row md:items-start md:justify-between gap-4">
-                  <div className="flex-1">
-                    <div className="flex items-center gap-3 mb-3">
-                      <div className={`w-4 h-4 rounded-full ${getPrioridadColor(alerta.prioridad)}`}></div>
-                      <Badge variant="outline" className="text-sm">
-                        {alerta.tipoAlerta}
-                      </Badge>
-                      <Badge className={getEstadoColor(alerta.estado)}>
-                        {alerta.estado}
-                      </Badge>
-                    </div>
-                    
-                    <h3 className="text-lg font-semibold text-gray-800 mb-2">
-                      {alerta.descripcion}
-                    </h3>
-                    
-                    <div className="grid md:grid-cols-2 gap-4 text-sm text-gray-600">
-                      <div className="flex items-center">
-                        <MapPin className="w-4 h-4 mr-2 text-gray-400" />
-                        {alerta.municipio}, {alerta.barrioVereda}
-                      </div>
-                      <div className="flex items-center">
-                        <User className="w-4 h-4 mr-2 text-gray-400" />
-                        Reportado por: {alerta.reportadoPor}
-                      </div>
-                      <div className="flex items-center">
-                        <Clock className="w-4 h-4 mr-2 text-gray-400" />
-                        {new Date(alerta.fechaReporte).toLocaleString('es-CO')}
-                      </div>
-                    </div>
-                  </div>
-                  
-                  <div className="flex gap-2">
-                    <Button variant="outline" size="sm">
-                      Ver Detalles
-                    </Button>
-                    {alerta.estado === "Abierta" && (
-                      <Button size="sm" className="bg-green-600 hover:bg-green-700">
-                        Atender
-                      </Button>
-                    )}
-                  </div>
-                </div>
-              </CardContent>
-            </Card>
-          ))}
-        </div>
-
-        {alertasFiltradas.length === 0 && (
-          <Card className="text-center py-12">
-            <CardContent>
-              <AlertTriangle className="w-16 h-16 text-gray-400 mx-auto mb-4" />
-              <h3 className="text-lg font-semibold text-gray-600 mb-2">
-                No se encontraron alertas
-              </h3>
-              <p className="text-gray-500">
-                Intenta ajustar los filtros o reporta una nueva alerta
-              </p>
-            </CardContent>
-          </Card>
-        )}
+        <Card className="text-center border-orange-200">
+          <CardContent className="p-4">
+            <div className="text-2xl font-bold text-orange-600">{conteoSeveridad.alta}</div>
+            <div className="text-sm text-orange-700">Altas</div>
+          </CardContent>
+        </Card>
+        <Card className="text-center border-yellow-200">
+          <CardContent className="p-4">
+            <div className="text-2xl font-bold text-yellow-600">{conteoSeveridad.media}</div>
+            <div className="text-sm text-yellow-700">Medias</div>
+          </CardContent>
+        </Card>
+        <Card className="text-center border-green-200">
+          <CardContent className="p-4">
+            <div className="text-2xl font-bold text-green-600">{conteoSeveridad.baja}</div>
+            <div className="text-sm text-green-700">Bajas</div>
+          </CardContent>
+        </Card>
       </div>
+
+      {/* Controles */}
+      <Card>
+        <CardHeader>
+          <CardTitle className="flex items-center gap-2 text-purple-800">
+            <Filter className="w-5 h-5" />
+            Filtros y Acciones
+          </CardTitle>
+        </CardHeader>
+        <CardContent>
+          <div className="flex flex-wrap gap-4 items-center">
+            <div className="flex gap-2">
+              <Button
+                variant={filtroSeveridad === "todas" ? "default" : "outline"}
+                onClick={() => setFiltroSeveridad("todas")}
+                className="bg-purple-600 hover:bg-purple-700"
+              >
+                Todas
+              </Button>
+              <Button
+                variant={filtroSeveridad === "crítica" ? "destructive" : "outline"}
+                onClick={() => setFiltroSeveridad("crítica")}
+              >
+                Críticas
+              </Button>
+              <Button
+                variant={filtroSeveridad === "alta" ? "default" : "outline"}
+                onClick={() => setFiltroSeveridad("alta")}
+                className="bg-orange-600 hover:bg-orange-700"
+              >
+                Altas
+              </Button>
+              <Button
+                variant={filtroSeveridad === "media" ? "default" : "outline"}
+                onClick={() => setFiltroSeveridad("media")}
+                className="bg-yellow-600 hover:bg-yellow-700"
+              >
+                Medias
+              </Button>
+              <Button
+                variant={filtroSeveridad === "baja" ? "default" : "outline"}
+                onClick={() => setFiltroSeveridad("baja")}
+                className="bg-green-600 hover:bg-green-700"
+              >
+                Bajas
+              </Button>
+            </div>
+            <Button className="bg-gradient-to-r from-purple-600 to-pink-600 hover:from-purple-700 hover:to-pink-700">
+              <Plus className="w-4 h-4 mr-2" />
+              Nueva Alerta
+            </Button>
+          </div>
+        </CardContent>
+      </Card>
+
+      {/* Mapa Interactivo */}
+      <MapaInteractivo 
+        alertas={alertasFiltradas} 
+        onAlertaClick={handleAlertaClick}
+      />
+
+      {/* Lista de Alertas */}
+      <Card>
+        <CardHeader>
+          <CardTitle className="flex items-center gap-2 text-purple-800">
+            <AlertTriangle className="w-5 h-5" />
+            Alertas Activas ({alertasFiltradas.length})
+          </CardTitle>
+          <CardDescription>
+            Haz clic en cualquier alerta para verla en el mapa
+          </CardDescription>
+        </CardHeader>
+        <CardContent>
+          <div className="grid gap-4">
+            {alertasFiltradas.map((alerta) => (
+              <Card 
+                key={alerta.id} 
+                className={`cursor-pointer transition-all hover:shadow-md ${
+                  alertaSeleccionada?.id === alerta.id ? 'ring-2 ring-purple-500' : ''
+                }`}
+                onClick={() => handleAlertaClick(alerta)}
+              >
+                <CardContent className="p-4">
+                  <div className="flex justify-between items-start">
+                    <div className="space-y-2">
+                      <div className="flex items-center gap-2">
+                        <h3 className="font-semibold text-purple-800">{alerta.municipio}</h3>
+                        <Badge className={getSeverityColor(alerta.severidad)}>
+                          {alerta.severidad.toUpperCase()}
+                        </Badge>
+                      </div>
+                      <p className="text-sm font-medium text-gray-700">{alerta.tipo}</p>
+                      <p className="text-sm text-gray-600">{alerta.descripcion}</p>
+                      <div className="flex items-center gap-4 text-xs text-gray-500">
+                        <span>📅 {alerta.fecha}</span>
+                        {alerta.lider && (
+                          <span className="flex items-center gap-1">
+                            <Users className="w-3 h-3" />
+                            {alerta.lider}
+                          </span>
+                        )}
+                      </div>
+                    </div>
+                    <MapPin className="w-5 h-5 text-purple-500" />
+                  </div>
+                </CardContent>
+              </Card>
+            ))}
+          </div>
+        </CardContent>
+      </Card>
     </div>
   );
 };
