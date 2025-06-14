@@ -50,31 +50,32 @@ const Login = () => {
   };
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-gray-50 via-white to-slate-50 flex items-center justify-center p-4">
-      <Card className="w-full max-w-md">
+    <div className="min-h-screen bg-gradient-to-br from-blue-50 via-white to-indigo-50 flex items-center justify-center p-4">
+      <Card className="w-full max-w-md border-blue-200 shadow-lg">
         <CardHeader className="text-center">
-          <div className="w-16 h-16 bg-gradient-to-br from-slate-600 to-slate-700 rounded-lg flex items-center justify-center mx-auto mb-4">
+          <div className="w-16 h-16 bg-gradient-to-br from-blue-600 to-blue-700 rounded-lg flex items-center justify-center mx-auto mb-4">
             <Shield className="text-white w-8 h-8" />
           </div>
-          <CardTitle className="text-2xl font-bold text-slate-700">MI CAMPAÑA</CardTitle>
-          <p className="text-slate-600">Inicia sesión en tu cuenta</p>
+          <CardTitle className="text-2xl font-bold text-blue-700">MI CAMPAÑA 2025</CardTitle>
+          <p className="text-blue-600">Inicia sesión en tu cuenta</p>
         </CardHeader>
         <CardContent>
           <form onSubmit={handleSubmit} className="space-y-4">
             <div className="space-y-2">
-              <Label htmlFor="email">Email</Label>
+              <Label htmlFor="email" className="text-blue-700">Email</Label>
               <Input
                 id="email"
                 type="email"
                 value={email}
                 onChange={(e) => setEmail(e.target.value)}
                 placeholder="usuario@micampaña.com"
+                className="border-blue-200 focus:border-blue-500"
                 required
               />
             </div>
             
             <div className="space-y-2">
-              <Label htmlFor="password">Contraseña</Label>
+              <Label htmlFor="password" className="text-blue-700">Contraseña</Label>
               <div className="relative">
                 <Input
                   id="password"
@@ -82,13 +83,14 @@ const Login = () => {
                   value={password}
                   onChange={(e) => setPassword(e.target.value)}
                   placeholder="Tu contraseña"
+                  className="border-blue-200 focus:border-blue-500"
                   required
                 />
                 <Button
                   type="button"
                   variant="ghost"
                   size="icon"
-                  className="absolute right-2 top-1/2 -translate-y-1/2"
+                  className="absolute right-2 top-1/2 -translate-y-1/2 text-blue-600"
                   onClick={() => setShowPassword(!showPassword)}
                 >
                   {showPassword ? <EyeOff className="w-4 h-4" /> : <Eye className="w-4 h-4" />}
@@ -96,18 +98,33 @@ const Login = () => {
               </div>
             </div>
 
-            <Button type="submit" className="w-full" disabled={isLoading}>
+            <Button 
+              type="submit" 
+              className="w-full bg-blue-600 hover:bg-blue-700" 
+              disabled={isLoading}
+            >
               {isLoading ? "Iniciando sesión..." : "Iniciar Sesión"}
             </Button>
           </form>
 
-          <div className="mt-6 p-4 bg-slate-50 rounded-lg">
-            <h3 className="font-medium text-sm text-slate-700 mb-2">Usuarios de prueba:</h3>
-            <div className="space-y-1 text-xs text-slate-600">
-              <p><strong>Master:</strong> master@micampaña.com</p>
-              <p><strong>Candidato:</strong> candidato@micampaña.com</p>
-              <p><strong>Votante:</strong> votante@micampaña.com</p>
-              <p className="mt-2"><strong>Contraseña:</strong> micampaña2025</p>
+          <div className="mt-6 p-4 bg-blue-50 rounded-lg border border-blue-200">
+            <h3 className="font-medium text-sm text-blue-700 mb-2">👥 Usuarios Demo Funcionales:</h3>
+            <div className="space-y-2 text-xs text-blue-600">
+              <div className="bg-white p-2 rounded border-l-4 border-red-400">
+                <p><strong>🔴 MASTER:</strong> master@micampaña.com</p>
+                <p className="text-gray-600">• Puede crear usuarios Candidato</p>
+              </div>
+              <div className="bg-white p-2 rounded border-l-4 border-blue-400">
+                <p><strong>🔵 CANDIDATO:</strong> candidato@micampaña.com</p>
+                <p className="text-gray-600">• Puede crear usuarios Votante</p>
+              </div>
+              <div className="bg-white p-2 rounded border-l-4 border-green-400">
+                <p><strong>🟢 VOTANTE:</strong> votante@micampaña.com</p>
+                <p className="text-gray-600">• Usuario final del sistema</p>
+              </div>
+              <div className="mt-3 p-2 bg-yellow-100 rounded text-center">
+                <p><strong>🔑 Contraseña para todos:</strong> <code className="bg-yellow-200 px-1 rounded">micampaña2025</code></p>
+              </div>
             </div>
           </div>
         </CardContent>

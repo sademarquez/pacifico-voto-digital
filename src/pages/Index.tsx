@@ -18,85 +18,94 @@ import {
   Network
 } from "lucide-react";
 import { Link } from "react-router-dom";
+import { useAuth } from "../contexts/AuthContext";
 
 const Index = () => {
+  const { user } = useAuth();
+
+  // Si no hay usuario autenticado, redirigir al login
+  if (!user) {
+    window.location.href = "/login";
+    return null;
+  }
+
   const modules = [
     {
       title: "Reporte de publicidad",
       description: "Gestiona y reporta publicidad de campaña",
       icon: Camera,
       href: "/reporte-publicidad",
-      color: "bg-slate-600"
+      color: "bg-blue-600"
     },
     {
       title: "Registrar votante",
       description: "Registro y seguimiento de votantes",
       icon: Users,
       href: "/registro",
-      color: "bg-gray-600"
+      color: "bg-indigo-600"
     },
     {
       title: "Estructura",
       description: "Organización de la estructura política",
       icon: Building2,
       href: "/estructura",
-      color: "bg-stone-600"
+      color: "bg-sky-600"
     },
     {
       title: "Red de Ayudantes",
       description: "Sistema de comunicación y organización territorial",
       icon: Network,
       href: "/red-ayudantes",
-      color: "bg-slate-700"
+      color: "bg-blue-700"
     },
     {
       title: "Informes",
       description: "Reportes y análisis de campaña",
       icon: FileText,
       href: "/informes",
-      color: "bg-zinc-600"
+      color: "bg-cyan-600"
     },
     {
       title: "Lugar de Votación",
       description: "Ubicación de puestos de votación",
       icon: MapPin,
       href: "/lugar-votacion",
-      color: "bg-neutral-600"
+      color: "bg-blue-800"
     },
     {
       title: "Ubicación Votantes",
       description: "Mapeo geográfico de votantes",
       icon: Navigation,
       href: "/ubicacion-votantes",
-      color: "bg-slate-700"
+      color: "bg-indigo-700"
     },
     {
       title: "Dashboard",
       description: "Panel de control principal",
       icon: BarChart3,
       href: "/dashboard",
-      color: "bg-gray-700"
+      color: "bg-sky-700"
     },
     {
       title: "Mensajes",
       description: "Sistema de mensajería",
       icon: MessageSquare,
       href: "/mensajes",
-      color: "bg-stone-700"
+      color: "bg-blue-500"
     },
     {
       title: "Configuración",
       description: "Ajustes de la aplicación",
       icon: Settings,
       href: "/configuracion",
-      color: "bg-zinc-700"
+      color: "bg-indigo-800"
     }
   ];
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-gray-50 via-white to-slate-50">
+    <div className="min-h-screen bg-gradient-to-br from-blue-50 via-white to-indigo-50">
       {/* Header del Candidato */}
-      <div className="bg-gradient-to-r from-slate-700 to-slate-800 text-white">
+      <div className="bg-gradient-to-r from-blue-700 to-blue-800 text-white">
         <div className="container mx-auto px-4 py-8">
           <div className="flex flex-col items-center text-center">
             <div className="w-32 h-32 rounded-xl overflow-hidden shadow-lg mb-4 bg-white border-4 border-white/20">
@@ -106,10 +115,10 @@ const Index = () => {
                 className="w-full h-full object-cover"
               />
             </div>
-            <h1 className="text-3xl font-bold mb-2">Candidato</h1>
-            <p className="text-xl opacity-90">¡Qué gusto que nos visites!</p>
+            <h1 className="text-3xl font-bold mb-2">Bienvenido, {user.name}</h1>
+            <p className="text-xl opacity-90">¡Gracias por ser parte de nuestro equipo!</p>
             <Badge className="mt-3 bg-white/20 text-white border-white/30">
-              MI CAMPAÑA 2024 - Transparencia y Honestidad
+              MI CAMPAÑA 2025 - Transparencia y Honestidad | Rol: {user.role.toUpperCase()}
             </Badge>
           </div>
         </div>
@@ -117,26 +126,26 @@ const Index = () => {
 
       {/* Lista de Módulos */}
       <div className="container mx-auto px-4 py-8">
-        <h2 className="text-3xl font-bold text-slate-800 mb-8 text-center">
+        <h2 className="text-3xl font-bold text-blue-800 mb-8 text-center">
           Lista de módulos
         </h2>
         
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 max-w-6xl mx-auto">
           {modules.map((module, index) => (
             <Link key={index} to={module.href}>
-              <Card className="h-full hover:shadow-md transition-all duration-300 hover:scale-[1.02] cursor-pointer border border-gray-200 shadow-sm">
+              <Card className="h-full hover:shadow-md transition-all duration-300 hover:scale-[1.02] cursor-pointer border border-blue-200 shadow-sm">
                 <CardHeader className="pb-3">
                   <div className="flex items-center space-x-3">
                     <div className={`w-12 h-12 rounded-lg ${module.color} flex items-center justify-center shadow-sm`}>
                       <module.icon className="w-6 h-6 text-white" />
                     </div>
                     <div>
-                      <CardTitle className="text-lg text-slate-800">{module.title}</CardTitle>
+                      <CardTitle className="text-lg text-blue-800">{module.title}</CardTitle>
                     </div>
                   </div>
                 </CardHeader>
                 <CardContent>
-                  <CardDescription className="text-slate-600">
+                  <CardDescription className="text-blue-600">
                     {module.description}
                   </CardDescription>
                 </CardContent>
@@ -152,7 +161,7 @@ const Index = () => {
             target="_blank" 
             rel="noopener noreferrer"
           >
-            <Button size="lg" className="rounded-lg bg-slate-600 hover:bg-slate-700 shadow-sm">
+            <Button size="lg" className="rounded-lg bg-blue-600 hover:bg-blue-700 shadow-sm">
               <Facebook className="w-6 h-6" />
             </Button>
           </a>
@@ -161,11 +170,11 @@ const Index = () => {
             target="_blank" 
             rel="noopener noreferrer"
           >
-            <Button size="lg" className="rounded-lg bg-gray-600 hover:bg-gray-700 shadow-sm">
+            <Button size="lg" className="rounded-lg bg-indigo-600 hover:bg-indigo-700 shadow-sm">
               <Instagram className="w-6 h-6" />
             </Button>
           </a>
-          <Button size="lg" className="rounded-lg bg-zinc-700 hover:bg-zinc-800 shadow-sm">
+          <Button size="lg" className="rounded-lg bg-sky-700 hover:bg-sky-800 shadow-sm">
             <Music className="w-6 h-6" />
           </Button>
         </div>
