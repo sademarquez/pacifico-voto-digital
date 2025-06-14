@@ -43,8 +43,12 @@ const Navigation = () => {
           <div className="flex items-center justify-between h-16">
             {/* Logo */}
             <Link to="/" className="flex items-center space-x-2">
-              <div className="w-10 h-10 bg-gradient-to-br from-blue-600 to-blue-700 rounded-lg flex items-center justify-center shadow-md">
-                <Shield className="text-white w-5 h-5" />
+              <div className="w-10 h-10 rounded-lg overflow-hidden shadow-md">
+                <img 
+                  src="/lovable-uploads/83527a7a-6d3b-4edb-bdfc-312894177818.png" 
+                  alt="MI CAMPAÑA Logo" 
+                  className="w-full h-full object-cover"
+                />
               </div>
               <span className="font-bold text-xl text-blue-700 drop-shadow-sm">
                 MI CAMPAÑA 2025

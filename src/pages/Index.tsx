@@ -110,8 +110,8 @@ const Index = () => {
           <div className="flex flex-col items-center text-center">
             <div className="w-32 h-32 rounded-xl overflow-hidden shadow-lg mb-4 bg-white border-4 border-white/20">
               <img 
-                src="/lovable-uploads/1736829b-fe2c-45cd-9a94-59af97b2f33c.png" 
-                alt="Candidato" 
+                src="/lovable-uploads/83527a7a-6d3b-4edb-bdfc-312894177818.png" 
+                alt="MI CAMPAÑA Logo" 
                 className="w-full h-full object-cover"
               />
             </div>
