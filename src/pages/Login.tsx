@@ -23,8 +23,12 @@ const Login = () => {
     e.preventDefault();
     setIsLoading(true);
 
+    console.log('Login attempt with:', email, password);
+
     try {
       const success = await login(email, password);
+      console.log('Login result:', success);
+      
       if (success) {
         toast({
           title: "Bienvenido",
@@ -34,11 +38,12 @@ const Login = () => {
       } else {
         toast({
           title: "Error",
-          description: "Email o contraseña incorrectos",
+          description: "Email o contraseña incorrectos. Verifica las credenciales demo.",
           variant: "destructive"
         });
       }
     } catch (error) {
+      console.error('Login error:', error);
       toast({
         title: "Error",
         description: "Ha ocurrido un error al iniciar sesión",

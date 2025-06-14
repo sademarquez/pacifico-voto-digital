@@ -17,8 +17,8 @@ interface AuthContextType {
 
 const AuthContext = createContext<AuthContextType | undefined>(undefined);
 
-// Default users for demo purposes
-const defaultUsers: User[] = [
+// Demo users with functional credentials
+const demoUsers: User[] = [
   {
     id: '1',
     email: 'master@micampaña.com',
@@ -43,14 +43,24 @@ export const AuthProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
   const [user, setUser] = useState<User | null>(null);
 
   const login = async (email: string, password: string): Promise<boolean> => {
-    // Demo login - in real app this would be Firebase Auth
-    if (password === 'micampaña2025') {
-      const foundUser = defaultUsers.find(u => u.email === email);
-      if (foundUser) {
-        setUser(foundUser);
-        return true;
-      }
+    console.log('Attempting login with:', email, password);
+    
+    // Check if password is correct
+    if (password !== 'micampaña2025') {
+      console.log('Invalid password');
+      return false;
     }
+
+    // Find user by email
+    const foundUser = demoUsers.find(u => u.email.toLowerCase() === email.toLowerCase());
+    
+    if (foundUser) {
+      console.log('User found:', foundUser);
+      setUser(foundUser);
+      return true;
+    }
+    
+    console.log('User not found');
     return false;
   };
 
