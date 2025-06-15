@@ -1,5 +1,6 @@
+
 import React, { createContext, useContext, useState, ReactNode, useEffect } from 'react';
-import { supabase } from '@/lib/supabaseClient';
+import { supabase } from '@/integrations/supabase/client';
 import { User as SupabaseUser } from '@supabase/supabase-js';
 
 interface User {
@@ -7,7 +8,6 @@ interface User {
   email: string;
   name: string;
   role: 'desarrollador' | 'master' | 'candidato' | 'lider' | 'votante';
-  created_by?: string | null;
 }
 
 interface AuthContextType {
@@ -21,142 +21,107 @@ interface AuthContextType {
   clearAuthError: () => void;
 }
 
-interface AuthDebugInfo {
-  phase: string;
-  incomingUser: any;
-  mappedEmail: string | null;
-  loginPayload?: any;
-  profile?: any;
-  errorContext?: string;
-  latestError?: string | null;
-  loginResult?: boolean;
-}
-
-const AuthContext = createContext<AuthContextType & { debugInfo: AuthDebugInfo } | undefined>(undefined);
+const AuthContext = createContext<AuthContextType | undefined>(undefined);
 
 export const AuthProvider: React.FC<{ children: ReactNode }> = ({ children }) => {
   const [user, setUser] = useState<User | null>(null);
   const [isLoading, setIsLoading] = useState(true);
   const [authError, setAuthError] = useState<string | null>(null);
 
-  const [debugInfo, setDebugInfo] = useState<AuthDebugInfo>({
-    phase: 'inicio',
-    incomingUser: null,
-    mappedEmail: null,
-    errorContext: '',
-    latestError: null,
-    profile: null,
-    loginResult: undefined,
-  });
-
-  const clearAuthError = () => {
-    setAuthError(null);
-    setDebugInfo((prev) => ({ ...prev, latestError: null, errorContext: '' }));
-  };
+  const clearAuthError = () => setAuthError(null);
 
   useEffect(() => {
+    console.log('[AUTH] Inicializando AuthProvider...');
+    
     if (!supabase) {
-      setAuthError("Fallo la conexión con el backend (Supabase). Revisa la consola del navegador para más detalles.");
+      console.error('[AUTH] Supabase client no disponible');
+      setAuthError("Error de conexión con la base de datos");
       setIsLoading(false);
-      setDebugInfo((prev) => ({
-        ...prev,
-        phase: 'supabase-client-missing',
-        latestError: 'Supabase client not initialized'
-      }));
       return;
     }
 
-    setIsLoading(true);
-    const { data: authListener } = supabase.auth.onAuthStateChange(
-      async (event, session) => {
-        setDebugInfo((prev) => ({
-          ...prev,
-          phase: 'onAuthStateChange',
-          incomingUser: session?.user,
-        }));
-
-        console.log('[AUTH] State change:', event, session?.user?.email);
-        const supabaseUser = session?.user ?? null;
-        if (supabaseUser) {
-          setDebugInfo((prev) => ({
-            ...prev,
-            phase: 'fetch-profile',
-            incomingUser: supabaseUser,
-          }));
-
-          const { data: profile, error } = await supabase
-            .from('profiles')
-            .select('id, name, role, created_by')
-            .eq('id', supabaseUser.id)
-            .maybeSingle();
-
-          setDebugInfo((prev) => ({
-            ...prev,
-            profile,
-            phase: profile ? 'profile-found' : 'profile-not-found',
-            latestError: error?.message || null,
-            errorContext: error ? JSON.stringify(error) : '',
-          }));
-
-          if (error && error.code !== 'PGRST116') {
-            console.error("[AUTH] Error fetching profile:", error);
-            setAuthError("Error al cargar el perfil de usuario.");
-            setUser(null);
-          } else if (profile) {
-            console.log('[AUTH] Usuario autenticado (profile):', profile.name, 'Rol:', profile.role);
-            setUser({
-              id: profile.id,
-              name: profile.name || supabaseUser.email || 'Usuario',
-              role: profile.role as User['role'],
-              email: supabaseUser.email || '',
-              created_by: profile.created_by
-            });
-            setAuthError(null); // Limpiar errores al autenticar exitosamente
-          } else {
-            console.warn("[AUTH] No profile found for user, signing them out.");
-            setAuthError("No se encontró perfil asociado. Contacta a soporte.");
-            await supabase.auth.signOut();
-            setUser(null);
-          }
-        } else {
-          console.log('[AUTH] Usuario desconectado');
-          setUser(null);
+    // Obtener sesión actual
+    const getInitialSession = async () => {
+      try {
+        const { data: { session }, error } = await supabase.auth.getSession();
+        console.log('[AUTH] Sesión inicial:', session?.user?.email || 'No session');
+        
+        if (error) {
+          console.error('[AUTH] Error obteniendo sesión:', error);
+          setAuthError(`Error de sesión: ${error.message}`);
+        } else if (session?.user) {
+          await loadUserProfile(session.user);
         }
+      } catch (error) {
+        console.error('[AUTH] Error en getInitialSession:', error);
+        setAuthError('Error cargando sesión inicial');
+      } finally {
         setIsLoading(false);
       }
-    );
+    };
+
+    // Escuchar cambios de autenticación
+    const { data: authListener } = supabase.auth.onAuthStateChange(async (event, session) => {
+      console.log('[AUTH] Cambio de estado:', event, session?.user?.email || 'No user');
+      
+      if (session?.user) {
+        await loadUserProfile(session.user);
+      } else {
+        console.log('[AUTH] Usuario desconectado');
+        setUser(null);
+      }
+    });
+
+    getInitialSession();
 
     return () => {
       authListener?.subscription.unsubscribe();
     };
   }, []);
 
-  const login = async (nameOrEmail: string, password: string): Promise<boolean> => {
-    if (!supabase) {
-      const errorMsg = "No se puede iniciar sesión. La conexión con el backend no está disponible.";
-      setAuthError(errorMsg);
-      setDebugInfo((prev) => ({
-        ...prev,
-        phase: 'login-supabase-client-missing',
-        latestError: 'Supabase client not initialized'
-      }));
-      return false;
+  const loadUserProfile = async (supabaseUser: SupabaseUser) => {
+    try {
+      console.log('[AUTH] Cargando perfil para:', supabaseUser.email);
+      
+      const { data: profile, error } = await supabase
+        .from('profiles')
+        .select('id, name, role')
+        .eq('id', supabaseUser.id)
+        .maybeSingle();
+
+      if (error) {
+        console.error('[AUTH] Error cargando perfil:', error);
+        setAuthError(`Error cargando perfil: ${error.message}`);
+        return;
+      }
+
+      if (profile) {
+        console.log('[AUTH] Perfil encontrado:', profile);
+        setUser({
+          id: profile.id,
+          name: profile.name || supabaseUser.email || 'Usuario',
+          role: profile.role,
+          email: supabaseUser.email || '',
+        });
+        setAuthError(null);
+      } else {
+        console.warn('[AUTH] No se encontró perfil para el usuario');
+        setAuthError('No se encontró perfil de usuario. Contacta al administrador.');
+        await supabase.auth.signOut();
+      }
+    } catch (error) {
+      console.error('[AUTH] Error en loadUserProfile:', error);
+      setAuthError('Error cargando datos del usuario');
     }
+  };
 
-    setDebugInfo((prev) => ({
-      ...prev,
-      phase: 'login-start',
-      incomingUser: nameOrEmail,
-      mappedEmail: null,
-      latestError: null,
-      loginPayload: { nameOrEmail, password },
-    }));
-
-    // Limpiar errores previos al iniciar nuevo intento
+  const login = async (nameOrEmail: string, password: string): Promise<boolean> => {
+    console.log('[AUTH] Iniciando login para:', nameOrEmail);
     setAuthError(null);
-
+    
     let email = nameOrEmail;
 
+    // Mapeo de nombres a emails
     if (!nameOrEmail.includes('@')) {
       const emailMap: { [key: string]: string } = {
         'Desarrollador': 'dev@demo.com',
@@ -167,126 +132,89 @@ export const AuthProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
       };
 
       email = emailMap[nameOrEmail];
-      setDebugInfo((prev) => ({
-        ...prev,
-        phase: 'map-username-to-email',
-        mappedEmail: email || null,
-      }));
-
       if (!email) {
-        const errorMsg = `Usuario "${nameOrEmail}" no encontrado. Usa: Desarrollador, Master, Candidato, Lider o Votante.`;
-        setAuthError(errorMsg);
-        setDebugInfo((prev) => ({
-          ...prev,
-          phase: 'username-mapping-fail',
-          latestError: errorMsg
-        }));
+        setAuthError(`Usuario "${nameOrEmail}" no encontrado`);
         return false;
       }
-      console.log('[LOGIN] Email mapeado:', email);
+      console.log('[AUTH] Email mapeado:', email);
     }
 
-    setDebugInfo((prev) => ({
-      ...prev,
-      phase: 'login-attempt-supabase',
-      mappedEmail: email,
-    }));
+    try {
+      const { data, error } = await supabase.auth.signInWithPassword({
+        email: email.trim(),
+        password: password,
+      });
 
-    const { data, error } = await supabase.auth.signInWithPassword({
-      email: email.trim(),
-      password: password,
-    });
-
-    setDebugInfo((prev) => ({
-      ...prev,
-      phase: error ? 'login-error' : 'login-success',
-      latestError: error?.message || null,
-      loginResult: !error,
-    }));
-
-    if (error) {
-      console.error('[LOGIN] Error de login en Supabase:', error);
-      let errorMsg = 'Error de login: ';
-
-      if (error.message.includes('Invalid login credentials')) {
-        errorMsg = 'Credenciales incorrectas. Verifica tu usuario y contraseña (12345678).';
-      } else if (error.message.includes('Email not confirmed')) {
-        errorMsg = 'Email no confirmado. Revisa tu correo o contacta al administrador.';
-      } else {
-        errorMsg += error.message;
+      if (error) {
+        console.error('[AUTH] Error de login:', error);
+        let errorMsg = 'Error de login: ';
+        if (error.message.includes('Invalid login credentials')) {
+          errorMsg = 'Credenciales incorrectas. Verifica usuario y contraseña.';
+        } else {
+          errorMsg += error.message;
+        }
+        setAuthError(errorMsg);
+        return false;
       }
 
-      setAuthError(errorMsg);
-      setDebugInfo((prev) => ({
-        ...prev,
-        phase: 'login-final-error',
-        latestError: errorMsg,
-      }));
+      console.log('[AUTH] Login exitoso para:', data.user?.email);
+      return true;
+    } catch (error) {
+      console.error('[AUTH] Error en login:', error);
+      setAuthError('Error inesperado durante el login');
       return false;
     }
-
-    console.log('[LOGIN] === LOGIN EXITOSO ===');
-    console.log('[LOGIN] Usuario autenticado:', data.user?.email);
-
-    setDebugInfo((prev) => ({
-      ...prev,
-      phase: 'login-final-success',
-      loginResult: true,
-      incomingUser: data.user,
-    }));
-    return true;
   };
 
   const signUp = async (email: string, password: string, name: string, role: string): Promise<boolean> => {
-    if (!supabase) {
-      console.error('[SIGNUP] Error: Supabase client no está inicializado.');
-      const errorMsg = "No se puede registrar usuario. Conexión no disponible.";
-      setAuthError(errorMsg);
-      return false;
-    }
-
-    console.log('[SIGNUP] Creando usuario:', { email, name, role, password });
-    setAuthError(null);
+    console.log('[AUTH] Creando usuario:', { email, name, role });
     
-    const { data, error } = await supabase.auth.signUp({
-      email: email.trim(),
-      password: password,
-      options: {
-        data: {
-          name: name,
-          role: role
+    try {
+      const { data, error } = await supabase.auth.signUp({
+        email: email.trim(),
+        password: password,
+        options: {
+          data: {
+            name: name,
+            role: role
+          }
         }
+      });
+      
+      if (error) {
+        console.error('[AUTH] Error en signUp:', error);
+        if (error.message.includes('User already registered')) {
+          console.log('[AUTH] Usuario ya existe - esto es normal en demo');
+          return true;
+        }
+        setAuthError(`Error creando usuario: ${error.message}`);
+        return false;
       }
-    });
-    
-    if (error) {
-      console.error('[SIGNUP] Error:', error.message);
-      if (error.message.includes('User already registered')) {
-        console.log('[SIGNUP] Usuario ya existe, esto es normal en demo');
-        return true;
-      }
-      setAuthError(`Error al crear usuario: ${error.message}`);
+      
+      console.log('[AUTH] Usuario creado exitosamente:', email);
+      return true;
+    } catch (error) {
+      console.error('[AUTH] Error en signUp:', error);
+      setAuthError('Error inesperado creando usuario');
       return false;
     }
-    
-    console.log('[SIGNUP] Usuario creado exitosamente:', email);
-    return true;
   };
 
   const logout = async () => {
-    if (!supabase) {
-      console.error('[LOGOUT] Error: Supabase client no está inicializado.');
-      return;
-    }
-    
-    console.log('[LOGOUT] Cerrando sesión...');
-    setAuthError(null); // Limpiar errores al cerrar sesión
-    const { error } = await supabase.auth.signOut();
-    if (error) {
-      console.error('[LOGOUT] Error:', error.message);
-      setAuthError(`Error al cerrar sesión: ${error.message}`);
-    } else {
-      console.log('[LOGOUT] Sesión cerrada exitosamente');
+    console.log('[AUTH] Cerrando sesión...');
+    try {
+      const { error } = await supabase.auth.signOut();
+      if (error) {
+        console.error('[AUTH] Error en logout:', error);
+        setAuthError(`Error cerrando sesión: ${error.message}`);
+      } else {
+        console.log('[AUTH] Sesión cerrada exitosamente');
+        setUser(null);
+        setAuthError(null);
+      }
+    } catch (error) {
+      console.error('[AUTH] Error en logout:', error);
+      setAuthError('Error inesperado cerrando sesión');
     }
   };
 
@@ -299,12 +227,11 @@ export const AuthProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
     isLoading,
     authError,
     clearAuthError,
-    debugInfo,
   };
 
   return (
     <AuthContext.Provider value={value}>
-      {!isLoading && children}
+      {children}
     </AuthContext.Provider>
   );
 };

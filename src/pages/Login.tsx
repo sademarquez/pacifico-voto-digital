@@ -1,9 +1,10 @@
+
 import { useState, useEffect } from "react";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
-import { Shield, Eye, EyeOff, Terminal, Crown, Target, Users2, User, Plus, AlertCircle } from "lucide-react";
+import { Shield, Eye, EyeOff, Crown, Target, Users2, User, Plus, AlertCircle } from "lucide-react";
 import { useAuth } from "../contexts/AuthContext";
 import { useNavigate } from "react-router-dom";
 import { useToast } from "@/hooks/use-toast";
@@ -12,17 +13,24 @@ import { useDemoUsers } from "@/hooks/useDemoUsers";
 
 const Login = () => {
   const [email, setEmail] = useState("");
-  const [password, setPassword] = useState("12345678"); // Contraseña fija por defecto
+  const [password, setPassword] = useState("12345678");
   const [showPassword, setShowPassword] = useState(false);
   const [isLoading, setIsLoading] = useState(false);
   const [isCreatingUsers, setIsCreatingUsers] = useState(false);
   
-  const { login, authError, clearAuthError, debugInfo } = useAuth();
+  const { login, authError, clearAuthError, isAuthenticated } = useAuth();
   const navigate = useNavigate();
   const { toast } = useToast();
-  const { createAllDemoUsers, demoUsers, FIXED_PASSWORD } = useDemoUsers();
+  const { createAllDemoUsers, FIXED_PASSWORD } = useDemoUsers();
 
-  // Limpiar error cuando el usuario empiece a escribir
+  // Redirigir si ya está autenticado
+  useEffect(() => {
+    if (isAuthenticated) {
+      navigate("/dashboard");
+    }
+  }, [isAuthenticated, navigate]);
+
+  // Limpiar error cuando el usuario modifica campos
   useEffect(() => {
     if (authError && (email || password !== "12345678")) {
       clearAuthError();
@@ -51,30 +59,25 @@ const Login = () => {
     }
 
     setIsLoading(true);
-    clearAuthError(); // Limpiar errores previos
+    clearAuthError();
 
-    console.log('[LOGIN-UI] Formulario enviado');
-    console.log('[LOGIN-UI] Usuario:', email);
-    console.log('[LOGIN-UI] Contraseña:', password);
+    console.log('[LOGIN-UI] Iniciando login:', email);
 
     try {
       const success = await login(email.trim(), password);
       
-      console.log('[LOGIN-UI] Resultado del login:', success);
-      
       if (success) {
         toast({
           title: "¡Bienvenido!",
-          description: `Has iniciado sesión correctamente como ${email}.`,
+          description: `Login exitoso como ${email}.`,
         });
-        navigate("/dashboard");
+        // La redirección se maneja automáticamente por el useEffect
       }
-      // Si hay error, se mostrará automáticamente por el estado authError
     } catch (error) {
       console.error('[LOGIN-UI] Error durante login:', error);
       toast({
         title: "Error",
-        description: "Ha ocurrido un error inesperado. Revisa la consola para más detalles.",
+        description: "Error inesperado. Revisa la consola.",
         variant: "destructive"
       });
     } finally {
@@ -88,13 +91,13 @@ const Login = () => {
       await createAllDemoUsers();
       toast({
         title: "Usuarios creados",
-        description: `Los usuarios de demostración han sido creados con contraseña: ${FIXED_PASSWORD}`,
+        description: `Usuarios demo creados con contraseña: ${FIXED_PASSWORD}`,
       });
     } catch (error) {
-      console.error('[LOGIN-UI] Error creating demo users:', error);
+      console.error('[LOGIN-UI] Error creando usuarios demo:', error);
       toast({
         title: "Error",
-        description: "Hubo un error al crear los usuarios de demostración.",
+        description: "Error al crear usuarios demo.",
         variant: "destructive"
       });
     } finally {
@@ -102,43 +105,12 @@ const Login = () => {
     }
   };
 
-  // Usuarios de demostración simplificados
   const demoUsersDisplay = [
-    {
-      role: "Desarrollador",
-      name: "Desarrollador",
-      icon: Shield,
-      color: "text-purple-600",
-      description: "Control total del sistema"
-    },
-    {
-      role: "Master",
-      name: "Master",
-      icon: Crown,
-      color: "text-red-600",
-      description: "Gestión de candidatos"
-    },
-    {
-      role: "Candidato",
-      name: "Candidato",
-      icon: Target,
-      color: "text-blue-600",
-      description: "Gestión territorial"
-    },
-    {
-      role: "Líder",
-      name: "Lider",
-      icon: Users2,
-      color: "text-orange-600",
-      description: "Coordinación local"
-    },
-    {
-      role: "Votante",
-      name: "Votante",
-      icon: User,
-      color: "text-green-600",
-      description: "Usuario base"
-    }
+    { role: "Desarrollador", name: "Desarrollador", icon: Shield, color: "text-purple-600" },
+    { role: "Master", name: "Master", icon: Crown, color: "text-red-600" },
+    { role: "Candidato", name: "Candidato", icon: Target, color: "text-blue-600" },
+    { role: "Líder", name: "Lider", icon: Users2, color: "text-orange-600" },
+    { role: "Votante", name: "Votante", icon: User, color: "text-green-600" }
   ];
 
   return (
@@ -151,10 +123,9 @@ const Login = () => {
               <Shield className="text-white w-8 h-8" />
             </div>
             <CardTitle className="text-2xl font-bold text-blue-700">MI CAMPAÑA 2025</CardTitle>
-            <p className="text-blue-600">Sistema Jerárquico de Gestión Electoral</p>
+            <p className="text-blue-600">Sistema de Gestión Electoral</p>
           </CardHeader>
           <CardContent>
-            {/* Mostrar error de autenticación de forma persistente */}
             {authError && (
               <Alert variant="destructive" className="mb-4">
                 <AlertCircle className="h-4 w-4" />
@@ -163,7 +134,7 @@ const Login = () => {
                   {authError}
                   <br />
                   <small className="text-xs mt-2 block">
-                    Usa la contraseña fija: <strong>12345678</strong>
+                    Contraseña fija: <strong>12345678</strong>
                   </small>
                 </AlertDescription>
               </Alert>
@@ -182,7 +153,7 @@ const Login = () => {
                   required
                   disabled={isLoading}
                 />
-                <p className="text-xs text-gray-500">Puedes usar el nombre (ej: "Desarrollador") o email</p>
+                <p className="text-xs text-gray-500">Usa: "Desarrollador", "Master", "Candidato", "Lider" o "Votante"</p>
               </div>
               
               <div className="space-y-2">
@@ -209,7 +180,9 @@ const Login = () => {
                     {showPassword ? <EyeOff className="w-4 h-4" /> : <Eye className="w-4 h-4" />}
                   </Button>
                 </div>
-                <p className="text-xs text-green-600 font-medium">Contraseña fija para todos: <span className="bg-green-100 px-1 rounded">12345678</span></p>
+                <p className="text-xs text-green-600 font-medium">
+                  Contraseña fija: <span className="bg-green-100 px-1 rounded">12345678</span>
+                </p>
               </div>
 
               <Button 
@@ -222,24 +195,10 @@ const Login = () => {
             </form>
             
             <div className="mt-4 p-3 bg-gray-50 rounded-lg text-xs text-gray-600">
-              <p><strong>Debug Info:</strong></p>
-              <p>• URL Base: https://zecltlsdkbndhqimpjjo.supabase.co</p>
+              <p><strong>Info del Sistema:</strong></p>
               <p>• Contraseña fija: <strong>12345678</strong></p>
-              <p>• Login por nombre de usuario habilitado</p>
-              {authError && <p className="text-red-600 mt-1">• Error activo: {authError}</p>}
-            </div>
-            {/* Panel Debug Avanzado */}
-            <div className="mb-4 p-3 bg-yellow-50 rounded-lg text-xs border border-yellow-200">
-              <div className="font-bold text-yellow-700 mb-1">🔎 Debug AuthInfo</div>
-              <ul className="text-yellow-800 space-y-1">
-                <li><strong>Fase:</strong> {debugInfo?.phase}</li>
-                <li><strong>Usuario entrada:</strong> {debugInfo?.incomingUser ? JSON.stringify(debugInfo.incomingUser) : "N/A"}</li>
-                <li><strong>Email mapeado:</strong> {debugInfo?.mappedEmail || "N/A"}</li>
-                <li><strong>Perfil:</strong> {debugInfo?.profile ? JSON.stringify(debugInfo.profile) : "N/A"}</li>
-                <li><strong>Login ok:</strong> {debugInfo?.loginResult ? "✅" : debugInfo?.loginResult === false ? "❌" : "N/A"}</li>
-                <li><strong>Último error:</strong> {debugInfo?.latestError || "N/A"}</li>
-                <li><strong>Error contexto:</strong> {debugInfo?.errorContext || "N/A"}</li>
-              </ul>
+              <p>• Login por nombre habilitado</p>
+              {authError && <p className="text-red-600 mt-1">• Error: {authError}</p>}
             </div>
           </CardContent>
         </Card>
@@ -247,8 +206,8 @@ const Login = () => {
         {/* Panel de Usuarios Demo */}
         <Card className="w-full border-green-200 shadow-lg">
           <CardHeader>
-            <CardTitle className="text-green-700 text-xl">🚀 Estructura Jerárquica</CardTitle>
-            <p className="text-green-600">Usuarios de demostración disponibles</p>
+            <CardTitle className="text-green-700 text-xl">🚀 Usuarios Demo</CardTitle>
+            <p className="text-green-600">Usuarios disponibles para pruebas</p>
             <Button
               onClick={handleCreateDemoUsers}
               disabled={isCreatingUsers}
@@ -261,7 +220,7 @@ const Login = () => {
           <CardContent>
             <div className="space-y-3">
               <p className="text-sm text-green-700 font-medium mb-4">
-                Contraseña FIJA para todos: <span className="bg-green-100 px-2 py-1 rounded font-bold">12345678</span>
+                Contraseña para todos: <span className="bg-green-100 px-2 py-1 rounded font-bold">12345678</span>
               </p>
               
               {demoUsersDisplay.map((user, index) => {
@@ -271,8 +230,7 @@ const Login = () => {
                     <Icon className={`w-6 h-6 ${user.color}`} />
                     <div className="flex-1">
                       <div className="font-medium text-gray-800">{user.role}</div>
-                      <div className="text-sm text-gray-600">Nombre: {user.name}</div>
-                      <div className="text-xs text-gray-500">{user.description}</div>
+                      <div className="text-sm text-gray-600">Usuario: {user.name}</div>
                     </div>
                     <Button
                       variant="outline"
@@ -280,7 +238,7 @@ const Login = () => {
                       onClick={() => {
                         setEmail(user.name);
                         setPassword("12345678");
-                        clearAuthError(); // Limpiar errores al seleccionar usuario
+                        clearAuthError();
                       }}
                       className="text-green-600 border-green-300 hover:bg-green-100"
                     >
@@ -292,21 +250,14 @@ const Login = () => {
             </div>
             
             <div className="mt-6 p-4 bg-blue-50 rounded-lg border border-blue-200">
-              <h3 className="font-medium text-sm text-blue-800 mb-2">📋 Jerarquía del Sistema</h3>
+              <h3 className="font-medium text-sm text-blue-800 mb-2">📋 Estructura del Sistema</h3>
               <div className="text-xs text-blue-700 space-y-1">
-                <div>• <strong>Desarrollador:</strong> Crea Masters</div>
-                <div>• <strong>Master:</strong> Crea Candidatos</div>
-                <div>• <strong>Candidato:</strong> Crea Líderes</div>
-                <div>• <strong>Líder:</strong> Crea Votantes</div>
+                <div>• <strong>Desarrollador:</strong> Control total</div>
+                <div>• <strong>Master:</strong> Gestión candidatos</div>
+                <div>• <strong>Candidato:</strong> Gestión territorial</div>
+                <div>• <strong>Líder:</strong> Coordinación local</div>
                 <div>• <strong>Votante:</strong> Usuario base</div>
               </div>
-            </div>
-            
-            <div className="mt-4 p-3 bg-yellow-50 rounded-lg border border-yellow-200">
-              <p className="text-xs text-yellow-800">
-                <strong>✅ SIMPLIFICADO:</strong> Contraseña única <strong>12345678</strong> para evitar problemas.
-                Login por nombre de usuario (ej: "Desarrollador") o email tradicional.
-              </p>
             </div>
           </CardContent>
         </Card>
