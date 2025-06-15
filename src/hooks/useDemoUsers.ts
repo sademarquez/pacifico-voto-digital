@@ -1,5 +1,6 @@
 
 import { useAuth } from '@/contexts/AuthContext';
+import { supabase } from "@/integrations/supabase/client";
 
 interface DemoUser {
   email: string;
@@ -52,7 +53,7 @@ export const useDemoUsers = () => {
       const success = await signUp(user.email, user.password, user.name, user.role);
       // Verificar perfil creado
       if (success) {
-        const { data: profile, error } = await window.supabase
+        const { data: profile, error } = await supabase
           .from('profiles')
           .select('id, name, role')
           .eq('name', user.name)
