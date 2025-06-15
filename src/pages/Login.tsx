@@ -1,4 +1,3 @@
-
 import { useState, useEffect } from "react";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
@@ -18,7 +17,7 @@ const Login = () => {
   const [isLoading, setIsLoading] = useState(false);
   const [isCreatingUsers, setIsCreatingUsers] = useState(false);
   
-  const { login, authError, clearAuthError } = useAuth();
+  const { login, authError, clearAuthError, debugInfo } = useAuth();
   const navigate = useNavigate();
   const { toast } = useToast();
   const { createAllDemoUsers, demoUsers, FIXED_PASSWORD } = useDemoUsers();
@@ -228,6 +227,19 @@ const Login = () => {
               <p>• Contraseña fija: <strong>12345678</strong></p>
               <p>• Login por nombre de usuario habilitado</p>
               {authError && <p className="text-red-600 mt-1">• Error activo: {authError}</p>}
+            </div>
+            {/* Panel Debug Avanzado */}
+            <div className="mb-4 p-3 bg-yellow-50 rounded-lg text-xs border border-yellow-200">
+              <div className="font-bold text-yellow-700 mb-1">🔎 Debug AuthInfo</div>
+              <ul className="text-yellow-800 space-y-1">
+                <li><strong>Fase:</strong> {debugInfo?.phase}</li>
+                <li><strong>Usuario entrada:</strong> {debugInfo?.incomingUser ? JSON.stringify(debugInfo.incomingUser) : "N/A"}</li>
+                <li><strong>Email mapeado:</strong> {debugInfo?.mappedEmail || "N/A"}</li>
+                <li><strong>Perfil:</strong> {debugInfo?.profile ? JSON.stringify(debugInfo.profile) : "N/A"}</li>
+                <li><strong>Login ok:</strong> {debugInfo?.loginResult ? "✅" : debugInfo?.loginResult === false ? "❌" : "N/A"}</li>
+                <li><strong>Último error:</strong> {debugInfo?.latestError || "N/A"}</li>
+                <li><strong>Error contexto:</strong> {debugInfo?.errorContext || "N/A"}</li>
+              </ul>
             </div>
           </CardContent>
         </Card>

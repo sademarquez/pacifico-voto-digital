@@ -11,7 +11,6 @@ interface DemoUser {
 export const useDemoUsers = () => {
   const { signUp } = useAuth();
 
-  // Contraseña fija simplificada para evitar problemas
   const FIXED_PASSWORD = "12345678";
 
   const demoUsers: DemoUser[] = [
@@ -51,6 +50,19 @@ export const useDemoUsers = () => {
     try {
       console.log(`[DEMO] Creando usuario: ${user.name} (${user.email}) con contraseña: ${FIXED_PASSWORD}`);
       const success = await signUp(user.email, user.password, user.name, user.role);
+      // Verificar perfil creado
+      if (success) {
+        const { data: profile, error } = await window.supabase
+          .from('profiles')
+          .select('id, name, role')
+          .eq('name', user.name)
+          .maybeSingle();
+        if (profile && !error) {
+          console.log(`[DEMO-VERIFICATOR] Perfil OK:`, profile);
+        } else {
+          console.warn(`[DEMO-VERIFICATOR] PERFIL FALTANTE para: ${user.email}, error:`, error);
+        }
+      }
       console.log(`[DEMO] Resultado para ${user.name}:`, success);
       return success;
     } catch (error) {
@@ -62,19 +74,18 @@ export const useDemoUsers = () => {
   const createAllDemoUsers = async (): Promise<void> => {
     console.log('[DEMO] === INICIANDO CREACIÓN DE USUARIOS DEMO ===');
     console.log(`[DEMO] Contraseña fija para todos: ${FIXED_PASSWORD}`);
-    
+
     for (const user of demoUsers) {
       try {
         console.log(`[DEMO] Procesando: ${user.name}...`);
         await createDemoUser(user);
-        // Pausa reducida para evitar rate limiting
         await new Promise(resolve => setTimeout(resolve, 1500));
       } catch (error) {
         console.error(`[DEMO] Error procesando ${user.name}:`, error);
         await new Promise(resolve => setTimeout(resolve, 500));
       }
     }
-    
+
     console.log('[DEMO] === PROCESO COMPLETADO ===');
     console.log('[DEMO] Usuarios disponibles para login:');
     demoUsers.forEach(user => {
