@@ -1,3 +1,4 @@
+
 import { useState } from "react";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
@@ -56,7 +57,7 @@ const TerritoryManager = () => {
   // Query para obtener territorios filtrados
   const { data: territories = [], isLoading } = useQuery({
     queryKey: ['territories', user?.id],
-    queryFn: async (): Promise<Territory[]> => {
+    queryFn: async () => {
       if (!supabase || !user) return [];
       
       const filter = getTerritoryFilter();
@@ -73,8 +74,7 @@ const TerritoryManager = () => {
           created_by,
           parent:territories!parent_id(name),
           responsible:profiles!responsible_user_id(name)
-        `)
-        .order('created_at', { ascending: false });
+        `);
 
       // Aplicar filtros según el rol
       if (filter && Object.keys(filter).length > 0) {
@@ -89,12 +89,14 @@ const TerritoryManager = () => {
         }
       }
 
+      query = query.order('created_at', { ascending: false });
+
       const { data, error } = await query;
       if (error) {
         console.error('Error fetching territories:', error);
         return [];
       }
-      return data || [];
+      return (data as unknown as Territory[]) || [];
     },
     enabled: !!supabase && !!user
   });
