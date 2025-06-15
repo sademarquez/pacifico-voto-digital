@@ -54,61 +54,59 @@ const AlertSystem = () => {
     territory_id: ''
   });
 
-  // Query para obtener alertas filtradas según el rol
-  const { data: alerts = [], isLoading } = useQuery<Alert[]>({
+  // Query para obtener alertas
+  const { data: alerts = [], isLoading } = useQuery({
     queryKey: ['alerts', user?.id],
-    queryFn: async (): Promise<Alert[]> => {
+    queryFn: async () => {
       if (!supabase || !user) return [];
       
-      const filter = getAlertFilter();
-      let query = supabase
-        .from('alerts')
-        .select(`
-          *,
-          territories(name),
-          profiles!alerts_created_by_fkey(name)
-        `)
-        .order('created_at', { ascending: false });
+      console.log('Fetching alerts for user:', user.id);
+      
+      try {
+        let query = supabase
+          .from('alerts')
+          .select(`
+            *,
+            territories(name),
+            profiles!alerts_created_by_fkey(name)
+          `)
+          .order('created_at', { ascending: false });
 
-      // Aplicar filtros según el rol
-      if (filter && Object.keys(filter).length > 0) {
-        if (filter.or) {
-          query = query.or(filter.or);
-        } else {
-          Object.entries(filter).forEach(([key, value]) => {
-            if (value !== null && value !== undefined) {
-              query = query.eq(key, value);
-            }
-          });
+        const { data, error } = await query;
+        if (error) {
+          console.error('Error fetching alerts:', error);
+          return [];
         }
-      }
-
-      const { data, error } = await query;
-      if (error) {
-        console.error('Error fetching alerts:', error);
+        return data || [];
+      } catch (error) {
+        console.error('Exception fetching alerts:', error);
         return [];
       }
-      return (data as Alert[]) || [];
     },
     enabled: !!supabase && !!user
   });
 
-  // Query para obtener territorios disponibles
-  const { data: territories = [] } = useQuery<Territory[]>({
+  // Query para obtener territorios
+  const { data: territories = [] } = useQuery({
     queryKey: ['territories-for-alerts', user?.id],
-    queryFn: async (): Promise<Territory[]> => {
+    queryFn: async () => {
       if (!supabase || !user) return [];
       
-      const { data, error } = await supabase
-        .from('territories')
-        .select('id, name, type')
-        .order('name');
+      try {
+        const { data, error } = await supabase
+          .from('territories')
+          .select('id, name, type')
+          .order('name');
 
-      if (error) {
-        console.error('Error fetching territories:', error);
+        if (error) {
+          console.error('Error fetching territories:', error);
+          return [];
+        }
+        return data || [];
+      } catch (error) {
+        console.error('Exception fetching territories:', error);
         return [];
       }
-      return (data as Territory[]) || [];
     },
     enabled: !!supabase && !!user
   });

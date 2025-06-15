@@ -24,29 +24,31 @@ const Login = () => {
     e.preventDefault();
     setIsLoading(true);
 
+    console.log('Attempting login with:', { email, password: password ? '***' : 'empty' });
+
     try {
       const success = await login(email, password);
+      
+      console.log('Login result:', success);
       
       if (success) {
         toast({
           title: "¡Bienvenido!",
           description: "Has iniciado sesión correctamente.",
         });
-        navigate("/");
+        navigate("/dashboard");
       } else {
-        if (!authError) {
-          toast({
-            title: "Error de Acceso",
-            description: "Email o contraseña incorrectos.",
-            variant: "destructive"
-          });
-        }
+        toast({
+          title: "Error de Acceso",
+          description: "Email o contraseña incorrectos. Verifica las credenciales.",
+          variant: "destructive"
+        });
       }
     } catch (error) {
       console.error('Login error:', error);
       toast({
         title: "Error",
-        description: "Ha ocurrido un error al iniciar sesión.",
+        description: "Ha ocurrido un error al iniciar sesión. Revisa la consola para más detalles.",
         variant: "destructive"
       });
     } finally {
@@ -111,10 +113,15 @@ const Login = () => {
                 <Terminal className="h-4 w-4" />
                 <AlertTitle>Error de Conexión</AlertTitle>
                 <AlertDescription>
-                  {authError} Por favor, intenta refrescar la página.
+                  {authError} 
+                  <br />
+                  <small className="text-xs mt-2 block">
+                    Verifica la consola del navegador para más detalles técnicos.
+                  </small>
                 </AlertDescription>
               </Alert>
             )}
+            
             <form onSubmit={handleSubmit} className="space-y-4">
               <div className="space-y-2">
                 <Label htmlFor="email" className="text-blue-700">Email</Label>
@@ -164,6 +171,14 @@ const Login = () => {
                 {isLoading ? "Iniciando sesión..." : "Iniciar Sesión"}
               </Button>
             </form>
+            
+            {/* Información de debug */}
+            <div className="mt-4 p-3 bg-gray-50 rounded-lg text-xs text-gray-600">
+              <p><strong>Debug Info:</strong></p>
+              <p>• URL Base: https://zecltlsdkbndhqimpjjo.supabase.co</p>
+              <p>• Usuarios demo disponibles (contraseña: micampaña2025)</p>
+              <p>• Si hay errores, revisa la consola del navegador</p>
+            </div>
           </CardContent>
         </Card>
 
@@ -214,6 +229,13 @@ const Login = () => {
                 <div>• <strong>Líder:</strong> Crea Votantes</div>
                 <div>• <strong>Votante:</strong> Usuario base</div>
               </div>
+            </div>
+            
+            <div className="mt-4 p-3 bg-yellow-50 rounded-lg border border-yellow-200">
+              <p className="text-xs text-yellow-800">
+                <strong>⚠️ Nota:</strong> Los usuarios demo se crearán automáticamente cuando intentes iniciar sesión.
+                Si tienes problemas, revisa la consola del navegador para detalles.
+              </p>
             </div>
           </CardContent>
         </Card>

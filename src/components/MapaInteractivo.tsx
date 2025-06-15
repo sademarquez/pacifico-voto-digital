@@ -38,76 +38,61 @@ const MapaInteractivo = () => {
   const [selectedTerritory, setSelectedTerritory] = useState<Territory | null>(null);
   const [mapView, setMapView] = useState<'territories' | 'alerts'>('territories');
 
-  // Query para territorios con datos reales
-  const { data: territories = [], isLoading: loadingTerritories, refetch: refetchTerritories } = useQuery<Territory[]>({
+  // Query para territorios
+  const { data: territories = [], isLoading: loadingTerritories, refetch: refetchTerritories } = useQuery({
     queryKey: ['map-territories', user?.id],
-    queryFn: async (): Promise<Territory[]> => {
+    queryFn: async () => {
       if (!supabase || !user) return [];
       
-      const filter = getTerritoryFilter();
-      let query = supabase
-        .from('territories')
-        .select('*')
-        .order('name');
+      console.log('Fetching territories for map:', user.id);
+      
+      try {
+        let query = supabase
+          .from('territories')
+          .select('*')
+          .order('name');
 
-      // Aplicar filtros según el rol
-      if (filter && Object.keys(filter).length > 0) {
-        if (filter.or) {
-          query = query.or(filter.or);
-        } else {
-          Object.entries(filter).forEach(([key, value]) => {
-            if (value !== null && value !== undefined) {
-              query = query.eq(key, value);
-            }
-          });
+        const { data, error } = await query;
+        if (error) {
+          console.error('Error fetching territories:', error);
+          return [];
         }
-      }
-
-      const { data, error } = await query;
-      if (error) {
-        console.error('Error fetching territories:', error);
+        return data || [];
+      } catch (error) {
+        console.error('Exception fetching territories:', error);
         return [];
       }
-      return (data as Territory[]) || [];
     },
     enabled: !!supabase && !!user
   });
 
-  // Query para alertas con datos reales
-  const { data: alerts = [], isLoading: loadingAlerts, refetch: refetchAlerts } = useQuery<MapaAlert[]>({
+  // Query para alertas
+  const { data: alerts = [], isLoading: loadingAlerts, refetch: refetchAlerts } = useQuery({
     queryKey: ['map-alerts', user?.id],
-    queryFn: async (): Promise<MapaAlert[]> => {
+    queryFn: async () => {
       if (!supabase || !user) return [];
       
-      const filter = getAlertFilter();
-      let query = supabase
-        .from('alerts')
-        .select(`
-          *,
-          territories(name, type)
-        `)
-        .eq('status', 'active')
-        .order('priority', { ascending: false });
+      console.log('Fetching alerts for map:', user.id);
+      
+      try {
+        let query = supabase
+          .from('alerts')
+          .select(`
+            *,
+            territories(name, type)
+          `)
+          .order('priority', { ascending: false });
 
-      // Aplicar filtros según el rol
-      if (filter && Object.keys(filter).length > 0) {
-        if (filter.or) {
-          query = query.or(filter.or);
-        } else {
-          Object.entries(filter).forEach(([key, value]) => {
-            if (value !== null && value !== undefined) {
-              query = query.eq(key, value);
-            }
-          });
+        const { data, error } = await query;
+        if (error) {
+          console.error('Error fetching alerts:', error);
+          return [];
         }
-      }
-
-      const { data, error } = await query;
-      if (error) {
-        console.error('Error fetching alerts:', error);
+        return data || [];
+      } catch (error) {
+        console.error('Exception fetching alerts:', error);
         return [];
       }
-      return (data as MapaAlert[]) || [];
     },
     enabled: !!supabase && !!user
   });
