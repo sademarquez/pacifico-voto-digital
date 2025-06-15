@@ -68,6 +68,7 @@ export type Database = {
           title: string
           type: Database["public"]["Enums"]["alert_type"]
           updated_at: string
+          visible_to_voters: boolean | null
         }
         Insert: {
           affected_user_id?: string | null
@@ -83,6 +84,7 @@ export type Database = {
           title: string
           type: Database["public"]["Enums"]["alert_type"]
           updated_at?: string
+          visible_to_voters?: boolean | null
         }
         Update: {
           affected_user_id?: string | null
@@ -98,6 +100,7 @@ export type Database = {
           title?: string
           type?: Database["public"]["Enums"]["alert_type"]
           updated_at?: string
+          visible_to_voters?: boolean | null
         }
         Relationships: [
           {
@@ -310,6 +313,47 @@ export type Database = {
             columns: ["territory_id"]
             isOneToOne: false
             referencedRelation: "territories"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      n8n_workflows: {
+        Row: {
+          active: boolean | null
+          created_at: string
+          created_by: string | null
+          id: string
+          trigger_role: string[] | null
+          webhook_url: string | null
+          workflow_id: string
+          workflow_name: string
+        }
+        Insert: {
+          active?: boolean | null
+          created_at?: string
+          created_by?: string | null
+          id?: string
+          trigger_role?: string[] | null
+          webhook_url?: string | null
+          workflow_id: string
+          workflow_name: string
+        }
+        Update: {
+          active?: boolean | null
+          created_at?: string
+          created_by?: string | null
+          id?: string
+          trigger_role?: string[] | null
+          webhook_url?: string | null
+          workflow_id?: string
+          workflow_name?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "n8n_workflows_created_by_fkey"
+            columns: ["created_by"]
+            isOneToOne: false
+            referencedRelation: "profiles"
             referencedColumns: ["id"]
           },
         ]
@@ -880,6 +924,70 @@ export type Database = {
           },
           {
             foreignKeyName: "voters_territory_id_fkey"
+            columns: ["territory_id"]
+            isOneToOne: false
+            referencedRelation: "territories"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      voting_tables: {
+        Row: {
+          active: boolean | null
+          address: string | null
+          coordinates: Json | null
+          created_at: string
+          created_by: string | null
+          id: string
+          responsible_leader_id: string | null
+          table_number: string
+          territory_id: string | null
+          updated_at: string
+          voting_place: string
+        }
+        Insert: {
+          active?: boolean | null
+          address?: string | null
+          coordinates?: Json | null
+          created_at?: string
+          created_by?: string | null
+          id?: string
+          responsible_leader_id?: string | null
+          table_number: string
+          territory_id?: string | null
+          updated_at?: string
+          voting_place: string
+        }
+        Update: {
+          active?: boolean | null
+          address?: string | null
+          coordinates?: Json | null
+          created_at?: string
+          created_by?: string | null
+          id?: string
+          responsible_leader_id?: string | null
+          table_number?: string
+          territory_id?: string | null
+          updated_at?: string
+          voting_place?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "voting_tables_created_by_fkey"
+            columns: ["created_by"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "voting_tables_responsible_leader_id_fkey"
+            columns: ["responsible_leader_id"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "voting_tables_territory_id_fkey"
             columns: ["territory_id"]
             isOneToOne: false
             referencedRelation: "territories"

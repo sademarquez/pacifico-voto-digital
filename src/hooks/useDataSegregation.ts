@@ -65,33 +65,52 @@ export const useDataSegregation = () => {
   const getAlertFilter = () => {
     if (!user) return null;
     
+    // Todos pueden ver alertas según las nuevas políticas
+    return {};
+  };
+
+  // Filtro para mesas de votación
+  const getVotingTablesFilter = () => {
+    if (!user) return null;
+    
     switch (user.role) {
       case 'desarrollador':
       case 'master':
         return {}; // Ve todas
       case 'candidato':
+        return {
+          or: `responsible_leader_id.in.(${user.id}),created_by.eq.${user.id}`
+        };
       case 'lider':
         return {
-          or: `created_by.eq.${user.id},affected_user_id.eq.${user.id}`
+          responsible_leader_id: user.id
         };
       case 'votante':
+        // Los votantes solo ven cuando reciben avisos específicos
         return {
-          affected_user_id: user.id
+          visible_to_voters: true,
+          'territory_id.in': `(select territory_id from voters where registered_by = '${user.id}')`
         };
       default:
         return { id: 'null' };
     }
   };
 
-  // Permisos basados en la nueva jerarquía
+  // Permisos actualizados según la nueva jerarquía
   const getPermissions = () => {
     if (!user) return {
       canCreateTerritory: false,
       canManageUsers: false,
       canViewAllData: false,
+      canCreateDesarrollador: false,
+      canCreateMaster: false,
       canCreateCandidatos: false,
       canCreateLideres: false,
-      canCreateVotantes: false
+      canCreateVotantes: false,
+      canCreateAlerts: false,
+      canManageVotingTables: false,
+      canManageN8N: false,
+      canViewVotingTables: false
     };
 
     switch (user.role) {
@@ -100,54 +119,90 @@ export const useDataSegregation = () => {
           canCreateTerritory: true,
           canManageUsers: true,
           canViewAllData: true,
+          canCreateDesarrollador: true,
+          canCreateMaster: true,
           canCreateCandidatos: true,
           canCreateLideres: true,
-          canCreateVotantes: true
+          canCreateVotantes: true,
+          canCreateAlerts: true,
+          canManageVotingTables: true,
+          canManageN8N: true,
+          canViewVotingTables: true
         };
       case 'master':
         return {
           canCreateTerritory: true,
           canManageUsers: true,
           canViewAllData: true,
+          canCreateDesarrollador: false,
+          canCreateMaster: false,
           canCreateCandidatos: true,
-          canCreateLideres: false,
-          canCreateVotantes: false
+          canCreateLideres: true,
+          canCreateVotantes: true,
+          canCreateAlerts: true,
+          canManageVotingTables: true,
+          canManageN8N: false,
+          canViewVotingTables: true
         };
       case 'candidato':
         return {
           canCreateTerritory: true,
           canManageUsers: true,
           canViewAllData: false,
+          canCreateDesarrollador: false,
+          canCreateMaster: false,
           canCreateCandidatos: false,
           canCreateLideres: true,
-          canCreateVotantes: false
+          canCreateVotantes: true,
+          canCreateAlerts: true,
+          canManageVotingTables: true,
+          canManageN8N: false,
+          canViewVotingTables: true
         };
       case 'lider':
         return {
           canCreateTerritory: false,
           canManageUsers: true,
           canViewAllData: false,
+          canCreateDesarrollador: false,
+          canCreateMaster: false,
           canCreateCandidatos: false,
           canCreateLideres: false,
-          canCreateVotantes: true
+          canCreateVotantes: true,
+          canCreateAlerts: true,
+          canManageVotingTables: true,
+          canManageN8N: false,
+          canViewVotingTables: true
         };
       case 'votante':
         return {
           canCreateTerritory: false,
           canManageUsers: false,
           canViewAllData: false,
+          canCreateDesarrollador: false,
+          canCreateMaster: false,
           canCreateCandidatos: false,
           canCreateLideres: false,
-          canCreateVotantes: false
+          canCreateVotantes: false,
+          canCreateAlerts: false,
+          canManageVotingTables: false,
+          canManageN8N: false,
+          canViewVotingTables: true
         };
       default:
         return {
           canCreateTerritory: false,
           canManageUsers: false,
           canViewAllData: false,
+          canCreateDesarrollador: false,
+          canCreateMaster: false,
           canCreateCandidatos: false,
           canCreateLideres: false,
-          canCreateVotantes: false
+          canCreateVotantes: false,
+          canCreateAlerts: false,
+          canManageVotingTables: false,
+          canManageN8N: false,
+          canViewVotingTables: false
         };
     }
   };
@@ -156,6 +211,7 @@ export const useDataSegregation = () => {
     getTerritoryFilter,
     getVoterFilter,
     getAlertFilter,
+    getVotingTablesFilter,
     getPermissions,
     ...getPermissions()
   };
