@@ -1,4 +1,3 @@
-
 import React, { createContext, useContext, useState, ReactNode, useEffect } from 'react';
 import { supabase } from '@/integrations/supabase/client';
 import { User as SupabaseUser } from '@supabase/supabase-js';
@@ -141,6 +140,8 @@ export const AuthProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
         let errorMsg = 'Error de login: ';
         if (error.message.includes('Invalid login credentials')) {
           errorMsg = 'Credenciales incorrectas. Verifica usuario y contraseña.';
+        } else if (error.message.includes('Email not confirmed')) {
+          errorMsg = 'Email no confirmado. Por favor, revisa tu correo para activar tu cuenta.';
         } else {
           errorMsg += error.message;
         }

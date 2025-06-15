@@ -1,3 +1,4 @@
+
 import { useState } from "react";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
@@ -58,35 +59,40 @@ const TerritoryManager = () => {
       if (!supabase || !user) return [];
       
       const filter = getTerritoryFilter();
-      let query = supabase
-        .from('territories')
-        .select(`
-          id,
-          name,
-          type,
-          parent_id,
-          population_estimate,
-          voter_estimate,
-          responsible_user_id,
-          created_by
-        `);
 
-      // Aplicar filtros según el rol
-      if (filter && Object.keys(filter).length > 0) {
-        if (filter.or) {
-          query = query.or(filter.or);
-        } else {
-          Object.entries(filter).forEach(([key, value]) => {
-            if (value !== null) {
-              query = query.eq(key, value);
-            }
-          });
+      // Encapsular la construcción de la query para ayudar a la inferencia de tipos de TS
+      const getTerritoriesQuery = () => {
+        let query = supabase
+          .from('territories')
+          .select(`
+            id,
+            name,
+            type,
+            parent_id,
+            population_estimate,
+            voter_estimate,
+            responsible_user_id,
+            created_by
+          `);
+
+        // Aplicar filtros según el rol
+        if (filter && Object.keys(filter).length > 0) {
+          if (filter.or) {
+            query = query.or(filter.or);
+          } else {
+            Object.entries(filter).forEach(([key, value]) => {
+              if (value !== null) {
+                query = query.eq(key, value);
+              }
+            });
+          }
         }
+
+        return query.order('created_at', { ascending: false });
       }
 
-      query = query.order('created_at', { ascending: false });
-
-      const { data, error } = await query;
+      const { data, error } = await getTerritoriesQuery();
+      
       if (error) {
         console.error('Error fetching territories:', error);
         throw new Error(error.message);
