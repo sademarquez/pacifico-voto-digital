@@ -1,3 +1,4 @@
+
 import { useState } from "react";
 import { useQuery } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
@@ -94,7 +95,7 @@ const MapaAlertas = () => {
           <CardTitle>Mapa de Alertas</CardTitle>
         </CardHeader>
         <CardContent>
-          <LoadScript googleMapsApiKey={process.env.NEXT_PUBLIC_GOOGLE_MAPS_API_KEY || ''}>
+          <LoadScript googleMapsApiKey={import.meta.env.VITE_GOOGLE_MAPS_API_KEY || ''}>
             <GoogleMap
               mapContainerStyle={mapStyles}
               center={mapCenter}
