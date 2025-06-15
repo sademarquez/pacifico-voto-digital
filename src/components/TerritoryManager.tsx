@@ -1,8 +1,6 @@
-
 import { useState } from "react";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
-import { PostgrestError } from "@supabase/supabase-js";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -30,7 +28,7 @@ interface Territory {
 interface ParentTerritory {
   id: string;
   name: string;
-  type: string;
+  type: TerritoryType;
 }
 
 interface User {
@@ -56,7 +54,7 @@ const TerritoryManager = () => {
   // Query para obtener territorios filtrados
   const { data: territories = [], isLoading } = useQuery<Territory[]>({
     queryKey: ['territories', user?.id],
-    queryFn: async () => {
+    queryFn: async (): Promise<Territory[]> => {
       if (!supabase || !user) return [];
       
       const filter = getTerritoryFilter();
@@ -88,7 +86,7 @@ const TerritoryManager = () => {
 
       query = query.order('created_at', { ascending: false });
 
-      const { data, error }: { data: Territory[] | null; error: PostgrestError | null } = await query;
+      const { data, error } = await query;
       if (error) {
         console.error('Error fetching territories:', error);
         throw new Error(error.message);
@@ -101,10 +99,10 @@ const TerritoryManager = () => {
   // Query para obtener territorios padre disponibles
   const { data: parentTerritories = [] } = useQuery<ParentTerritory[]>({
     queryKey: ['parent-territories', user?.id],
-    queryFn: async () => {
+    queryFn: async (): Promise<ParentTerritory[]> => {
       if (!supabase || !user) return [];
       
-      const { data, error }: { data: ParentTerritory[] | null; error: PostgrestError | null } = await supabase
+      const { data, error } = await supabase
         .from('territories')
         .select('id, name, type')
         .order('name');
@@ -121,10 +119,10 @@ const TerritoryManager = () => {
   // Query para obtener usuarios para responsables
   const { data: users = [] } = useQuery<User[]>({
     queryKey: ['users-for-territories'],
-    queryFn: async () => {
+    queryFn: async (): Promise<User[]> => {
       if (!supabase) return [];
       
-      const { data, error }: { data: User[] | null; error: PostgrestError | null } = await supabase
+      const { data, error } = await supabase
         .from('profiles')
         .select('id, name, role')
         .order('name');
