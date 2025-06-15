@@ -813,6 +813,10 @@ export type Database = {
         Args: Record<PropertyKey, never>
         Returns: string
       }
+      get_user_email: {
+        Args: { user_id: string }
+        Returns: string
+      }
       get_user_subordinates: {
         Args: { user_id: string }
         Returns: {

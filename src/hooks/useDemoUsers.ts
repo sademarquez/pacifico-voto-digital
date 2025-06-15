@@ -16,7 +16,7 @@ export const useDemoUsers = () => {
 
   const demoUsers: DemoUser[] = [
     {
-      email: 'dev@micampana.com',
+      email: 'desarrollador@micampana.com',
       password: FIXED_PASSWORD,
       name: 'Desarrollador',
       role: 'desarrollador'

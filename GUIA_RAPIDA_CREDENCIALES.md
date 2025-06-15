@@ -9,13 +9,13 @@
 
 ## 📋 CREDENCIALES ACTUALIZADAS
 
-| Rol | **NOMBRE DE USUARIO** | Contraseña |
-|-----|----------------------|------------|
-| **Desarrollador** | `Desarrollador` | `12345678` |
-| **Master** | `Master` | `12345678` |
-| **Candidato** | `Candidato` | `12345678` |
-| **Líder** | `Lider` | `12345678` |
-| **Votante** | `Votante` | `12345678` |
+| Rol | **NOMBRE DE USUARIO** | Email | Contraseña |
+|-----|----------------------|-------|------------|
+| **Desarrollador** | `Desarrollador` | `desarrollador@micampana.com` | `12345678` |
+| **Master** | `Master` | `master1@demo.com` | `12345678` |
+| **Candidato** | `Candidato` | `candidato@demo.com` | `12345678` |
+| **Líder** | `Lider` | `lider@demo.com` | `12345678` |
+| **Votante** | `Votante` | `votante@demo.com` | `12345678` |
 
 ## 🎯 PROCESO DE LOGIN SIMPLIFICADO
 
@@ -46,6 +46,7 @@
 - **Contraseña memorable** y sin conflictos
 - **Login por nombre** evita problemas de email
 - **Proceso unificado** para todos los usuarios
+- **Email válido** para Supabase (desarrollador@micampana.com)
 
 ## 🚨 TROUBLESHOOTING
 
@@ -62,23 +63,26 @@
 3. **Revisar base de datos:**
    - Los usuarios deben existir en `auth.users`
    - Los perfiles deben estar en `public.profiles`
+   - Función RPC `get_user_email` debe existir
 
 ## 💡 ESTRUCTURA TÉCNICA
 
 ```
 📊 BASE DE DATOS:
 ├── auth.users (Supabase Auth)
-│   ├── Email: dev@micampana.com
+│   ├── Email: desarrollador@micampana.com
 │   └── Password: 12345678
 │
-└── public.profiles
-    ├── name: "Desarrollador"
-    ├── role: "desarrollador"
-    └── id: [UUID de auth.users]
+├── public.profiles
+│   ├── name: "Desarrollador"
+│   ├── role: "desarrollador"
+│   └── id: [UUID de auth.users]
+│
+└── public.get_user_email(uuid) -> RPC Function
 
 🔐 LOGIN PROCESS:
 1. Usuario ingresa: "Desarrollador"
-2. Sistema busca email por nombre
+2. Sistema busca email por nombre usando RPC
 3. Realiza login con email encontrado
 4. Autentica con contraseña: 12345678
 ```
@@ -94,4 +98,4 @@
 
 ---
 
-*Sistema actualizado con contraseña fija para máxima simplicidad*
+*Sistema actualizado con función RPC y emails válidos para Supabase*

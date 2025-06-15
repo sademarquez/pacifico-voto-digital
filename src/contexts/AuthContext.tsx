@@ -1,4 +1,3 @@
-
 import React, { createContext, useContext, useState, ReactNode, useEffect } from 'react';
 import { supabase } from '@/lib/supabaseClient';
 import { User as SupabaseUser } from '@supabase/supabase-js';
@@ -136,9 +135,9 @@ export const AuthProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
         
         if (userError) {
           console.error('[LOGIN] Error obteniendo email:', userError);
-          // Fallback: usar emails conocidos
+          // Fallback: usar emails conocidos actualizados
           const emailMap: { [key: string]: string } = {
-            'Desarrollador': 'dev@micampana.com',
+            'Desarrollador': 'desarrollador@micampana.com',
             'Master': 'master1@demo.com',
             'Candidato': 'candidato@demo.com',
             'Lider': 'lider@demo.com',
