@@ -62,7 +62,7 @@ const TerritoryManager = () => {
 
       // Encapsular la construcción de la query para ayudar a la inferencia de tipos de TS
       const getTerritoriesQuery = () => {
-        let query = supabase
+        let queryBuilder: any = supabase
           .from('territories')
           .select(`
             id,
@@ -78,17 +78,17 @@ const TerritoryManager = () => {
         // Aplicar filtros según el rol
         if (filter && Object.keys(filter).length > 0) {
           if (filter.or) {
-            query = query.or(filter.or);
+            queryBuilder = queryBuilder.or(filter.or);
           } else {
             Object.entries(filter).forEach(([key, value]) => {
               if (value !== null) {
-                query = query.eq(key, value);
+                queryBuilder = queryBuilder.eq(key, value);
               }
             });
           }
         }
 
-        return query.order('created_at', { ascending: false });
+        return queryBuilder.order('created_at', { ascending: false });
       }
 
       const { data, error } = await getTerritoriesQuery();
