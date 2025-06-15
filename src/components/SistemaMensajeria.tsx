@@ -37,11 +37,16 @@ const SistemaMensajeria = () => {
   const { user } = useAuth();
   const { toast } = useToast();
   const [showNewMessage, setShowNewMessage] = useState(false);
-  const [newMessage, setNewMessage] = useState({
+  const [newMessage, setNewMessage] = useState<{
+    subject: string;
+    content: string;
+    priority: 'low' | 'medium' | 'high';
+    category: 'general' | 'urgent' | 'reminder' | 'announcement';
+  }>({
     subject: '',
     content: '',
-    priority: 'medium' as const,
-    category: 'general' as const
+    priority: 'medium',
+    category: 'general'
   });
 
   const { data: messages = [], isLoading, refetch } = useQuery({
@@ -63,7 +68,19 @@ const SistemaMensajeria = () => {
       }
 
       console.log('✅ Mensajes obtenidos:', data?.length || 0);
-      return data || [];
+      
+      // Map database types to interface types
+      return (data || []).map(msg => ({
+        id: msg.id,
+        subject: msg.subject,
+        content: msg.content,
+        priority: ['low', 'medium', 'high'].includes(msg.priority) ? msg.priority as 'low' | 'medium' | 'high' : 'medium',
+        status: msg.status,
+        category: ['general', 'urgent', 'reminder', 'announcement'].includes(msg.category) ? msg.category as 'general' | 'urgent' | 'reminder' | 'announcement' : 'general',
+        created_at: msg.created_at,
+        sent_at: msg.sent_at,
+        sender_id: msg.sender_id
+      }));
     },
     enabled: !!user,
     refetchOnWindowFocus: false,

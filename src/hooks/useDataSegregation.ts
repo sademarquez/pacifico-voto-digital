@@ -156,6 +156,7 @@ export const useDataSegregation = () => {
     getTerritoryFilter,
     getVoterFilter,
     getAlertFilter,
+    getPermissions,
     ...getPermissions()
   };
 };
