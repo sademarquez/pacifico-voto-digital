@@ -70,7 +70,7 @@ const Login = () => {
       if (error) {
         setError(`Test directo falló: ${error.message}`);
       } else if (data.user) {
-        setError('Test directo exitoso');
+        setError('Test directo exitoso - La conexión funciona');
         console.log('✅ Direct test successful, signing out...');
         await supabase.auth.signOut();
       }
@@ -88,13 +88,13 @@ const Login = () => {
     console.log('🚀 Iniciando proceso de login...');
 
     try {
-      // Test de conexión primero
-      await testConnection();
-      
       const result = await login(email, password);
       if (result.success) {
         console.log('✅ Login exitoso, redirigiendo...');
-        navigate('/dashboard');
+        // Small delay to ensure state is updated
+        setTimeout(() => {
+          navigate('/dashboard');
+        }, 100);
       } else {
         setError(result.error || 'Error desconocido');
       }
@@ -128,7 +128,7 @@ const Login = () => {
               <Vote className="w-8 h-8 text-white" />
             </div>
             <CardTitle className="text-2xl font-bold text-gray-900">Mi Campaña</CardTitle>
-            <p className="text-gray-600">Sistema Electoral - Debug Mode</p>
+            <p className="text-gray-600">Sistema Electoral - Mejorado v3</p>
           </CardHeader>
           
           <CardContent>
@@ -207,7 +207,7 @@ const Login = () => {
               </div>
 
               {error && (
-                <Alert variant="destructive">
+                <Alert variant={error.includes('exitoso') ? 'default' : 'destructive'}>
                   <AlertDescription className="text-sm">{error}</AlertDescription>
                 </Alert>
               )}
