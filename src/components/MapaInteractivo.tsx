@@ -1,372 +1,381 @@
-import { useEffect, useRef, useState } from "react";
-import { useQuery } from "@tanstack/react-query";
-import { supabase } from "@/lib/supabaseClient";
-import { Button } from "@/components/ui/button";
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
+
+import { useState, useEffect } from "react";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
-import { MapPin, Layers, Navigation, AlertTriangle, Users } from "lucide-react";
-import { useDataSegregation } from "@/hooks/useDataSegregation";
+import { Button } from "@/components/ui/button";
+import { MapPin, AlertTriangle, Users, Calendar, RefreshCw } from "lucide-react";
+import { useQuery } from "@tanstack/react-query";
+import { supabase } from "@/integrations/supabase/client";
+import { useAuth } from "../contexts/AuthContext";
+import { useDataSegregation } from "../hooks/useDataSegregation";
 
-interface Alerta {
+interface MapaAlert {
   id: string;
   title: string;
-  type: string;
-  priority: 'low' | 'medium' | 'high' | 'urgent';
   description: string;
-  territory: { name: string } | null;
+  type: string;
+  priority: string;
+  territory_id: string;
+  territories?: {
+    name: string;
+    type: string;
+  };
   created_at: string;
-  created_by_user: { name: string } | null;
 }
 
-interface MapaInteractivoProps {
-  onAlertaClick?: (alerta: Alerta) => void;
+interface Territory {
+  id: string;
+  name: string;
+  type: string;
+  population_estimate: number;
+  voter_estimate: number;
+  coordinates?: any;
 }
 
-const municipiosCauca = [
-  { nombre: "Popayán", lat: 2.4448, lng: -76.6147 },
-  { nombre: "Timbío", lat: 2.3547, lng: -76.6829 },
-  { nombre: "Cajibío", lat: 2.5506, lng: -76.8733 },
-  { nombre: "Silvia", lat: 2.6156, lng: -76.3831 },
-  { nombre: "Piendamó", lat: 2.6394, lng: -76.9906 },
-  { nombre: "Morales", lat: 2.7761, lng: -76.6208 },
-  { nombre: "Santander de Quilichao", lat: 3.0097, lng: -76.4847 },
-  { nombre: "Caldono", lat: 2.8167, lng: -76.5167 },
-  { nombre: "Toribío", lat: 3.0167, lng: -76.0833 },
-  { nombre: "Corinto", lat: 3.1731, lng: -76.2667 },
-  { nombre: "Miranda", lat: 3.2539, lng: -76.2292 },
-  { nombre: "Padilla", lat: 3.2014, lng: -76.3653 },
-  { nombre: "Puracé", lat: 2.3167, lng: -76.4000 },
-  { nombre: "Sotará", lat: 2.1167, lng: -76.6333 },
-  { nombre: "La Vega", lat: 1.9833, lng: -76.9667 },
-  { nombre: "Florencia", lat: 1.8833, lng: -76.6167 },
-  { nombre: "Mercaderes", lat: 2.2000, lng: -77.1833 },
-  { nombre: "Patía", lat: 2.0667, lng: -77.0333 },
-  { nombre: "Bolívar", lat: 1.8667, lng: -77.1167 }
-];
+const MapaInteractivo = () => {
+  const { user } = useAuth();
+  const { getTerritoryFilter, getAlertFilter } = useDataSegregation();
+  const [selectedTerritory, setSelectedTerritory] = useState<Territory | null>(null);
+  const [mapView, setMapView] = useState<'territories' | 'alerts'>('territories');
 
-const tiposCapas = [
-  { id: 'politico', nombre: 'Mapa Político', url: 'https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png' },
-  { id: 'hidrico', nombre: 'Mapa Hídrico', url: 'https://server.arcgisonline.com/ArcGIS/rest/services/World_Imagery/MapServer/tile/{z}/{y}/{x}' },
-  { id: 'relieve', nombre: 'Mapa de Relieve', url: 'https://{s}.tile.opentopomap.org/{z}/{x}/{y}.png' },
-  { id: 'satelite', nombre: 'Vista Satelital', url: 'https://server.arcgisonline.com/ArcGIS/rest/services/World_Imagery/MapServer/tile/{z}/{y}/{x}' }
-];
-
-const MapaInteractivo: React.FC<MapaInteractivoProps> = ({ onAlertaClick }) => {
-  const mapRef = useRef<HTMLDivElement>(null);
-  const [map, setMap] = useState<any>(null);
-  const [marcadores, setMarcadores] = useState<any[]>([]);
-  const [municipioSeleccionado, setMunicipioSeleccionado] = useState<string>("");
-  const [capaActiva, setCapaActiva] = useState<string>("politico");
-  const [alertaSeleccionada, setAlertaSeleccionada] = useState<Alerta | null>(null);
-  const { getAlertFilter } = useDataSegregation();
-
-  // Query para obtener alertas reales de la base de datos
-  const { data: alertas = [] } = useQuery({
-    queryKey: ['map-alerts'],
+  // Query para territorios con datos reales
+  const { data: territories = [], isLoading: loadingTerritories, refetch: refetchTerritories } = useQuery({
+    queryKey: ['map-territories', user?.id],
     queryFn: async () => {
-      if (!supabase) return [];
+      if (!supabase || !user) return [];
       
-      const { data, error } = await supabase
+      const filter = getTerritoryFilter();
+      let query = supabase
+        .from('territories')
+        .select('*')
+        .order('name');
+
+      // Aplicar filtros según el rol
+      if (filter && Object.keys(filter).length > 0) {
+        if (filter.or) {
+          query = query.or(filter.or);
+        } else {
+          Object.entries(filter).forEach(([key, value]) => {
+            if (value !== null) {
+              query = query.eq(key, value);
+            }
+          });
+        }
+      }
+
+      const { data, error } = await query;
+      if (error) {
+        console.error('Error fetching territories:', error);
+        return [];
+      }
+      return data || [];
+    },
+    enabled: !!supabase && !!user
+  });
+
+  // Query para alertas con datos reales
+  const { data: alerts = [], isLoading: loadingAlerts, refetch: refetchAlerts } = useQuery({
+    queryKey: ['map-alerts', user?.id],
+    queryFn: async () => {
+      if (!supabase || !user) return [];
+      
+      const filter = getAlertFilter();
+      let query = supabase
         .from('alerts')
         .select(`
           *,
-          territory:territories(name),
-          created_by_user:profiles!alerts_created_by_fkey(name)
+          territories(name, type)
         `)
         .eq('status', 'active')
-        .order('priority', { ascending: false })
-        .order('created_at', { ascending: false });
+        .order('priority', { ascending: false });
 
+      // Aplicar filtros según el rol
+      if (filter && Object.keys(filter).length > 0) {
+        if (filter.or) {
+          query = query.or(filter.or);
+        } else {
+          Object.entries(filter).forEach(([key, value]) => {
+            if (value !== null) {
+              query = query.eq(key, value);
+            }
+          });
+        }
+      }
+
+      const { data, error } = await query;
       if (error) {
-        console.error("Error fetching alerts:", error);
+        console.error('Error fetching alerts:', error);
         return [];
       }
-
-      // Convertir alertas de BD a formato del mapa con coordenadas de municipios
-      return (data || []).map(alert => {
-        const territorio = alert.territory?.name;
-        const municipio = municipiosCauca.find(m => 
-          territorio?.toLowerCase().includes(m.nombre.toLowerCase())
-        );
-        
-        return {
-          ...alert,
-          lat: municipio?.lat || 2.4448, // Default a Popayán
-          lng: municipio?.lng || -76.6147,
-          municipio: territorio || 'Sin territorio'
-        };
-      });
+      return data || [];
     },
-    enabled: !!supabase
+    enabled: !!supabase && !!user
   });
 
-  useEffect(() => {
-    if (typeof window !== 'undefined' && mapRef.current && !map) {
-      // Cargar Leaflet dinámicamente
-      const script = document.createElement('script');
-      script.src = 'https://unpkg.com/leaflet@1.9.4/dist/leaflet.js';
-      script.onload = () => {
-        const L = (window as any).L;
-        
-        // Crear mapa centrado en el Cauca
-        const nuevoMapa = L.map(mapRef.current, {
-          center: [2.4448, -76.6147], // Centro del Cauca (Popayán)
-          zoom: 9,
-          minZoom: 8,
-          maxZoom: 18
-        });
-
-        // Establecer límites del mapa al departamento del Cauca
-        const boundsCauca = L.latLngBounds(
-          [1.0, -78.0], // suroeste
-          [3.5, -75.0]  // noreste
-        );
-        nuevoMapa.setMaxBounds(boundsCauca);
-
-        // Agregar capa base inicial
-        const capaBase = L.tileLayer(tiposCapas[0].url, {
-          attribution: '© OpenStreetMap contributors'
-        }).addTo(nuevoMapa);
-
-        setMap(nuevoMapa);
-      };
-      document.head.appendChild(script);
-
-      // Cargar CSS de Leaflet
-      const link = document.createElement('link');
-      link.rel = 'stylesheet';
-      link.href = 'https://unpkg.com/leaflet@1.9.4/dist/leaflet.css';
-      document.head.appendChild(link);
-    }
-  }, []);
-
-  useEffect(() => {
-    if (map && alertas.length > 0) {
-      // Limpiar marcadores anteriores
-      marcadores.forEach(marcador => map.removeLayer(marcador));
-      
-      const L = (window as any).L;
-      const nuevosMarcadores: any[] = [];
-
-      alertas.forEach((alerta: any) => {
-        const color = getSeverityColor(alerta.priority);
-        const icon = L.divIcon({
-          className: 'custom-marker',
-          html: `<div style="background-color: ${color}; border: 2px solid white; border-radius: 50%; width: 20px; height: 20px; display: flex; align-items: center; justify-content: center; box-shadow: 0 2px 4px rgba(0,0,0,0.3);">
-                   <div style="color: white; font-size: 10px; font-weight: bold;">!</div>
-                 </div>`,
-          iconSize: [20, 20],
-          iconAnchor: [10, 10]
-        });
-
-        const marcador = L.marker([alerta.lat, alerta.lng], { icon })
-          .addTo(map)
-          .bindPopup(`
-            <div class="p-3 min-w-48">
-              <h3 class="font-bold text-purple-800">${alerta.municipio}</h3>
-              <p class="text-sm text-gray-600 mb-2">${alerta.type}</p>
-              <p class="text-xs mb-2">${alerta.description || alerta.title}</p>
-              <div class="flex justify-between items-center">
-                <span class="text-xs px-2 py-1 rounded-full bg-${color.replace('#', '')}-100">
-                  ${alerta.priority.toUpperCase()}
-                </span>
-                ${alerta.created_by_user ? `<span class="text-xs text-purple-600">👤 ${alerta.created_by_user.name}</span>` : ''}
-              </div>
-            </div>
-          `);
-
-        marcador.on('click', () => {
-          setAlertaSeleccionada(alerta);
-          if (onAlertaClick) onAlertaClick(alerta);
-          // Zoom a la alerta seleccionada
-          map.setView([alerta.lat, alerta.lng], 12, { animate: true });
-        });
-
-        nuevosMarcadores.push(marcador);
-      });
-
-      setMarcadores(nuevosMarcadores);
-    }
-  }, [map, alertas, onAlertaClick]);
-
-  const getSeverityColor = (priority: string) => {
+  const getAlertColor = (priority: string) => {
     switch (priority) {
-      case 'low': return '#10b981';
-      case 'medium': return '#f59e0b';
-      case 'high': return '#ef4444';
-      case 'urgent': return '#dc2626';
-      default: return '#6b7280';
+      case 'urgent': return 'bg-red-500';
+      case 'high': return 'bg-orange-500';
+      case 'medium': return 'bg-yellow-500';
+      case 'low': return 'bg-green-500';
+      default: return 'bg-gray-500';
     }
   };
 
-  const handleMunicipioChange = (municipio: string) => {
-    setMunicipioSeleccionado(municipio);
-    const coordenadas = municipiosCauca.find(m => m.nombre === municipio);
-    if (coordenadas && map) {
-      map.setView([coordenadas.lat, coordenadas.lng], 11, { animate: true });
+  const getTerritoryColor = (type: string) => {
+    switch (type) {
+      case 'departamento': return 'bg-blue-600';
+      case 'municipio': return 'bg-green-600';
+      case 'corregimiento': return 'bg-purple-600';
+      case 'vereda': return 'bg-yellow-600';
+      case 'barrio': return 'bg-red-600';
+      case 'sector': return 'bg-gray-600';
+      default: return 'bg-gray-500';
     }
   };
 
-  const handleCapaChange = (nuevaCapa: string) => {
-    if (map) {
-      const L = (window as any).L;
-      // Remover capas existentes
-      map.eachLayer((layer: any) => {
-        if (layer._url) {
-          map.removeLayer(layer);
-        }
-      });
-
-      // Agregar nueva capa
-      const capaSeleccionada = tiposCapas.find(c => c.id === nuevaCapa);
-      if (capaSeleccionada) {
-        L.tileLayer(capaSeleccionada.url, {
-          attribution: '© OpenStreetMap contributors'
-        }).addTo(map);
-      }
-      setCapaActiva(nuevaCapa);
-    }
-  };
-
-  const centrarEnCauca = () => {
-    if (map) {
-      map.setView([2.4448, -76.6147], 9, { animate: true });
-      setMunicipioSeleccionado("");
-    }
+  const handleRefresh = () => {
+    refetchTerritories();
+    refetchAlerts();
   };
 
   return (
-    <div className="w-full space-y-4">
-      {/* Controles del Mapa */}
+    <div className="space-y-6">
+      {/* Controls */}
       <Card>
         <CardHeader>
-          <CardTitle className="flex items-center gap-2 text-purple-800">
-            <MapPin className="w-5 h-5" />
-            Controles de Navegación
-          </CardTitle>
-        </CardHeader>
-        <CardContent>
-          <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-            {/* Selector de Municipio */}
-            <div className="space-y-2">
-              <label className="text-sm font-medium text-purple-700">Ir a Municipio:</label>
-              <Select value={municipioSeleccionado} onValueChange={handleMunicipioChange}>
-                <SelectTrigger>
-                  <SelectValue placeholder="Seleccionar municipio" />
-                </SelectTrigger>
-                <SelectContent>
-                  {municipiosCauca.map((municipio) => (
-                    <SelectItem key={municipio.nombre} value={municipio.nombre}>
-                      {municipio.nombre}
-                    </SelectItem>
-                  ))}
-                </SelectContent>
-              </Select>
-            </div>
-
-            {/* Selector de Capa */}
-            <div className="space-y-2">
-              <label className="text-sm font-medium text-purple-700">Tipo de Mapa:</label>
-              <Select value={capaActiva} onValueChange={handleCapaChange}>
-                <SelectTrigger>
-                  <SelectValue />
-                </SelectTrigger>
-                <SelectContent>
-                  {tiposCapas.map((capa) => (
-                    <SelectItem key={capa.id} value={capa.id}>
-                      <div className="flex items-center gap-2">
-                        <Layers className="w-4 h-4" />
-                        {capa.nombre}
-                      </div>
-                    </SelectItem>
-                  ))}
-                </SelectContent>
-              </Select>
-            </div>
-
-            {/* Botón Centrar */}
-            <div className="space-y-2">
-              <label className="text-sm font-medium text-purple-700">Navegación:</label>
-              <Button 
-                onClick={centrarEnCauca} 
-                variant="outline" 
-                className="w-full border-purple-200 text-purple-700 hover:bg-purple-50"
+          <div className="flex items-center justify-between">
+            <CardTitle className="flex items-center gap-2">
+              <MapPin className="w-5 h-5" />
+              Mapa Interactivo de Campaña
+            </CardTitle>
+            <div className="flex gap-2">
+              <Button
+                variant={mapView === 'territories' ? 'default' : 'outline'}
+                onClick={() => setMapView('territories')}
+                size="sm"
               >
-                <Navigation className="w-4 h-4 mr-2" />
-                Centrar en Cauca
+                <MapPin className="w-4 h-4 mr-2" />
+                Territorios
+              </Button>
+              <Button
+                variant={mapView === 'alerts' ? 'default' : 'outline'}
+                onClick={() => setMapView('alerts')}
+                size="sm"
+              >
+                <AlertTriangle className="w-4 h-4 mr-2" />
+                Alertas
+              </Button>
+              <Button variant="outline" onClick={handleRefresh} size="sm">
+                <RefreshCw className="w-4 h-4" />
               </Button>
             </div>
           </div>
-
-          {/* Estadísticas de alertas */}
-          <div className="mt-4 flex gap-4">
-            <Badge variant="outline" className="bg-red-50">
-              {alertas.filter(a => a.priority === 'urgent').length} Urgentes
-            </Badge>
-            <Badge variant="outline" className="bg-orange-50">
-              {alertas.filter(a => a.priority === 'high').length} Altas
-            </Badge>
-            <Badge variant="outline" className="bg-yellow-50">
-              {alertas.filter(a => a.priority === 'medium').length} Medias
-            </Badge>
-            <Badge variant="outline" className="bg-green-50">
-              {alertas.filter(a => a.priority === 'low').length} Bajas
-            </Badge>
-          </div>
-        </CardContent>
+        </CardHeader>
       </Card>
 
-      {/* Mapa */}
-      <Card>
-        <CardContent className="p-0">
-          <div 
-            ref={mapRef} 
-            className="h-96 md:h-[500px] w-full rounded-lg"
-            style={{ minHeight: '400px' }}
-          />
-        </CardContent>
-      </Card>
-
-      {/* Información de Alerta Seleccionada */}
-      {alertaSeleccionada && (
-        <Card className="border-purple-200">
-          <CardHeader>
-            <CardTitle className="flex items-center gap-2 text-purple-800">
-              <AlertTriangle className="w-5 h-5" />
-              Alerta Seleccionada: {alertaSeleccionada.municipio}
-            </CardTitle>
-          </CardHeader>
-          <CardContent>
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-              <div>
-                <p><strong>Tipo:</strong> {alertaSeleccionada.type}</p>
-                <p><strong>Fecha:</strong> {new Date(alertaSeleccionada.created_at).toLocaleString()}</p>
-                <p><strong>Descripción:</strong> {alertaSeleccionada.description || alertaSeleccionada.title}</p>
+      <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
+        {/* Panel de información */}
+        <div className="space-y-4">
+          {/* Estadísticas rápidas */}
+          <Card>
+            <CardHeader>
+              <CardTitle className="text-lg">Resumen</CardTitle>
+            </CardHeader>
+            <CardContent className="space-y-3">
+              <div className="flex items-center justify-between">
+                <span className="text-sm text-gray-600">Territorios:</span>
+                <Badge variant="outline">{territories.length}</Badge>
               </div>
-              <div className="flex flex-col gap-2">
-                <Badge 
-                  variant="outline" 
-                  className={`w-fit ${
-                    alertaSeleccionada.priority === 'urgent' ? 'border-red-500 text-red-700' :
-                    alertaSeleccionada.priority === 'high' ? 'border-orange-500 text-orange-700' :
-                    alertaSeleccionada.priority === 'medium' ? 'border-yellow-500 text-yellow-700' :
-                    'border-green-500 text-green-700'
-                  }`}
-                >
-                  Prioridad: {alertaSeleccionada.priority.toUpperCase()}
+              <div className="flex items-center justify-between">
+                <span className="text-sm text-gray-600">Alertas Activas:</span>
+                <Badge variant="destructive">{alerts.length}</Badge>
+              </div>
+              <div className="flex items-center justify-between">
+                <span className="text-sm text-gray-600">Población Total:</span>
+                <Badge variant="outline">
+                  {territories.reduce((sum, t) => sum + (t.population_estimate || 0), 0).toLocaleString()}
                 </Badge>
-                {alertaSeleccionada.created_by_user && (
-                  <div className="flex items-center gap-2 text-purple-700">
-                    <Users className="w-4 h-4" />
-                    <span className="text-sm">Creado por: {alertaSeleccionada.created_by_user.name}</span>
+              </div>
+            </CardContent>
+          </Card>
+
+          {/* Lista de elementos según vista */}
+          <Card>
+            <CardHeader>
+              <CardTitle className="text-lg">
+                {mapView === 'territories' ? 'Territorios' : 'Alertas Activas'}
+              </CardTitle>
+            </CardHeader>
+            <CardContent>
+              {mapView === 'territories' ? (
+                <div className="space-y-2 max-h-96 overflow-y-auto">
+                  {loadingTerritories ? (
+                    <div className="text-center py-4 text-sm text-gray-500">
+                      Cargando territorios...
+                    </div>
+                  ) : territories.length === 0 ? (
+                    <div className="text-center py-4 text-sm text-gray-500">
+                      No hay territorios disponibles
+                    </div>
+                  ) : (
+                    territories.map((territory: Territory) => (
+                      <div
+                        key={territory.id}
+                        className={`p-3 border rounded-lg cursor-pointer transition-colors hover:bg-gray-50 ${
+                          selectedTerritory?.id === territory.id ? 'bg-blue-50 border-blue-300' : ''
+                        }`}
+                        onClick={() => setSelectedTerritory(territory)}
+                      >
+                        <div className="flex items-center justify-between">
+                          <div>
+                            <h4 className="font-medium text-sm">{territory.name}</h4>
+                            <p className="text-xs text-gray-500 capitalize">{territory.type}</p>
+                          </div>
+                          <div className={`w-3 h-3 rounded-full ${getTerritoryColor(territory.type)}`} />
+                        </div>
+                        {territory.population_estimate && (
+                          <div className="mt-2 flex items-center gap-4 text-xs text-gray-500">
+                            <span>👥 {territory.population_estimate.toLocaleString()}</span>
+                            {territory.voter_estimate && (
+                              <span>🗳️ {territory.voter_estimate.toLocaleString()}</span>
+                            )}
+                          </div>
+                        )}
+                      </div>
+                    ))
+                  )}
+                </div>
+              ) : (
+                <div className="space-y-2 max-h-96 overflow-y-auto">
+                  {loadingAlerts ? (
+                    <div className="text-center py-4 text-sm text-gray-500">
+                      Cargando alertas...
+                    </div>
+                  ) : alerts.length === 0 ? (
+                    <div className="text-center py-4 text-sm text-gray-500">
+                      No hay alertas activas
+                    </div>
+                  ) : (
+                    alerts.map((alert: MapaAlert) => (
+                      <div key={alert.id} className="p-3 border rounded-lg">
+                        <div className="flex items-start justify-between mb-2">
+                          <h4 className="font-medium text-sm">{alert.title}</h4>
+                          <div className={`w-3 h-3 rounded-full ${getAlertColor(alert.priority)}`} />
+                        </div>
+                        <p className="text-xs text-gray-600 mb-2">{alert.description}</p>
+                        <div className="flex items-center justify-between text-xs">
+                          <span className="text-gray-500 capitalize">{alert.type}</span>
+                          {alert.territories && (
+                            <span className="text-gray-500">{alert.territories.name}</span>
+                          )}
+                        </div>
+                      </div>
+                    ))
+                  )}
+                </div>
+              )}
+            </CardContent>
+          </Card>
+        </div>
+
+        {/* Área del mapa */}
+        <div className="lg:col-span-2">
+          <Card className="h-[600px]">
+            <CardContent className="p-0 h-full">
+              <div className="w-full h-full bg-gradient-to-br from-blue-50 to-green-50 rounded-lg flex items-center justify-center relative overflow-hidden">
+                {/* Simulación de mapa con elementos interactivos */}
+                <div className="absolute inset-0 p-6">
+                  {mapView === 'territories' ? (
+                    <div className="grid grid-cols-3 gap-4 h-full">
+                      {territories.slice(0, 9).map((territory: Territory, index) => (
+                        <div
+                          key={territory.id}
+                          className={`rounded-lg border-2 p-4 cursor-pointer transition-all hover:scale-105 ${
+                            selectedTerritory?.id === territory.id 
+                              ? 'border-blue-500 bg-blue-100' 
+                              : 'border-gray-300 bg-white'
+                          }`}
+                          style={{
+                            backgroundColor: selectedTerritory?.id === territory.id 
+                              ? undefined 
+                              : `${getTerritoryColor(territory.type)}20`
+                          }}
+                          onClick={() => setSelectedTerritory(territory)}
+                        >
+                          <div className="text-center">
+                            <div className={`w-6 h-6 mx-auto mb-2 rounded-full ${getTerritoryColor(territory.type)}`} />
+                            <h3 className="font-medium text-sm">{territory.name}</h3>
+                            <p className="text-xs text-gray-500 capitalize">{territory.type}</p>
+                            {territory.population_estimate && (
+                              <p className="text-xs mt-1">
+                                {territory.population_estimate.toLocaleString()} hab.
+                              </p>
+                            )}
+                          </div>
+                        </div>
+                      ))}
+                    </div>
+                  ) : (
+                    <div className="grid grid-cols-2 gap-4 h-full">
+                      {alerts.slice(0, 8).map((alert: MapaAlert, index) => (
+                        <div
+                          key={alert.id}
+                          className="rounded-lg border-2 border-gray-300 bg-white p-4 hover:shadow-lg transition-shadow"
+                        >
+                          <div className="text-center">
+                            <div className={`w-6 h-6 mx-auto mb-2 rounded-full ${getAlertColor(alert.priority)}`} />
+                            <h3 className="font-medium text-sm">{alert.title}</h3>
+                            <p className="text-xs text-gray-500 capitalize">{alert.type}</p>
+                            {alert.territories && (
+                              <p className="text-xs mt-1">{alert.territories.name}</p>
+                            )}
+                            <Badge className="mt-2 text-xs" variant="outline">
+                              {alert.priority}
+                            </Badge>
+                          </div>
+                        </div>
+                      ))}
+                    </div>
+                  )}
+                </div>
+
+                {/* Información del elemento seleccionado */}
+                {selectedTerritory && mapView === 'territories' && (
+                  <div className="absolute bottom-4 left-4 right-4 bg-white p-4 rounded-lg shadow-lg border">
+                    <h3 className="font-semibold">{selectedTerritory.name}</h3>
+                    <p className="text-sm text-gray-600 capitalize mb-2">{selectedTerritory.type}</p>
+                    <div className="grid grid-cols-2 gap-4 text-sm">
+                      {selectedTerritory.population_estimate && (
+                        <div className="flex items-center gap-2">
+                          <Users className="w-4 h-4 text-blue-600" />
+                          <span>{selectedTerritory.population_estimate.toLocaleString()} habitantes</span>
+                        </div>
+                      )}
+                      {selectedTerritory.voter_estimate && (
+                        <div className="flex items-center gap-2">
+                          <Calendar className="w-4 h-4 text-green-600" />
+                          <span>{selectedTerritory.voter_estimate.toLocaleString()} votantes</span>
+                        </div>
+                      )}
+                    </div>
+                  </div>
+                )}
+
+                {/* Overlay de carga */}
+                {(loadingTerritories || loadingAlerts) && (
+                  <div className="absolute inset-0 bg-white bg-opacity-75 flex items-center justify-center">
+                    <div className="text-center">
+                      <RefreshCw className="w-8 h-8 animate-spin mx-auto mb-2 text-blue-600" />
+                      <p className="text-sm text-gray-600">Cargando datos del mapa...</p>
+                    </div>
                   </div>
                 )}
               </div>
-            </div>
-          </CardContent>
-        </Card>
-      )}
+            </CardContent>
+          </Card>
+        </div>
+      </div>
     </div>
   );
 };

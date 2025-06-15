@@ -3,6 +3,7 @@ import { useState } from "react";
 import { useAuth } from "../contexts/AuthContext";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import MasterDashboard from "../components/MasterDashboard";
+import DashboardVotante from "../components/DashboardVotante";
 import TerritoryManager from "../components/TerritoryManager";
 import AlertSystem from "../components/AlertSystem";
 import UserManagement from "../components/UserManagement";
@@ -108,14 +109,16 @@ const Dashboard = () => {
         <TabsContent value="overview" className="space-y-6">
           {user.role === 'master' ? (
             <MasterDashboard />
+          ) : user.role === 'votante' ? (
+            <DashboardVotante />
           ) : (
             <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
               <div className="bg-gradient-to-br from-blue-50 to-blue-100 p-6 rounded-lg">
                 <h2 className="text-xl font-semibold text-blue-800 mb-2">
-                  Panel de {user.role === 'candidato' ? 'Candidato' : 'Colaborador'}
+                  Panel de Candidato
                 </h2>
                 <p className="text-blue-600">
-                  Accede a las herramientas disponibles para tu rol en la campaña.
+                  Gestiona tu territorio y equipo de campaña desde aquí.
                 </p>
               </div>
             </div>

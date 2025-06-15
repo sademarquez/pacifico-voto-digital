@@ -6,24 +6,16 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
-import { Textarea } from "@/components/ui/textarea";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
+import { Textarea } from "@/components/ui/textarea";
 import { Badge } from "@/components/ui/badge";
-import { useDataSegregation } from "@/hooks/useDataSegregation";
+import { AlertTriangle, Plus, MapPin, Clock, User } from "lucide-react";
 import { useAuth } from "../contexts/AuthContext";
+import { useDataSegregation } from "../hooks/useDataSegregation";
 import { useToast } from "@/hooks/use-toast";
-import { 
-  AlertTriangle, 
-  Plus, 
-  MapPin, 
-  Clock,
-  CheckCircle,
-  XCircle,
-  Shield,
-  Truck,
-  Users,
-  Info
-} from "lucide-react";
+
+type AlertType = 'security' | 'logistics' | 'political' | 'emergency' | 'information';
+type AlertPriority = 'low' | 'medium' | 'high' | 'urgent';
 
 const AlertSystem = () => {
   const { user } = useAuth();
@@ -34,77 +26,83 @@ const AlertSystem = () => {
   const [newAlert, setNewAlert] = useState({
     title: '',
     description: '',
-    type: '' as 'security' | 'logistics' | 'political' | 'emergency' | 'information' | '',
-    priority: 'medium' as 'low' | 'medium' | 'high' | 'urgent',
-    territory_id: '',
-    affected_user_id: ''
+    type: '' as AlertType | '',
+    priority: 'medium' as AlertPriority,
+    territory_id: ''
   });
 
-  // Query para obtener alertas
+  // Query para obtener alertas filtradas según el rol
   const { data: alerts = [], isLoading } = useQuery({
-    queryKey: ['alerts'],
+    queryKey: ['alerts', user?.id],
     queryFn: async () => {
-      if (!supabase) return [];
+      if (!supabase || !user) return [];
       
-      const { data, error } = await supabase
+      const filter = getAlertFilter();
+      let query = supabase
         .from('alerts')
         .select(`
           *,
-          territory:territories(name),
-          affected_user:profiles!alerts_affected_user_id_fkey(name),
-          created_by_user:profiles!alerts_created_by_fkey(name),
-          resolved_by_user:profiles!alerts_resolved_by_fkey(name)
+          territories(name),
+          profiles!alerts_created_by_fkey(name)
         `)
         .order('created_at', { ascending: false });
 
-      if (error) throw error;
+      // Aplicar filtros según el rol
+      if (filter && Object.keys(filter).length > 0) {
+        if (filter.or) {
+          query = query.or(filter.or);
+        } else {
+          Object.entries(filter).forEach(([key, value]) => {
+            query = query.eq(key, value);
+          });
+        }
+      }
+
+      const { data, error } = await query;
+      if (error) {
+        console.error('Error fetching alerts:', error);
+        return [];
+      }
       return data || [];
     },
     enabled: !!supabase && !!user
   });
 
-  // Query para obtener territorios
+  // Query para obtener territorios disponibles
   const { data: territories = [] } = useQuery({
-    queryKey: ['territories-for-alerts'],
+    queryKey: ['territories-for-alerts', user?.id],
     queryFn: async () => {
-      if (!supabase) return [];
-      const { data } = await supabase
+      if (!supabase || !user) return [];
+      
+      const { data, error } = await supabase
         .from('territories')
         .select('id, name, type')
         .order('name');
+
+      if (error) {
+        console.error('Error fetching territories:', error);
+        return [];
+      }
       return data || [];
     },
-    enabled: !!supabase
+    enabled: !!supabase && !!user
   });
 
-  // Query para obtener usuarios
-  const { data: users = [] } = useQuery({
-    queryKey: ['users-for-alerts'],
-    queryFn: async () => {
-      if (!supabase) return [];
-      const { data } = await supabase
-        .from('profiles')
-        .select('id, name, role')
-        .order('name');
-      return data || [];
-    },
-    enabled: !!supabase
-  });
-
-  // Mutation para crear alerta
+  // Mutación para crear nueva alerta
   const createAlertMutation = useMutation({
     mutationFn: async (alertData: typeof newAlert) => {
-      if (!supabase || !user) throw new Error("No disponible");
+      if (!supabase || !user || !alertData.type) {
+        throw new Error('Datos incompletos');
+      }
 
       const { data, error } = await supabase
         .from('alerts')
         .insert({
           title: alertData.title,
           description: alertData.description,
-          type: alertData.type,
+          type: alertData.type as AlertType,
           priority: alertData.priority,
           territory_id: alertData.territory_id || null,
-          affected_user_id: alertData.affected_user_id || null,
           created_by: user.id
         })
         .select()
@@ -116,7 +114,7 @@ const AlertSystem = () => {
     onSuccess: () => {
       toast({
         title: "Alerta creada",
-        description: "La alerta ha sido creada exitosamente",
+        description: "La alerta ha sido registrada exitosamente.",
       });
       queryClient.invalidateQueries({ queryKey: ['alerts'] });
       setNewAlert({
@@ -124,44 +122,15 @@ const AlertSystem = () => {
         description: '',
         type: '',
         priority: 'medium',
-        territory_id: '',
-        affected_user_id: ''
+        territory_id: ''
       });
     },
     onError: (error: any) => {
       toast({
         title: "Error",
-        description: error.message || "No se pudo crear la alerta",
+        description: error.message || "No se pudo crear la alerta.",
         variant: "destructive",
       });
-    }
-  });
-
-  // Mutation para resolver alerta
-  const resolveAlertMutation = useMutation({
-    mutationFn: async (alertId: string) => {
-      if (!supabase || !user) throw new Error("No disponible");
-
-      const { data, error } = await supabase
-        .from('alerts')
-        .update({
-          status: 'resolved',
-          resolved_by: user.id,
-          resolved_at: new Date().toISOString()
-        })
-        .eq('id', alertId)
-        .select()
-        .single();
-
-      if (error) throw error;
-      return data;
-    },
-    onSuccess: () => {
-      toast({
-        title: "Alerta resuelta",
-        description: "La alerta ha sido marcada como resuelta",
-      });
-      queryClient.invalidateQueries({ queryKey: ['alerts'] });
     }
   });
 
@@ -169,7 +138,7 @@ const AlertSystem = () => {
     if (!newAlert.title || !newAlert.type) {
       toast({
         title: "Error",
-        description: "Título y tipo son requeridos",
+        description: "Por favor completa todos los campos obligatorios",
         variant: "destructive"
       });
       return;
@@ -177,68 +146,30 @@ const AlertSystem = () => {
     createAlertMutation.mutate(newAlert);
   };
 
-  const getTypeIcon = (type: string) => {
-    switch (type) {
-      case 'security': return Shield;
-      case 'logistics': return Truck;
-      case 'political': return Users;
-      case 'emergency': return AlertTriangle;
-      case 'information': return Info;
-      default: return AlertTriangle;
+  const getPriorityColor = (priority: string) => {
+    switch (priority) {
+      case 'urgent': return 'bg-red-100 text-red-800 border-red-300';
+      case 'high': return 'bg-orange-100 text-orange-800 border-orange-300';
+      case 'medium': return 'bg-yellow-100 text-yellow-800 border-yellow-300';
+      case 'low': return 'bg-green-100 text-green-800 border-green-300';
+      default: return 'bg-gray-100 text-gray-800 border-gray-300';
     }
   };
 
   const getTypeColor = (type: string) => {
     switch (type) {
-      case 'security': return 'bg-red-100 text-red-800 border-red-300';
-      case 'logistics': return 'bg-blue-100 text-blue-800 border-blue-300';
-      case 'political': return 'bg-purple-100 text-purple-800 border-purple-300';
-      case 'emergency': return 'bg-orange-100 text-orange-800 border-orange-300';
-      case 'information': return 'bg-green-100 text-green-800 border-green-300';
-      default: return 'bg-gray-100 text-gray-800 border-gray-300';
+      case 'security': return 'bg-red-50 text-red-700';
+      case 'emergency': return 'bg-red-50 text-red-700';
+      case 'political': return 'bg-blue-50 text-blue-700';
+      case 'logistics': return 'bg-purple-50 text-purple-700';
+      case 'information': return 'bg-gray-50 text-gray-700';
+      default: return 'bg-gray-50 text-gray-700';
     }
   };
-
-  const getPriorityColor = (priority: string) => {
-    switch (priority) {
-      case 'urgent': return 'bg-red-500 text-white';
-      case 'high': return 'bg-orange-500 text-white';
-      case 'medium': return 'bg-yellow-500 text-white';
-      case 'low': return 'bg-green-500 text-white';
-      default: return 'bg-gray-500 text-white';
-    }
-  };
-
-  const getStatusIcon = (status: string) => {
-    switch (status) {
-      case 'active': return Clock;
-      case 'resolved': return CheckCircle;
-      case 'dismissed': return XCircle;
-      default: return Clock;
-    }
-  };
-
-  const activeAlerts = alerts.filter(alert => alert.status === 'active');
-  const resolvedAlerts = alerts.filter(alert => alert.status === 'resolved');
 
   return (
     <div className="space-y-6">
-      <div className="flex justify-between items-center">
-        <div>
-          <h1 className="text-2xl font-bold text-gray-900">Sistema de Alertas</h1>
-          <p className="text-gray-600">Gestiona alertas y notificaciones de la campaña</p>
-        </div>
-        <div className="flex gap-2">
-          <Badge variant="outline" className="bg-red-50">
-            {activeAlerts.length} Activas
-          </Badge>
-          <Badge variant="outline" className="bg-green-50">
-            {resolvedAlerts.length} Resueltas
-          </Badge>
-        </div>
-      </div>
-
-      {/* Formulario para crear alerta */}
+      {/* Formulario para crear nueva alerta */}
       <Card>
         <CardHeader>
           <CardTitle className="flex items-center gap-2">
@@ -247,24 +178,21 @@ const AlertSystem = () => {
           </CardTitle>
         </CardHeader>
         <CardContent className="space-y-4">
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+          <div className="grid md:grid-cols-2 gap-4">
             <div className="space-y-2">
-              <Label htmlFor="title">Título de la Alerta</Label>
+              <Label htmlFor="title">Título *</Label>
               <Input
                 id="title"
                 value={newAlert.title}
                 onChange={(e) => setNewAlert({...newAlert, title: e.target.value})}
-                placeholder="Ej: Problema de seguridad en evento"
-                disabled={createAlertMutation.isPending}
+                placeholder="Título de la alerta"
               />
             </div>
-
             <div className="space-y-2">
-              <Label htmlFor="type">Tipo de Alerta</Label>
+              <Label>Tipo *</Label>
               <Select 
                 value={newAlert.type} 
-                onValueChange={(value) => setNewAlert({...newAlert, type: value as any})}
-                disabled={createAlertMutation.isPending}
+                onValueChange={(value) => setNewAlert({...newAlert, type: value as AlertType})}
               >
                 <SelectTrigger>
                   <SelectValue placeholder="Selecciona el tipo" />
@@ -278,13 +206,14 @@ const AlertSystem = () => {
                 </SelectContent>
               </Select>
             </div>
+          </div>
 
+          <div className="grid md:grid-cols-2 gap-4">
             <div className="space-y-2">
-              <Label htmlFor="priority">Prioridad</Label>
+              <Label>Prioridad</Label>
               <Select 
                 value={newAlert.priority} 
-                onValueChange={(value) => setNewAlert({...newAlert, priority: value as any})}
-                disabled={createAlertMutation.isPending}
+                onValueChange={(value) => setNewAlert({...newAlert, priority: value as AlertPriority})}
               >
                 <SelectTrigger>
                   <SelectValue />
@@ -297,41 +226,19 @@ const AlertSystem = () => {
                 </SelectContent>
               </Select>
             </div>
-
             <div className="space-y-2">
-              <Label htmlFor="territory">Territorio Afectado</Label>
+              <Label>Territorio</Label>
               <Select 
                 value={newAlert.territory_id} 
                 onValueChange={(value) => setNewAlert({...newAlert, territory_id: value})}
-                disabled={createAlertMutation.isPending}
               >
                 <SelectTrigger>
-                  <SelectValue placeholder="Selecciona territorio (opcional)" />
+                  <SelectValue placeholder="Selecciona territorio" />
                 </SelectTrigger>
                 <SelectContent>
                   {territories.map((territory: any) => (
                     <SelectItem key={territory.id} value={territory.id}>
                       {territory.name} ({territory.type})
-                    </SelectItem>
-                  ))}
-                </SelectContent>
-              </Select>
-            </div>
-
-            <div className="space-y-2">
-              <Label htmlFor="affected-user">Usuario Afectado</Label>
-              <Select 
-                value={newAlert.affected_user_id} 
-                onValueChange={(value) => setNewAlert({...newAlert, affected_user_id: value})}
-                disabled={createAlertMutation.isPending}
-              >
-                <SelectTrigger>
-                  <SelectValue placeholder="Selecciona usuario (opcional)" />
-                </SelectTrigger>
-                <SelectContent>
-                  {users.map((user: any) => (
-                    <SelectItem key={user.id} value={user.id}>
-                      {user.name} ({user.role})
                     </SelectItem>
                   ))}
                 </SelectContent>
@@ -345,131 +252,80 @@ const AlertSystem = () => {
               id="description"
               value={newAlert.description}
               onChange={(e) => setNewAlert({...newAlert, description: e.target.value})}
-              placeholder="Describe la situación detalladamente..."
-              rows={3}
-              disabled={createAlertMutation.isPending}
+              placeholder="Describe la alerta..."
+              className="min-h-[100px]"
             />
           </div>
 
           <Button 
             onClick={handleCreateAlert} 
-            className="w-full"
             disabled={createAlertMutation.isPending}
+            className="w-full"
           >
             {createAlertMutation.isPending ? "Creando..." : "Crear Alerta"}
           </Button>
         </CardContent>
       </Card>
 
-      {/* Alertas activas */}
+      {/* Lista de alertas */}
       <Card>
         <CardHeader>
           <CardTitle className="flex items-center gap-2">
-            <AlertTriangle className="w-5 h-5 text-red-600" />
-            Alertas Activas ({activeAlerts.length})
+            <AlertTriangle className="w-5 h-5" />
+            Alertas Activas ({alerts.length})
           </CardTitle>
         </CardHeader>
         <CardContent>
-          <div className="space-y-4">
-            {activeAlerts.map((alert: any) => {
-              const TypeIcon = getTypeIcon(alert.type);
-              const StatusIcon = getStatusIcon(alert.status);
-              
-              return (
-                <div key={alert.id} className="border rounded-lg p-4 hover:bg-gray-50">
-                  <div className="flex items-start justify-between">
-                    <div className="flex items-start gap-3">
-                      <div className={`w-10 h-10 rounded-lg flex items-center justify-center ${getTypeColor(alert.type)}`}>
-                        <TypeIcon className="w-5 h-5" />
-                      </div>
-                      <div className="flex-1">
-                        <div className="flex items-center gap-2 mb-2">
-                          <h3 className="font-medium">{alert.title}</h3>
-                          <Badge className={getPriorityColor(alert.priority)}>
-                            {alert.priority.toUpperCase()}
-                          </Badge>
-                        </div>
-                        
-                        {alert.description && (
-                          <p className="text-sm text-gray-600 mb-3">{alert.description}</p>
-                        )}
-                        
-                        <div className="flex items-center gap-4 text-xs text-gray-500">
-                          {alert.territory && (
-                            <div className="flex items-center gap-1">
-                              <MapPin className="w-3 h-3" />
-                              {alert.territory.name}
-                            </div>
-                          )}
-                          <div className="flex items-center gap-1">
-                            <Clock className="w-3 h-3" />
-                            {new Date(alert.created_at).toLocaleString()}
-                          </div>
-                          {alert.created_by_user && (
-                            <span>Por: {alert.created_by_user.name}</span>
-                          )}
-                        </div>
-                      </div>
-                    </div>
-                    
-                    <div className="flex items-center gap-2">
+          {isLoading ? (
+            <div className="text-center py-8">Cargando alertas...</div>
+          ) : alerts.length === 0 ? (
+            <div className="text-center py-8 text-gray-500">
+              No hay alertas registradas
+            </div>
+          ) : (
+            <div className="space-y-4">
+              {alerts.map((alert: any) => (
+                <div key={alert.id} className="border rounded-lg p-4">
+                  <div className="flex items-start justify-between mb-2">
+                    <h3 className="font-semibold text-lg">{alert.title}</h3>
+                    <div className="flex gap-2">
+                      <Badge className={getPriorityColor(alert.priority)}>
+                        {alert.priority.toUpperCase()}
+                      </Badge>
                       <Badge className={getTypeColor(alert.type)}>
                         {alert.type}
                       </Badge>
-                      <Button
-                        size="sm"
-                        onClick={() => resolveAlertMutation.mutate(alert.id)}
-                        disabled={resolveAlertMutation.isPending}
-                      >
-                        Resolver
-                      </Button>
                     </div>
+                  </div>
+                  
+                  {alert.description && (
+                    <p className="text-gray-600 mb-3">{alert.description}</p>
+                  )}
+                  
+                  <div className="flex items-center gap-4 text-sm text-gray-500">
+                    {alert.territories && (
+                      <div className="flex items-center gap-1">
+                        <MapPin className="w-4 h-4" />
+                        {alert.territories.name}
+                      </div>
+                    )}
+                    <div className="flex items-center gap-1">
+                      <Clock className="w-4 h-4" />
+                      {new Date(alert.created_at).toLocaleDateString()}
+                    </div>
+                    {alert.profiles && (
+                      <div className="flex items-center gap-1">
+                        <User className="w-4 h-4" />
+                        {alert.profiles.name}
+                      </div>
+                    )}
                   </div>
                 </div>
-              );
-            })}
-
-            {activeAlerts.length === 0 && (
-              <div className="text-center py-8 text-gray-500">
-                No hay alertas activas
-              </div>
-            )}
-          </div>
+              ))}
+            </div>
+          )}
         </CardContent>
       </Card>
-
-      {/* Alertas resueltas - mostrar solo las últimas 5 */}
-      {resolvedAlerts.length > 0 && (
-        <Card>
-          <CardHeader>
-            <CardTitle className="flex items-center gap-2">
-              <CheckCircle className="w-5 h-5 text-green-600" />
-              Alertas Resueltas Recientes
-            </CardTitle>
-          </CardHeader>
-          <CardContent>
-            <div className="space-y-3">
-              {resolvedAlerts.slice(0, 5).map((alert: any) => {
-                const TypeIcon = getTypeIcon(alert.type);
-                
-                return (
-                  <div key={alert.id} className="flex items-center justify-between p-3 border rounded-lg bg-green-50">
-                    <div className="flex items-center gap-3">
-                      <TypeIcon className="w-4 h-4 text-green-600" />
-                      <div>
-                        <h4 className="font-medium text-sm">{alert.title}</h4>
-                        <p className="text-xs text-gray-500">
-                          Resuelto por {alert.resolved_by_user?.name} - {new Date(alert.resolved_at).toLocaleString()}
-                        </p>
-                      </div>
-                    </div>
-                  </div>
-                );
-              })}
-            </div>
-          </CardContent>
-        </Card>
-      )}
     </div>
   );
 };

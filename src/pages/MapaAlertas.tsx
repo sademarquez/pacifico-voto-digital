@@ -1,284 +1,311 @@
 
-import { useState, useEffect } from "react";
-import { Button } from "@/components/ui/button";
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
+import { useState } from "react";
+import { useQuery } from "@tanstack/react-query";
+import { supabase } from "@/integrations/supabase/client";
+import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
-import { useToast } from "@/hooks/use-toast";
-import { AlertTriangle, Plus, Filter, Users, MapPin } from "lucide-react";
-import MapaInteractivo from "@/components/MapaInteractivo";
+import { Button } from "@/components/ui/button";
+import { AlertTriangle, MapPin, Clock, User, Filter, RefreshCw } from "lucide-react";
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
+import { useAuth } from "../contexts/AuthContext";
+import { useDataSegregation } from "../hooks/useDataSegregation";
 
-interface Alerta {
+interface MapaAlerta {
   id: string;
-  municipio: string;
-  tipo: string;
-  severidad: 'baja' | 'media' | 'alta' | 'crítica';
-  descripcion: string;
-  lat: number;
-  lng: number;
-  fecha: string;
-  lider?: string;
+  title: string;
+  description: string;
+  type: string;
+  priority: string;
+  status: string;
+  territory_id: string;
+  territories?: {
+    name: string;
+    type: string;
+  };
+  profiles?: {
+    name: string;
+  };
+  created_at: string;
 }
 
 const MapaAlertas = () => {
-  const { toast } = useToast();
-  const [alertas, setAlertas] = useState<Alerta[]>([]);
-  const [filtroSeveridad, setFiltroSeveridad] = useState<string>("todas");
-  const [alertaSeleccionada, setAlertaSeleccionada] = useState<Alerta | null>(null);
+  const { user } = useAuth();
+  const { getAlertFilter } = useDataSegregation();
+  const [selectedAlert, setSelectedAlert] = useState<MapaAlerta | null>(null);
+  const [filterPriority, setFilterPriority] = useState<string>('all');
+  const [filterType, setFilterType] = useState<string>('all');
 
-  // Datos simulados de alertas en el Cauca
-  useEffect(() => {
-    const alertasSimuladas: Alerta[] = [
-      {
-        id: "1",
-        municipio: "Popayán",
-        tipo: "Inundación",
-        severidad: "alta",
-        descripcion: "Desbordamiento del río Molino en el sector urbano",
-        lat: 2.4448,
-        lng: -76.6147,
-        fecha: "2024-06-14",
-        lider: "María González"
-      },
-      {
-        id: "2",
-        municipio: "Timbío",
-        tipo: "Deslizamiento",
-        severidad: "crítica",
-        descripcion: "Deslizamiento de tierra en la vía principal",
-        lat: 2.3547,
-        lng: -76.6829,
-        fecha: "2024-06-13",
-        lider: "Carlos Rodríguez"
-      },
-      {
-        id: "3",
-        municipio: "Silvia",
-        tipo: "Incendio Forestal",
-        severidad: "media",
-        descripcion: "Incendio controlado en zona rural",
-        lat: 2.6156,
-        lng: -76.3831,
-        fecha: "2024-06-12",
-        lider: "Ana Muñoz"
-      },
-      {
-        id: "4",
-        municipio: "Santander de Quilichao",
-        tipo: "Sequía",
-        severidad: "baja",
-        descripcion: "Escasez de agua en algunas veredas",
-        lat: 3.0097,
-        lng: -76.4847,
-        fecha: "2024-06-11"
-      },
-      {
-        id: "5",
-        municipio: "Cajibío",
-        tipo: "Granizada",
-        severidad: "media",
-        descripcion: "Granizada afectó cultivos de café",
-        lat: 2.5506,
-        lng: -76.8733,
-        fecha: "2024-06-10",
-        lider: "Pedro López"
-      },
-      {
-        id: "6",
-        municipio: "Toribío",
-        tipo: "Conflicto Armado",
-        severidad: "crítica",
-        descripcion: "Enfrentamientos reportados en zona rural",
-        lat: 3.0167,
-        lng: -76.0833,
-        fecha: "2024-06-09",
-        lider: "Rosa Piñacué"
+  // Query para obtener alertas con filtros aplicados
+  const { data: alerts = [], isLoading, refetch } = useQuery({
+    queryKey: ['mapa-alerts', user?.id, filterPriority, filterType],
+    queryFn: async () => {
+      if (!supabase || !user) return [];
+      
+      const baseFilter = getAlertFilter();
+      let query = supabase
+        .from('alerts')
+        .select(`
+          *,
+          territories(name, type),
+          profiles!alerts_created_by_fkey(name)
+        `)
+        .eq('status', 'active')
+        .order('created_at', { ascending: false });
+
+      // Aplicar filtros de rol
+      if (baseFilter && Object.keys(baseFilter).length > 0) {
+        if (baseFilter.or) {
+          query = query.or(baseFilter.or);
+        } else {
+          Object.entries(baseFilter).forEach(([key, value]) => {
+            if (value !== null) {
+              query = query.eq(key, value);
+            }
+          });
+        }
       }
-    ];
-    setAlertas(alertasSimuladas);
-  }, []);
 
-  const alertasFiltradas = alertas.filter(alerta => 
-    filtroSeveridad === "todas" || alerta.severidad === filtroSeveridad
-  );
+      // Aplicar filtros adicionales
+      if (filterPriority !== 'all') {
+        query = query.eq('priority', filterPriority);
+      }
+      if (filterType !== 'all') {
+        query = query.eq('type', filterType);
+      }
 
-  const handleAlertaClick = (alerta: Alerta) => {
-    setAlertaSeleccionada(alerta);
-    toast({
-      title: "Alerta Seleccionada",
-      description: `${alerta.tipo} en ${alerta.municipio}`,
-    });
-  };
+      const { data, error } = await query;
+      if (error) {
+        console.error('Error fetching alerts:', error);
+        return [];
+      }
+      return data || [];
+    },
+    enabled: !!supabase && !!user
+  });
 
-  const getSeverityColor = (severidad: string) => {
-    switch (severidad) {
-      case 'baja': return 'bg-green-100 text-green-800 border-green-200';
-      case 'media': return 'bg-yellow-100 text-yellow-800 border-yellow-200';
-      case 'alta': return 'bg-orange-100 text-orange-800 border-orange-200';
-      case 'crítica': return 'bg-red-100 text-red-800 border-red-200';
-      default: return 'bg-gray-100 text-gray-800 border-gray-200';
+  const getPriorityColor = (priority: string) => {
+    switch (priority) {
+      case 'urgent': return 'bg-red-500';
+      case 'high': return 'bg-orange-500';
+      case 'medium': return 'bg-yellow-500';
+      case 'low': return 'bg-green-500';
+      default: return 'bg-gray-500';
     }
   };
 
-  const conteoSeveridad = {
-    crítica: alertas.filter(a => a.severidad === 'crítica').length,
-    alta: alertas.filter(a => a.severidad === 'alta').length,
-    media: alertas.filter(a => a.severidad === 'media').length,
-    baja: alertas.filter(a => a.severidad === 'baja').length,
+  const getPriorityBadgeColor = (priority: string) => {
+    switch (priority) {
+      case 'urgent': return 'bg-red-100 text-red-800 border-red-300';
+      case 'high': return 'bg-orange-100 text-orange-800 border-orange-300';
+      case 'medium': return 'bg-yellow-100 text-yellow-800 border-yellow-300';
+      case 'low': return 'bg-green-100 text-green-800 border-green-300';
+      default: return 'bg-gray-100 text-gray-800 border-gray-300';
+    }
+  };
+
+  const getTypeColor = (type: string) => {
+    switch (type) {
+      case 'security': return 'bg-red-50 text-red-700';
+      case 'emergency': return 'bg-red-50 text-red-700';
+      case 'political': return 'bg-blue-50 text-blue-700';
+      case 'logistics': return 'bg-purple-50 text-purple-700';
+      case 'information': return 'bg-gray-50 text-gray-700';
+      default: return 'bg-gray-50 text-gray-700';
+    }
+  };
+
+  const handleAlertClick = (alerta: MapaAlerta) => {
+    setSelectedAlert(alerta);
   };
 
   return (
     <div className="container mx-auto px-4 py-8 space-y-6">
       {/* Header */}
-      <div className="text-center space-y-4">
-        <div className="gradient-primary rounded-full w-16 h-16 flex items-center justify-center mx-auto mb-4">
-          <MapPin className="text-white w-8 h-8" />
-        </div>
-        <h1 className="text-3xl md:text-4xl font-bold bg-gradient-to-r from-purple-600 via-purple-500 to-pink-500 bg-clip-text text-transparent">
-          Mapa de Alertas del Cauca
-        </h1>
-        <p className="text-purple-600 max-w-2xl mx-auto">
-          Monitoreo en tiempo real de emergencias y situaciones críticas en el departamento del Cauca
-        </p>
-      </div>
-
-      {/* Estadísticas Rápidas */}
-      <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
-        <Card className="text-center border-red-200">
-          <CardContent className="p-4">
-            <div className="text-2xl font-bold text-red-600">{conteoSeveridad.crítica}</div>
-            <div className="text-sm text-red-700">Críticas</div>
-          </CardContent>
-        </Card>
-        <Card className="text-center border-orange-200">
-          <CardContent className="p-4">
-            <div className="text-2xl font-bold text-orange-600">{conteoSeveridad.alta}</div>
-            <div className="text-sm text-orange-700">Altas</div>
-          </CardContent>
-        </Card>
-        <Card className="text-center border-yellow-200">
-          <CardContent className="p-4">
-            <div className="text-2xl font-bold text-yellow-600">{conteoSeveridad.media}</div>
-            <div className="text-sm text-yellow-700">Medias</div>
-          </CardContent>
-        </Card>
-        <Card className="text-center border-green-200">
-          <CardContent className="p-4">
-            <div className="text-2xl font-bold text-green-600">{conteoSeveridad.baja}</div>
-            <div className="text-sm text-green-700">Bajas</div>
-          </CardContent>
-        </Card>
-      </div>
-
-      {/* Controles */}
       <Card>
         <CardHeader>
-          <CardTitle className="flex items-center gap-2 text-purple-800">
-            <Filter className="w-5 h-5" />
-            Filtros y Acciones
-          </CardTitle>
-        </CardHeader>
-        <CardContent>
-          <div className="flex flex-wrap gap-4 items-center">
-            <div className="flex gap-2">
-              <Button
-                variant={filtroSeveridad === "todas" ? "default" : "outline"}
-                onClick={() => setFiltroSeveridad("todas")}
-                className="bg-purple-600 hover:bg-purple-700"
-              >
-                Todas
-              </Button>
-              <Button
-                variant={filtroSeveridad === "crítica" ? "destructive" : "outline"}
-                onClick={() => setFiltroSeveridad("crítica")}
-              >
-                Críticas
-              </Button>
-              <Button
-                variant={filtroSeveridad === "alta" ? "default" : "outline"}
-                onClick={() => setFiltroSeveridad("alta")}
-                className="bg-orange-600 hover:bg-orange-700"
-              >
-                Altas
-              </Button>
-              <Button
-                variant={filtroSeveridad === "media" ? "default" : "outline"}
-                onClick={() => setFiltroSeveridad("media")}
-                className="bg-yellow-600 hover:bg-yellow-700"
-              >
-                Medias
-              </Button>
-              <Button
-                variant={filtroSeveridad === "baja" ? "default" : "outline"}
-                onClick={() => setFiltroSeveridad("baja")}
-                className="bg-green-600 hover:bg-green-700"
-              >
-                Bajas
-              </Button>
-            </div>
-            <Button className="bg-gradient-to-r from-purple-600 to-pink-600 hover:from-purple-700 hover:to-pink-700">
-              <Plus className="w-4 h-4 mr-2" />
-              Nueva Alerta
+          <div className="flex items-center justify-between">
+            <CardTitle className="flex items-center gap-2">
+              <AlertTriangle className="w-6 h-6" />
+              Mapa de Alertas de Campaña
+            </CardTitle>
+            <Button variant="outline" onClick={() => refetch()} size="sm">
+              <RefreshCw className="w-4 h-4 mr-2" />
+              Actualizar
             </Button>
+          </div>
+        </CardHeader>
+      </Card>
+
+      {/* Filtros */}
+      <Card>
+        <CardContent className="pt-6">
+          <div className="flex items-center gap-4">
+            <div className="flex items-center gap-2">
+              <Filter className="w-4 h-4" />
+              <span className="text-sm font-medium">Filtros:</span>
+            </div>
+            <Select value={filterPriority} onValueChange={setFilterPriority}>
+              <SelectTrigger className="w-40">
+                <SelectValue placeholder="Prioridad" />
+              </SelectTrigger>
+              <SelectContent>
+                <SelectItem value="all">Todas las prioridades</SelectItem>
+                <SelectItem value="urgent">Urgente</SelectItem>
+                <SelectItem value="high">Alta</SelectItem>
+                <SelectItem value="medium">Media</SelectItem>
+                <SelectItem value="low">Baja</SelectItem>
+              </SelectContent>
+            </Select>
+            <Select value={filterType} onValueChange={setFilterType}>
+              <SelectTrigger className="w-40">
+                <SelectValue placeholder="Tipo" />
+              </SelectTrigger>
+              <SelectContent>
+                <SelectItem value="all">Todos los tipos</SelectItem>
+                <SelectItem value="security">Seguridad</SelectItem>
+                <SelectItem value="logistics">Logística</SelectItem>
+                <SelectItem value="political">Política</SelectItem>
+                <SelectItem value="emergency">Emergencia</SelectItem>
+                <SelectItem value="information">Información</SelectItem>
+              </SelectContent>
+            </Select>
           </div>
         </CardContent>
       </Card>
 
-      {/* Mapa Interactivo */}
-      <MapaInteractivo 
-        alertas={alertasFiltradas} 
-        onAlertaClick={handleAlertaClick}
-      />
-
-      {/* Lista de Alertas */}
-      <Card>
-        <CardHeader>
-          <CardTitle className="flex items-center gap-2 text-purple-800">
-            <AlertTriangle className="w-5 h-5" />
-            Alertas Activas ({alertasFiltradas.length})
-          </CardTitle>
-          <CardDescription>
-            Haz clic en cualquier alerta para verla en el mapa
-          </CardDescription>
-        </CardHeader>
-        <CardContent>
-          <div className="grid gap-4">
-            {alertasFiltradas.map((alerta) => (
-              <Card 
-                key={alerta.id} 
-                className={`cursor-pointer transition-all hover:shadow-md ${
-                  alertaSeleccionada?.id === alerta.id ? 'ring-2 ring-purple-500' : ''
-                }`}
-                onClick={() => handleAlertaClick(alerta)}
-              >
-                <CardContent className="p-4">
-                  <div className="flex justify-between items-start">
-                    <div className="space-y-2">
-                      <div className="flex items-center gap-2">
-                        <h3 className="font-semibold text-purple-800">{alerta.municipio}</h3>
-                        <Badge className={getSeverityColor(alerta.severidad)}>
-                          {alerta.severidad.toUpperCase()}
-                        </Badge>
+      <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
+        {/* Panel de alertas */}
+        <div className="space-y-4">
+          <Card>
+            <CardHeader>
+              <CardTitle className="text-lg">
+                Alertas Activas ({alerts.length})
+              </CardTitle>
+            </CardHeader>
+            <CardContent>
+              <div className="space-y-3 max-h-96 overflow-y-auto">
+                {isLoading ? (
+                  <div className="text-center py-4 text-sm text-gray-500">
+                    Cargando alertas...
+                  </div>
+                ) : alerts.length === 0 ? (
+                  <div className="text-center py-4 text-sm text-gray-500">
+                    No hay alertas activas
+                  </div>
+                ) : (
+                  alerts.map((alerta: MapaAlerta) => (
+                    <div
+                      key={alerta.id}
+                      className={`p-3 border rounded-lg cursor-pointer transition-colors hover:bg-gray-50 ${
+                        selectedAlert?.id === alerta.id ? 'bg-blue-50 border-blue-300' : ''
+                      }`}
+                      onClick={() => handleAlertClick(alerta)}
+                    >
+                      <div className="flex items-start justify-between mb-2">
+                        <h4 className="font-medium text-sm">{alerta.title}</h4>
+                        <div className={`w-3 h-3 rounded-full ${getPriorityColor(alerta.priority)}`} />
                       </div>
-                      <p className="text-sm font-medium text-gray-700">{alerta.tipo}</p>
-                      <p className="text-sm text-gray-600">{alerta.descripcion}</p>
-                      <div className="flex items-center gap-4 text-xs text-gray-500">
-                        <span>📅 {alerta.fecha}</span>
-                        {alerta.lider && (
-                          <span className="flex items-center gap-1">
-                            <Users className="w-3 h-3" />
-                            {alerta.lider}
-                          </span>
+                      <p className="text-xs text-gray-600 mb-2 line-clamp-2">{alerta.description}</p>
+                      <div className="flex items-center justify-between text-xs">
+                        <Badge className={getTypeColor(alerta.type)} variant="outline">
+                          {alerta.type}
+                        </Badge>
+                        {alerta.territories && (
+                          <span className="text-gray-500">{alerta.territories.name}</span>
                         )}
                       </div>
                     </div>
-                    <MapPin className="w-5 h-5 text-purple-500" />
+                  ))
+                )}
+              </div>
+            </CardContent>
+          </Card>
+        </div>
+
+        {/* Área del mapa */}
+        <div className="lg:col-span-2">
+          <Card className="h-[600px]">
+            <CardContent className="p-0 h-full">
+              <div className="w-full h-full bg-gradient-to-br from-red-50 to-orange-50 rounded-lg flex items-center justify-center relative overflow-hidden">
+                {/* Simulación de mapa con alertas */}
+                <div className="absolute inset-0 p-6">
+                  <div className="grid grid-cols-3 gap-4 h-full">
+                    {alerts.slice(0, 9).map((alerta: MapaAlerta, index) => (
+                      <div
+                        key={alerta.id}
+                        className={`rounded-lg border-2 p-4 cursor-pointer transition-all hover:scale-105 ${
+                          selectedAlert?.id === alerta.id 
+                            ? 'border-blue-500 bg-blue-100' 
+                            : 'border-gray-300 bg-white'
+                        }`}
+                        onClick={() => handleAlertClick(alerta)}
+                      >
+                        <div className="text-center">
+                          <div className={`w-6 h-6 mx-auto mb-2 rounded-full ${getPriorityColor(alerta.priority)} animate-pulse`} />
+                          <h3 className="font-medium text-sm line-clamp-1">{alerta.title}</h3>
+                          <p className="text-xs text-gray-500 capitalize">{alerta.type}</p>
+                          {alerta.territories && (
+                            <p className="text-xs mt-1 text-gray-600">{alerta.territories.name}</p>
+                          )}
+                          <Badge className={`mt-2 text-xs ${getPriorityBadgeColor(alerta.priority)}`}>
+                            {alerta.priority}
+                          </Badge>
+                        </div>
+                      </div>
+                    ))}
                   </div>
-                </CardContent>
-              </Card>
-            ))}
-          </div>
-        </CardContent>
-      </Card>
+                </div>
+
+                {/* Información de alerta seleccionada */}
+                {selectedAlert && (
+                  <div className="absolute bottom-4 left-4 right-4 bg-white p-4 rounded-lg shadow-lg border">
+                    <div className="flex items-start justify-between mb-2">
+                      <h3 className="font-semibold">{selectedAlert.title}</h3>
+                      <Badge className={getPriorityBadgeColor(selectedAlert.priority)}>
+                        {selectedAlert.priority}
+                      </Badge>
+                    </div>
+                    <p className="text-sm text-gray-600 mb-3">{selectedAlert.description}</p>
+                    <div className="grid grid-cols-2 gap-4 text-sm">
+                      {selectedAlert.territories && (
+                        <div className="flex items-center gap-2">
+                          <MapPin className="w-4 h-4 text-blue-600" />
+                          <span>{selectedAlert.territories.name}</span>
+                        </div>
+                      )}
+                      <div className="flex items-center gap-2">
+                        <Clock className="w-4 h-4 text-green-600" />
+                        <span>{new Date(selectedAlert.created_at).toLocaleDateString()}</span>
+                      </div>
+                      {selectedAlert.profiles && (
+                        <div className="flex items-center gap-2">
+                          <User className="w-4 h-4 text-purple-600" />
+                          <span>{selectedAlert.profiles.name}</span>
+                        </div>
+                      )}
+                      <div className="flex items-center gap-2">
+                        <Badge className={getTypeColor(selectedAlert.type)} variant="outline">
+                          {selectedAlert.type}
+                        </Badge>
+                      </div>
+                    </div>
+                  </div>
+                )}
+
+                {/* Overlay de carga */}
+                {isLoading && (
+                  <div className="absolute inset-0 bg-white bg-opacity-75 flex items-center justify-center">
+                    <div className="text-center">
+                      <RefreshCw className="w-8 h-8 animate-spin mx-auto mb-2 text-blue-600" />
+                      <p className="text-sm text-gray-600">Cargando alertas...</p>
+                    </div>
+                  </div>
+                )}
+              </div>
+            </CardContent>
+          </Card>
+        </div>
+      </div>
     </div>
   );
 };
