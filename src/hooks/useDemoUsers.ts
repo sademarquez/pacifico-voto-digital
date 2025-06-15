@@ -16,13 +16,13 @@ export const useDemoUsers = () => {
 
   const demoUsers: DemoUser[] = [
     {
-      email: 'desarrollador@micampana.com',
+      email: 'dev@demo.com',
       password: FIXED_PASSWORD,
       name: 'Desarrollador',
       role: 'desarrollador'
     },
     {
-      email: 'master1@demo.com',
+      email: 'master@demo.com',
       password: FIXED_PASSWORD,
       name: 'Master',
       role: 'master'

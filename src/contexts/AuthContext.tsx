@@ -101,67 +101,26 @@ export const AuthProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
     
     let email = nameOrEmail;
     
-    // Si no contiene @, buscar el email por nombre
+    // Si no contiene @, buscar el email por nombre usando mapeo directo
     if (!nameOrEmail.includes('@')) {
       console.log('[LOGIN] Buscando email por nombre:', nameOrEmail);
       
-      try {
-        const { data: profiles, error } = await supabase
-          .from('profiles')
-          .select('id')
-          .eq('name', nameOrEmail);
-        
-        if (error) {
-          console.error('[LOGIN] Error buscando perfil:', error);
-          const errorMsg = `Error buscando usuario: ${error.message}`;
-          setAuthError(errorMsg);
-          return false;
-        }
-        
-        if (!profiles || profiles.length === 0) {
-          console.error('[LOGIN] Usuario no encontrado por nombre:', nameOrEmail);
-          const errorMsg = `Usuario "${nameOrEmail}" no encontrado. Verifica que el usuario exista.`;
-          setAuthError(errorMsg);
-          return false;
-        }
-        
-        const profile = profiles[0];
-        console.log('[LOGIN] Perfil encontrado:', profile.id);
-        
-        // Obtener el email del usuario desde auth.users usando RPC
-        const { data: userData, error: userError } = await supabase.rpc('get_user_email', {
-          user_id: profile.id
-        });
-        
-        if (userError) {
-          console.error('[LOGIN] Error obteniendo email:', userError);
-          // Fallback: usar emails conocidos actualizados
-          const emailMap: { [key: string]: string } = {
-            'Desarrollador': 'desarrollador@micampana.com',
-            'Master': 'master1@demo.com',
-            'Candidato': 'candidato@demo.com',
-            'Lider': 'lider@demo.com',
-            'Votante': 'votante@demo.com'
-          };
-          
-          email = emailMap[nameOrEmail];
-          if (!email) {
-            const errorMsg = 'No se pudo determinar el email del usuario. Contacta al administrador.';
-            setAuthError(errorMsg);
-            return false;
-          }
-          console.log('[LOGIN] Usando email del mapa:', email);
-        } else {
-          email = userData;
-        }
-        
-        console.log('[LOGIN] Email para login:', email);
-      } catch (error) {
-        console.error('[LOGIN] Error en búsqueda de usuario:', error);
-        const errorMsg = 'Error al buscar usuario. Intenta de nuevo.';
+      // Mapeo directo de nombres a emails simplificados
+      const emailMap: { [key: string]: string } = {
+        'Desarrollador': 'dev@demo.com',
+        'Master': 'master@demo.com',
+        'Candidato': 'candidato@demo.com',
+        'Lider': 'lider@demo.com',
+        'Votante': 'votante@demo.com'
+      };
+      
+      email = emailMap[nameOrEmail];
+      if (!email) {
+        const errorMsg = `Usuario "${nameOrEmail}" no encontrado. Usa: Desarrollador, Master, Candidato, Lider o Votante.`;
         setAuthError(errorMsg);
         return false;
       }
+      console.log('[LOGIN] Email mapeado:', email);
     }
     
     console.log('[LOGIN] Intentando autenticación con email:', email);
@@ -190,7 +149,6 @@ export const AuthProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
     
     console.log('[LOGIN] === LOGIN EXITOSO ===');
     console.log('[LOGIN] Usuario autenticado:', data.user?.email);
-    // No limpiar el error aqui, se limpiará en onAuthStateChange
     return true;
   };
 
