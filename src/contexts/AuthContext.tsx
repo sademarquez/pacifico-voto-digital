@@ -30,21 +30,52 @@ export const AuthProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
     console.log('🔧 AuthProvider inicializando...');
     
     let mounted = true;
+    let loadingTimeout: NodeJS.Timeout;
 
-    // Función para cargar perfil del usuario
+    // Timeout de seguridad para evitar loading infinito
+    const setLoadingTimeout = () => {
+      loadingTimeout = setTimeout(() => {
+        if (mounted) {
+          console.log('⏱️ Timeout de loading alcanzado, desactivando loading');
+          setIsLoading(false);
+        }
+      }, 5000); // 5 segundos máximo de loading
+    };
+
+    // Función para cargar perfil del usuario con timeout
     const loadUserProfile = async (supabaseUser: SupabaseUser): Promise<void> => {
       try {
         console.log('👤 Cargando perfil para:', supabaseUser.id);
         
-        const { data: profile, error } = await supabase
+        // Timeout para la consulta del perfil
+        const profilePromise = supabase
           .from('profiles')
           .select('id, name, role')
           .eq('id', supabaseUser.id)
           .maybeSingle();
 
+        const timeoutPromise = new Promise((_, reject) => {
+          setTimeout(() => reject(new Error('Profile query timeout')), 3000);
+        });
+
+        const { data: profile, error } = await Promise.race([
+          profilePromise,
+          timeoutPromise
+        ]) as any;
+
+        if (!mounted) return;
+
         if (error) {
           console.error('❌ Error consultando perfil:', error);
-          throw error;
+          // Si hay error, crear usuario básico
+          const basicUser: User = {
+            id: supabaseUser.id,
+            name: supabaseUser.email || 'Usuario',
+            role: 'votante',
+            email: supabaseUser.email || '',
+          };
+          setUser(basicUser);
+          return;
         }
 
         if (profile) {
@@ -56,43 +87,29 @@ export const AuthProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
           };
 
           console.log('✅ Perfil cargado:', userData.name, userData.role);
-          if (mounted) {
-            setUser(userData);
-          }
+          setUser(userData);
         } else {
-          console.warn('⚠️ Perfil no encontrado, creando...');
+          console.log('⚠️ Perfil no encontrado, usando datos básicos');
           
-          const { data: newProfile, error: createError } = await supabase
-            .from('profiles')
-            .insert([{
-              id: supabaseUser.id,
-              name: supabaseUser.email || 'Usuario',
-              role: 'votante'
-            }])
-            .select()
-            .single();
-
-          if (createError) {
-            console.error('❌ Error creando perfil:', createError);
-            throw createError;
-          }
-
-          const userData: User = {
-            id: newProfile.id,
-            name: newProfile.name || 'Usuario',
-            role: newProfile.role || 'votante',
+          const basicUser: User = {
+            id: supabaseUser.id,
+            name: supabaseUser.email || 'Usuario',
+            role: 'votante',
             email: supabaseUser.email || '',
           };
-
-          console.log('✅ Perfil creado:', userData.name, userData.role);
-          if (mounted) {
-            setUser(userData);
-          }
+          setUser(basicUser);
         }
       } catch (error) {
-        console.error('💥 Error crítico en loadUserProfile:', error);
+        console.error('💥 Error en loadUserProfile:', error);
         if (mounted) {
-          setUser(null);
+          // En caso de error, crear usuario básico para no bloquear la app
+          const basicUser: User = {
+            id: supabaseUser.id,
+            name: supabaseUser.email || 'Usuario',
+            role: 'votante',
+            email: supabaseUser.email || '',
+          };
+          setUser(basicUser);
         }
       }
     };
@@ -103,24 +120,45 @@ export const AuthProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
       
       console.log('🔄 Auth state changed:', event, newSession?.user?.email || 'No user');
       
+      // Limpiar timeout anterior
+      if (loadingTimeout) {
+        clearTimeout(loadingTimeout);
+      }
+      
       setSession(newSession);
       
       if (newSession?.user && event !== 'SIGNED_OUT') {
+        setLoadingTimeout(); // Iniciar timeout de seguridad
         await loadUserProfile(newSession.user);
       } else {
         console.log('🚪 Usuario desconectado');
         setUser(null);
       }
       
-      // Siempre desactivar loading después de procesar el cambio
-      setIsLoading(false);
+      // Desactivar loading después de procesar el cambio
+      if (mounted) {
+        setIsLoading(false);
+        if (loadingTimeout) {
+          clearTimeout(loadingTimeout);
+        }
+      }
     });
 
-    // Verificar sesión inicial
+    // Verificar sesión inicial con timeout
     const initializeAuth = async () => {
       try {
         console.log('🔍 Verificando sesión inicial...');
-        const { data: { session: initialSession }, error } = await supabase.auth.getSession();
+        setLoadingTimeout(); // Iniciar timeout de seguridad
+        
+        const sessionPromise = supabase.auth.getSession();
+        const timeoutPromise = new Promise((_, reject) => {
+          setTimeout(() => reject(new Error('Session query timeout')), 3000);
+        });
+
+        const { data: { session: initialSession }, error } = await Promise.race([
+          sessionPromise,
+          timeoutPromise
+        ]) as any;
         
         if (!mounted) return;
         
@@ -138,6 +176,9 @@ export const AuthProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
       } finally {
         if (mounted) {
           setIsLoading(false);
+          if (loadingTimeout) {
+            clearTimeout(loadingTimeout);
+          }
         }
       }
     };
@@ -146,6 +187,9 @@ export const AuthProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
 
     return () => {
       mounted = false;
+      if (loadingTimeout) {
+        clearTimeout(loadingTimeout);
+      }
       console.log('🧹 Limpiando AuthProvider');
       subscription.unsubscribe();
     };
@@ -153,6 +197,7 @@ export const AuthProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
 
   const login = async (email: string, password: string): Promise<{ success: boolean; error?: string }> => {
     console.log('🔐 Iniciando login para:', email);
+    setIsLoading(true);
     
     try {
       const { data, error } = await supabase.auth.signInWithPassword({
@@ -172,17 +217,21 @@ export const AuthProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
           userFriendlyError = `Error: ${error.message}`;
         }
 
+        setIsLoading(false);
         return { success: false, error: userFriendlyError };
       }
 
       if (data.user && data.session) {
         console.log('✅ Login exitoso para:', data.user.email);
+        // No desactivar loading aquí, se hará en onAuthStateChange
         return { success: true };
       }
 
+      setIsLoading(false);
       return { success: false, error: 'Login sin datos de usuario' };
     } catch (error) {
       console.error('💥 Error crítico en login:', error);
+      setIsLoading(false);
       return { success: false, error: `Error crítico: ${error}` };
     }
   };
