@@ -13,8 +13,8 @@ export const useDemoUsers = () => {
 
   const demoUsers: DemoUser[] = [
     {
-      email: 'dev@micampana.co', // Cambiado .com por .co para evitar problemas con ñ
-      password: 'micampana2025', // Sin ñ para evitar problemas
+      email: 'dev@micampana.com', // Cambiado de .co a .com
+      password: 'micampana2025',
       name: 'Desarrollador',
       role: 'desarrollador'
     },
@@ -62,10 +62,12 @@ export const useDemoUsers = () => {
     for (const user of demoUsers) {
       try {
         await createDemoUser(user);
-        // Pausa entre creaciones para evitar rate limiting
-        await new Promise(resolve => setTimeout(resolve, 500));
+        // Pausa más larga para evitar rate limiting
+        await new Promise(resolve => setTimeout(resolve, 2000));
       } catch (error) {
         console.error(`Error procesando usuario ${user.email}:`, error);
+        // Continúa con el siguiente usuario incluso si hay error
+        await new Promise(resolve => setTimeout(resolve, 1000));
       }
     }
     

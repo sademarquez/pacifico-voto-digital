@@ -1,3 +1,4 @@
+
 import { useState } from "react";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
@@ -82,7 +83,7 @@ const Login = () => {
   const demoUsersDisplay = [
     {
       role: "Desarrollador",
-      email: "dev@micampana.co", // Email corregido
+      email: "dev@micampana.com", // Email corregido
       icon: Shield,
       color: "text-purple-600",
       description: "Control total del sistema"
@@ -167,7 +168,7 @@ const Login = () => {
                     type={showPassword ? "text" : "password"}
                     value={password}
                     onChange={(e) => setPassword(e.target.value)}
-                    placeholder="micampaña2025"
+                    placeholder="micampana2025"
                     className="border-blue-200 focus:border-blue-500"
                     required
                     disabled={!!authError}
