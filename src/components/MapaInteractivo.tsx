@@ -1,5 +1,5 @@
 
-import { useState, useEffect } from "react";
+import { useState } from "react";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
@@ -39,9 +39,9 @@ const MapaInteractivo = () => {
   const [mapView, setMapView] = useState<'territories' | 'alerts'>('territories');
 
   // Query para territorios con datos reales
-  const { data: territories = [], isLoading: loadingTerritories, refetch: refetchTerritories } = useQuery({
+  const { data: territories = [], isLoading: loadingTerritories, refetch: refetchTerritories } = useQuery<Territory[]>({
     queryKey: ['map-territories', user?.id],
-    queryFn: async () => {
+    queryFn: async (): Promise<Territory[]> => {
       if (!supabase || !user) return [];
       
       const filter = getTerritoryFilter();
@@ -56,7 +56,7 @@ const MapaInteractivo = () => {
           query = query.or(filter.or);
         } else {
           Object.entries(filter).forEach(([key, value]) => {
-            if (value !== null) {
+            if (value !== null && value !== undefined) {
               query = query.eq(key, value);
             }
           });
@@ -68,15 +68,15 @@ const MapaInteractivo = () => {
         console.error('Error fetching territories:', error);
         return [];
       }
-      return data || [];
+      return (data as Territory[]) || [];
     },
     enabled: !!supabase && !!user
   });
 
   // Query para alertas con datos reales
-  const { data: alerts = [], isLoading: loadingAlerts, refetch: refetchAlerts } = useQuery({
+  const { data: alerts = [], isLoading: loadingAlerts, refetch: refetchAlerts } = useQuery<MapaAlert[]>({
     queryKey: ['map-alerts', user?.id],
-    queryFn: async () => {
+    queryFn: async (): Promise<MapaAlert[]> => {
       if (!supabase || !user) return [];
       
       const filter = getAlertFilter();
@@ -95,7 +95,7 @@ const MapaInteractivo = () => {
           query = query.or(filter.or);
         } else {
           Object.entries(filter).forEach(([key, value]) => {
-            if (value !== null) {
+            if (value !== null && value !== undefined) {
               query = query.eq(key, value);
             }
           });
@@ -107,7 +107,7 @@ const MapaInteractivo = () => {
         console.error('Error fetching alerts:', error);
         return [];
       }
-      return data || [];
+      return (data as MapaAlert[]) || [];
     },
     enabled: !!supabase && !!user
   });
@@ -219,7 +219,7 @@ const MapaInteractivo = () => {
                       No hay territorios disponibles
                     </div>
                   ) : (
-                    territories.map((territory: Territory) => (
+                    territories.map((territory) => (
                       <div
                         key={territory.id}
                         className={`p-3 border rounded-lg cursor-pointer transition-colors hover:bg-gray-50 ${
@@ -257,7 +257,7 @@ const MapaInteractivo = () => {
                       No hay alertas activas
                     </div>
                   ) : (
-                    alerts.map((alert: MapaAlert) => (
+                    alerts.map((alert) => (
                       <div key={alert.id} className="p-3 border rounded-lg">
                         <div className="flex items-start justify-between mb-2">
                           <h4 className="font-medium text-sm">{alert.title}</h4>
@@ -288,7 +288,7 @@ const MapaInteractivo = () => {
                 <div className="absolute inset-0 p-6">
                   {mapView === 'territories' ? (
                     <div className="grid grid-cols-3 gap-4 h-full">
-                      {territories.slice(0, 9).map((territory: Territory, index) => (
+                      {territories.slice(0, 9).map((territory, index) => (
                         <div
                           key={territory.id}
                           className={`rounded-lg border-2 p-4 cursor-pointer transition-all hover:scale-105 ${
@@ -318,7 +318,7 @@ const MapaInteractivo = () => {
                     </div>
                   ) : (
                     <div className="grid grid-cols-2 gap-4 h-full">
-                      {alerts.slice(0, 8).map((alert: MapaAlert, index) => (
+                      {alerts.slice(0, 8).map((alert, index) => (
                         <div
                           key={alert.id}
                           className="rounded-lg border-2 border-gray-300 bg-white p-4 hover:shadow-lg transition-shadow"

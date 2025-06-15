@@ -17,6 +17,29 @@ import { useToast } from "@/hooks/use-toast";
 type AlertType = 'security' | 'logistics' | 'political' | 'emergency' | 'information';
 type AlertPriority = 'low' | 'medium' | 'high' | 'urgent';
 
+interface Alert {
+  id: string;
+  title: string;
+  description: string;
+  type: AlertType;
+  priority: AlertPriority;
+  territory_id: string | null;
+  created_at: string;
+  created_by: string;
+  territories?: {
+    name: string;
+  };
+  profiles?: {
+    name: string;
+  };
+}
+
+interface Territory {
+  id: string;
+  name: string;
+  type: string;
+}
+
 const AlertSystem = () => {
   const { user } = useAuth();
   const { getAlertFilter } = useDataSegregation();
@@ -32,9 +55,9 @@ const AlertSystem = () => {
   });
 
   // Query para obtener alertas filtradas según el rol
-  const { data: alerts = [], isLoading } = useQuery({
+  const { data: alerts = [], isLoading } = useQuery<Alert[]>({
     queryKey: ['alerts', user?.id],
-    queryFn: async () => {
+    queryFn: async (): Promise<Alert[]> => {
       if (!supabase || !user) return [];
       
       const filter = getAlertFilter();
@@ -53,7 +76,9 @@ const AlertSystem = () => {
           query = query.or(filter.or);
         } else {
           Object.entries(filter).forEach(([key, value]) => {
-            query = query.eq(key, value);
+            if (value !== null && value !== undefined) {
+              query = query.eq(key, value);
+            }
           });
         }
       }
@@ -63,15 +88,15 @@ const AlertSystem = () => {
         console.error('Error fetching alerts:', error);
         return [];
       }
-      return data || [];
+      return (data as Alert[]) || [];
     },
     enabled: !!supabase && !!user
   });
 
   // Query para obtener territorios disponibles
-  const { data: territories = [] } = useQuery({
+  const { data: territories = [] } = useQuery<Territory[]>({
     queryKey: ['territories-for-alerts', user?.id],
-    queryFn: async () => {
+    queryFn: async (): Promise<Territory[]> => {
       if (!supabase || !user) return [];
       
       const { data, error } = await supabase
@@ -83,7 +108,7 @@ const AlertSystem = () => {
         console.error('Error fetching territories:', error);
         return [];
       }
-      return data || [];
+      return (data as Territory[]) || [];
     },
     enabled: !!supabase && !!user
   });
@@ -236,7 +261,7 @@ const AlertSystem = () => {
                   <SelectValue placeholder="Selecciona territorio" />
                 </SelectTrigger>
                 <SelectContent>
-                  {territories.map((territory: any) => (
+                  {territories.map((territory) => (
                     <SelectItem key={territory.id} value={territory.id}>
                       {territory.name} ({territory.type})
                     </SelectItem>
@@ -284,7 +309,7 @@ const AlertSystem = () => {
             </div>
           ) : (
             <div className="space-y-4">
-              {alerts.map((alert: any) => (
+              {alerts.map((alert) => (
                 <div key={alert.id} className="border rounded-lg p-4">
                   <div className="flex items-start justify-between mb-2">
                     <h3 className="font-semibold text-lg">{alert.title}</h3>
