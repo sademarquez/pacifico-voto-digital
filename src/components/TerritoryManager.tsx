@@ -52,9 +52,9 @@ const TerritoryManager = () => {
   });
 
   // Query para obtener territorios filtrados
-  const { data: territories = [], isLoading } = useQuery({
+  const { data: territories = [], isLoading } = useQuery<Territory[]>({
     queryKey: ['territories', user?.id],
-    queryFn: async (): Promise<Territory[]> => {
+    queryFn: async () => {
       if (!supabase || !user) return [];
       
       const filter = getTerritoryFilter();
@@ -89,9 +89,9 @@ const TerritoryManager = () => {
       const { data, error } = await query;
       if (error) {
         console.error('Error fetching territories:', error);
-        return [];
+        throw new Error(error.message);
       }
-      return (data as Territory[]) || [];
+      return data || [];
     },
     enabled: !!supabase && !!user
   });
@@ -99,7 +99,7 @@ const TerritoryManager = () => {
   // Query para obtener territorios padre disponibles
   const { data: parentTerritories = [] } = useQuery<ParentTerritory[]>({
     queryKey: ['parent-territories', user?.id],
-    queryFn: async (): Promise<ParentTerritory[]> => {
+    queryFn: async () => {
       if (!supabase || !user) return [];
       
       const { data, error } = await supabase
@@ -109,7 +109,7 @@ const TerritoryManager = () => {
 
       if (error) {
         console.error('Error fetching parent territories:', error);
-        return [];
+        throw new Error(error.message);
       }
       return data || [];
     },
@@ -119,7 +119,7 @@ const TerritoryManager = () => {
   // Query para obtener usuarios para responsables
   const { data: users = [] } = useQuery<User[]>({
     queryKey: ['users-for-territories'],
-    queryFn: async (): Promise<User[]> => {
+    queryFn: async () => {
       if (!supabase) return [];
       
       const { data, error } = await supabase
@@ -129,7 +129,7 @@ const TerritoryManager = () => {
 
       if (error) {
         console.error('Error fetching users:', error);
-        return [];
+        throw new Error(error.message);
       }
       return data || [];
     },
