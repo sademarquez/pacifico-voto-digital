@@ -1,4 +1,3 @@
-
 import { useState, useEffect } from "react";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
@@ -13,7 +12,7 @@ import { useDemoUsers } from "@/hooks/useDemoUsers";
 
 const Login = () => {
   const [email, setEmail] = useState("");
-  const [password, setPassword] = useState("12345678");
+  const [password, setPassword] = useState("micampaña2025");
   const [showPassword, setShowPassword] = useState(false);
   const [isLoading, setIsLoading] = useState(false);
   
@@ -31,7 +30,7 @@ const Login = () => {
 
   // Limpiar error cuando el usuario modifica campos
   useEffect(() => {
-    if (authError && (email || password !== "12345678")) {
+    if (authError && (email || password !== "micampaña2025")) {
       clearAuthError();
     }
   }, [email, password, authError, clearAuthError]);
@@ -112,7 +111,7 @@ const Login = () => {
                   {authError}
                   <br />
                   <small className="text-xs mt-2 block">
-                    Contraseña fija: <strong>12345678</strong>
+                    Contraseña fija: <strong>micampaña2025</strong>
                   </small>
                 </AlertDescription>
               </Alert>
@@ -142,7 +141,7 @@ const Login = () => {
                     type={showPassword ? "text" : "password"}
                     value={password}
                     onChange={(e) => setPassword(e.target.value)}
-                    placeholder="12345678"
+                    placeholder="micampaña2025"
                     className="border-blue-200 focus:border-blue-500"
                     required
                     disabled={isLoading}
@@ -159,7 +158,7 @@ const Login = () => {
                   </Button>
                 </div>
                 <p className="text-xs text-green-600 font-medium">
-                  Contraseña fija: <span className="bg-green-100 px-1 rounded">12345678</span>
+                  Contraseña fija: <span className="bg-green-100 px-1 rounded">micampaña2025</span>
                 </p>
               </div>
 
@@ -174,7 +173,7 @@ const Login = () => {
             
             <div className="mt-4 p-3 bg-gray-50 rounded-lg text-xs text-gray-600">
               <p><strong>Info del Sistema:</strong></p>
-              <p>• Contraseña fija: <strong>12345678</strong></p>
+              <p>• Contraseña fija: <strong>micampaña2025</strong></p>
               <p>• Login por nombre habilitado</p>
               {authError && <p className="text-red-600 mt-1">• Error: {authError}</p>}
             </div>
@@ -190,7 +189,7 @@ const Login = () => {
           <CardContent>
             <div className="space-y-3">
               <p className="text-sm text-green-700 font-medium mb-4">
-                Contraseña para todos: <span className="bg-green-100 px-2 py-1 rounded font-bold">12345678</span>
+                Contraseña para todos: <span className="bg-green-100 px-2 py-1 rounded font-bold">micampaña2025</span>
               </p>
               
               {demoUsersDisplay.map((user, index) => {
@@ -207,7 +206,7 @@ const Login = () => {
                       size="sm"
                       onClick={() => {
                         setEmail(user.name);
-                        setPassword("12345678");
+                        setPassword("micampaña2025");
                         clearAuthError();
                       }}
                       className="text-green-600 border-green-300 hover:bg-green-100"

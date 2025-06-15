@@ -102,43 +102,48 @@ const TerritoryManager = () => {
     enabled: !!supabase && !!user
   });
 
+  // Funciones de fetch para queries
+  const fetchParentTerritories = async (): Promise<ParentTerritory[]> => {
+    if (!supabase || !user) return [];
+    
+    const { data, error } = await supabase
+      .from('territories')
+      .select('id, name, type')
+      .order('name');
+
+    if (error) {
+      console.error('Error fetching parent territories:', error);
+      throw new Error(error.message);
+    }
+    return (data as ParentTerritory[]) || [];
+  };
+
+  const fetchUsersForTerritories = async (): Promise<User[]> => {
+    if (!supabase) return [];
+    
+    const { data, error } = await supabase
+      .from('profiles')
+      .select('id, name, role')
+      .order('name');
+
+    if (error) {
+      console.error('Error fetching users:', error);
+      throw new Error(error.message);
+    }
+    return (data as User[]) || [];
+  };
+
   // Query para obtener territorios padre disponibles
   const { data: parentTerritories = [] } = useQuery({
     queryKey: ['parent-territories', user?.id],
-    queryFn: async (): Promise<ParentTerritory[]> => {
-      if (!supabase || !user) return [];
-      
-      const { data, error } = await supabase
-        .from('territories')
-        .select('id, name, type')
-        .order('name');
-
-      if (error) {
-        console.error('Error fetching parent territories:', error);
-        throw new Error(error.message);
-      }
-      return (data as ParentTerritory[]) || [];
-    },
+    queryFn: fetchParentTerritories,
     enabled: !!supabase && !!user
   });
 
   // Query para obtener usuarios para responsables
   const { data: users = [] } = useQuery({
     queryKey: ['users-for-territories'],
-    queryFn: async (): Promise<User[]> => {
-      if (!supabase) return [];
-      
-      const { data, error } = await supabase
-        .from('profiles')
-        .select('id, name, role')
-        .order('name');
-
-      if (error) {
-        console.error('Error fetching users:', error);
-        throw new Error(error.message);
-      }
-      return (data as User[]) || [];
-    },
+    queryFn: fetchUsersForTerritories,
     enabled: !!supabase
   });
 
