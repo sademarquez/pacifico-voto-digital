@@ -1,4 +1,3 @@
-
 import { BrowserRouter, Routes, Route, Navigate } from "react-router-dom";
 import { Toaster } from "@/components/ui/toaster"
 import Index from "./pages/Index";
@@ -12,6 +11,7 @@ import LugarVotacion from "./pages/LugarVotacion";
 import UbicacionVotantes from "./pages/UbicacionVotantes";
 import Dashboard from "./pages/Dashboard";
 import Mensajes from "./pages/Mensajes";
+import MensajesPrivados from "./pages/MensajesPrivados";
 import Configuracion from "./pages/Configuracion";
 import Informes from "./pages/Informes";
 import Login from "./pages/Login";
@@ -95,6 +95,16 @@ function App() {
               <Route path="/mensajes" element={
                 <ProtectedRoute>
                   <Mensajes />
+                </ProtectedRoute>
+              } />
+              <Route path="/mensajes-privados" element={
+                <ProtectedRoute>
+                  <MensajesPrivados />
+                </ProtectedRoute>
+              } />
+              <Route path="/mensajes-privados/:id" element={
+                <ProtectedRoute>
+                  <MensajesPrivados />
                 </ProtectedRoute>
               } />
               <Route path="/configuracion" element={

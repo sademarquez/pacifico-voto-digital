@@ -2,6 +2,7 @@
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { MessageSquare, Send, Users, Bell, Bot, Zap } from "lucide-react";
+import { Link } from "react-router-dom";
 
 const Mensajes = () => {
   return (
@@ -18,24 +19,26 @@ const Mensajes = () => {
         </div>
 
         <div className="grid md:grid-cols-2 lg:grid-cols-4 gap-6 max-w-7xl mx-auto">
-          <Card className="hover:shadow-lg transition-all duration-300 border-l-4 border-l-slate-600">
-            <CardHeader>
-              <div className="flex items-center space-x-3">
-                <div className="w-12 h-12 rounded-lg bg-slate-600 flex items-center justify-center">
-                  <Send className="w-6 h-6 text-white" />
+          <Link to="/mensajes-privados">
+            <Card className="h-full hover:shadow-lg transition-all duration-300 border-l-4 border-l-slate-600">
+              <CardHeader>
+                <div className="flex items-center space-x-3">
+                  <div className="w-12 h-12 rounded-lg bg-slate-600 flex items-center justify-center">
+                    <Send className="w-6 h-6 text-white" />
+                  </div>
+                  <CardTitle className="text-lg text-slate-800">Mensajes Directos</CardTitle>
                 </div>
-                <CardTitle className="text-lg text-slate-800">Mensajes Directos</CardTitle>
-              </div>
-            </CardHeader>
-            <CardContent>
-              <p className="text-slate-600 mb-4">
-                Comunicación privada con líderes y coordinadores
-              </p>
-              <Button className="w-full bg-slate-600 hover:bg-slate-700">
-                Nuevo Mensaje
-              </Button>
-            </CardContent>
-          </Card>
+              </CardHeader>
+              <CardContent>
+                <p className="text-slate-600 mb-4">
+                  Comunicación privada con líderes y coordinadores
+                </p>
+                <Button className="w-full bg-slate-600 hover:bg-slate-700">
+                  Abrir Bandeja de Entrada
+                </Button>
+              </CardContent>
+            </Card>
+          </Link>
 
           <Card className="hover:shadow-lg transition-all duration-300 border-l-4 border-l-gray-600">
             <CardHeader>
