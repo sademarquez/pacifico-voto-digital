@@ -1,4 +1,3 @@
-
 import { useState } from "react";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
@@ -23,22 +22,19 @@ const Login = () => {
     e.preventDefault();
     setIsLoading(true);
 
-    console.log('Login attempt with:', email, password);
-
     try {
       const success = await login(email, password);
-      console.log('Login result:', success);
       
       if (success) {
         toast({
           title: "¡Bienvenido!",
-          description: "Has iniciado sesión correctamente",
+          description: "Has iniciado sesión correctamente.",
         });
         navigate("/");
       } else {
         toast({
           title: "Error de Acceso",
-          description: "Email o contraseña incorrectos. Usa las credenciales demo mostradas abajo.",
+          description: "Email o contraseña incorrectos. Aún no hay usuarios creados.",
           variant: "destructive"
         });
       }
@@ -46,7 +42,7 @@ const Login = () => {
       console.error('Login error:', error);
       toast({
         title: "Error",
-        description: "Ha ocurrido un error al iniciar sesión",
+        description: "Ha ocurrido un error al iniciar sesión.",
         variant: "destructive"
       });
     } finally {
@@ -112,29 +108,19 @@ const Login = () => {
             </Button>
           </form>
 
-          <div className="mt-6 p-4 bg-blue-50 rounded-lg border border-blue-200">
-            <h3 className="font-medium text-sm text-blue-700 mb-3">🔐 CREDENCIALES DEMO FUNCIONALES:</h3>
-            <div className="space-y-3 text-xs text-blue-600">
-              <div className="bg-white p-3 rounded border-l-4 border-red-400">
-                <p className="font-bold text-red-600">🔴 MASTER:</p>
-                <p className="font-mono bg-gray-100 p-1 rounded">master@demo.com</p>
-                <p className="text-gray-600 mt-1">• Puede crear usuarios Candidato</p>
-              </div>
-              <div className="bg-white p-3 rounded border-l-4 border-blue-400">
-                <p className="font-bold text-blue-600">🔵 CANDIDATO:</p>
-                <p className="font-mono bg-gray-100 p-1 rounded">candidato@demo.com</p>
-                <p className="text-gray-600 mt-1">• Puede crear usuarios Votante</p>
-              </div>
-              <div className="bg-white p-3 rounded border-l-4 border-green-400">
-                <p className="font-bold text-green-600">🟢 VOTANTE:</p>
-                <p className="font-mono bg-gray-100 p-1 rounded">votante@demo.com</p>
-                <p className="text-gray-600 mt-1">• Usuario final del sistema</p>
-              </div>
-              <div className="mt-4 p-3 bg-yellow-100 rounded text-center border border-yellow-300">
-                <p className="font-bold text-yellow-800">🔑 CONTRASEÑA PARA TODOS:</p>
-                <p className="font-mono text-lg bg-yellow-200 px-2 py-1 rounded mt-1 text-yellow-900">demo2025</p>
-              </div>
-            </div>
+          <div className="mt-6 text-center text-sm">
+            <p className="text-gray-600">¿No tienes una cuenta?</p>
+            <Button variant="link" className="text-blue-600" onClick={() => navigate('/registro')}>
+              Regístrate aquí
+            </Button>
+          </div>
+
+          <div className="mt-4 p-4 bg-yellow-50 rounded-lg border border-yellow-200">
+             <h3 className="font-medium text-sm text-yellow-800 mb-2">🚀 ¡Sistema de Acceso Actualizado!</h3>
+             <p className="text-xs text-yellow-700">
+               Hemos conectado la aplicación a un backend seguro. Los usuarios de demostración ya no funcionan.
+               El próximo paso será habilitar la pantalla de registro para que puedas crear tu primer usuario real.
+             </p>
           </div>
         </CardContent>
       </Card>

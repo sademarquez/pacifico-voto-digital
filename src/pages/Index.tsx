@@ -1,4 +1,3 @@
-
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
@@ -23,9 +22,10 @@ import { useAuth } from "../contexts/AuthContext";
 const Index = () => {
   const { user } = useAuth();
 
-  // Si no hay usuario autenticado, redirigir al login
+  // ProtectedRoute en App.tsx ya maneja la redirección.
+  // Podemos asumir con seguridad que 'user' existe aquí.
   if (!user) {
-    window.location.href = "/login";
+    // Esto se mostrará brevemente mientras se carga o redirige.
     return null;
   }
 
