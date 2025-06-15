@@ -541,6 +541,93 @@ export type Database = {
           },
         ]
       }
+      system_config: {
+        Row: {
+          category: string
+          created_at: string
+          description: string | null
+          id: string
+          is_public: boolean | null
+          key: string
+          updated_at: string
+          updated_by: string | null
+          value: Json
+        }
+        Insert: {
+          category?: string
+          created_at?: string
+          description?: string | null
+          id?: string
+          is_public?: boolean | null
+          key: string
+          updated_at?: string
+          updated_by?: string | null
+          value: Json
+        }
+        Update: {
+          category?: string
+          created_at?: string
+          description?: string | null
+          id?: string
+          is_public?: boolean | null
+          key?: string
+          updated_at?: string
+          updated_by?: string | null
+          value?: Json
+        }
+        Relationships: []
+      }
+      system_logs: {
+        Row: {
+          category: string
+          details: Json | null
+          id: string
+          ip_address: unknown | null
+          level: string
+          message: string
+          resolved: boolean | null
+          resolved_at: string | null
+          resolved_by: string | null
+          session_id: string | null
+          stack_trace: string | null
+          timestamp: string
+          user_agent: string | null
+          user_id: string | null
+        }
+        Insert: {
+          category: string
+          details?: Json | null
+          id?: string
+          ip_address?: unknown | null
+          level: string
+          message: string
+          resolved?: boolean | null
+          resolved_at?: string | null
+          resolved_by?: string | null
+          session_id?: string | null
+          stack_trace?: string | null
+          timestamp?: string
+          user_agent?: string | null
+          user_id?: string | null
+        }
+        Update: {
+          category?: string
+          details?: Json | null
+          id?: string
+          ip_address?: unknown | null
+          level?: string
+          message?: string
+          resolved?: boolean | null
+          resolved_at?: string | null
+          resolved_by?: string | null
+          session_id?: string | null
+          stack_trace?: string | null
+          timestamp?: string
+          user_agent?: string | null
+          user_id?: string | null
+        }
+        Relationships: []
+      }
       tasks: {
         Row: {
           assigned_by: string | null
@@ -824,6 +911,16 @@ export type Database = {
           subordinate_name: string
           subordinate_role: string
         }[]
+      }
+      log_system_event: {
+        Args: {
+          p_level: string
+          p_category: string
+          p_message: string
+          p_details?: Json
+          p_user_id?: string
+        }
+        Returns: string
       }
     }
     Enums: {
