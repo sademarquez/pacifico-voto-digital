@@ -19,6 +19,7 @@ interface AuthContextType {
   isAuthenticated: boolean;
   isLoading: boolean;
   authError: string | null;
+  clearAuthError: () => void;
 }
 
 const AuthContext = createContext<AuthContextType | undefined>(undefined);
@@ -27,6 +28,10 @@ export const AuthProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
   const [user, setUser] = useState<User | null>(null);
   const [isLoading, setIsLoading] = useState(true);
   const [authError, setAuthError] = useState<string | null>(null);
+
+  const clearAuthError = () => {
+    setAuthError(null);
+  };
 
   useEffect(() => {
     if (!supabase) {
@@ -61,7 +66,7 @@ export const AuthProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
               email: supabaseUser.email || '',
               created_by: profile.created_by
             });
-            setAuthError(null);
+            setAuthError(null); // Limpiar errores al autenticar exitosamente
           } else {
             console.warn("[AUTH] No profile found for user, signing them out.");
             await supabase.auth.signOut();
@@ -82,7 +87,8 @@ export const AuthProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
 
   const login = async (nameOrEmail: string, password: string): Promise<boolean> => {
     if (!supabase) {
-      setAuthError("No se puede iniciar sesión. La conexión con el backend no está disponible.");
+      const errorMsg = "No se puede iniciar sesión. La conexión con el backend no está disponible.";
+      setAuthError(errorMsg);
       console.error('[LOGIN] Error: Supabase client no está inicializado.');
       return false;
     }
@@ -90,6 +96,8 @@ export const AuthProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
     console.log('[LOGIN] === INICIO DE SESIÓN ===');
     console.log('[LOGIN] Intentando login con:', nameOrEmail);
     console.log('[LOGIN] Contraseña recibida:', password);
+    
+    // Limpiar errores previos al iniciar nuevo intento
     setAuthError(null);
     
     let email = nameOrEmail;
@@ -106,13 +114,15 @@ export const AuthProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
         
         if (error) {
           console.error('[LOGIN] Error buscando perfil:', error);
-          setAuthError(`Error buscando usuario: ${error.message}`);
+          const errorMsg = `Error buscando usuario: ${error.message}`;
+          setAuthError(errorMsg);
           return false;
         }
         
         if (!profiles || profiles.length === 0) {
           console.error('[LOGIN] Usuario no encontrado por nombre:', nameOrEmail);
-          setAuthError(`Usuario "${nameOrEmail}" no encontrado`);
+          const errorMsg = `Usuario "${nameOrEmail}" no encontrado. Verifica que el usuario exista.`;
+          setAuthError(errorMsg);
           return false;
         }
         
@@ -137,7 +147,8 @@ export const AuthProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
           
           email = emailMap[nameOrEmail];
           if (!email) {
-            setAuthError('No se pudo determinar el email del usuario');
+            const errorMsg = 'No se pudo determinar el email del usuario. Contacta al administrador.';
+            setAuthError(errorMsg);
             return false;
           }
           console.log('[LOGIN] Usando email del mapa:', email);
@@ -148,7 +159,8 @@ export const AuthProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
         console.log('[LOGIN] Email para login:', email);
       } catch (error) {
         console.error('[LOGIN] Error en búsqueda de usuario:', error);
-        setAuthError('Error al buscar usuario');
+        const errorMsg = 'Error al buscar usuario. Intenta de nuevo.';
+        setAuthError(errorMsg);
         return false;
       }
     }
@@ -163,18 +175,31 @@ export const AuthProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
     
     if (error) {
       console.error('[LOGIN] Error de login en Supabase:', error);
-      setAuthError(`Error de login: ${error.message}`);
+      let errorMsg = 'Error de login: ';
+      
+      if (error.message.includes('Invalid login credentials')) {
+        errorMsg = 'Credenciales incorrectas. Verifica tu usuario y contraseña (12345678).';
+      } else if (error.message.includes('Email not confirmed')) {
+        errorMsg = 'Email no confirmado. Revisa tu correo o contacta al administrador.';
+      } else {
+        errorMsg += error.message;
+      }
+      
+      setAuthError(errorMsg);
       return false;
     }
     
     console.log('[LOGIN] === LOGIN EXITOSO ===');
     console.log('[LOGIN] Usuario autenticado:', data.user?.email);
+    // No limpiar el error aqui, se limpiará en onAuthStateChange
     return true;
   };
 
   const signUp = async (email: string, password: string, name: string, role: string): Promise<boolean> => {
     if (!supabase) {
       console.error('[SIGNUP] Error: Supabase client no está inicializado.');
+      const errorMsg = "No se puede registrar usuario. Conexión no disponible.";
+      setAuthError(errorMsg);
       return false;
     }
 
@@ -198,6 +223,7 @@ export const AuthProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
         console.log('[SIGNUP] Usuario ya existe, esto es normal en demo');
         return true;
       }
+      setAuthError(`Error al crear usuario: ${error.message}`);
       return false;
     }
     
@@ -212,9 +238,11 @@ export const AuthProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
     }
     
     console.log('[LOGOUT] Cerrando sesión...');
+    setAuthError(null); // Limpiar errores al cerrar sesión
     const { error } = await supabase.auth.signOut();
     if (error) {
       console.error('[LOGOUT] Error:', error.message);
+      setAuthError(`Error al cerrar sesión: ${error.message}`);
     } else {
       console.log('[LOGOUT] Sesión cerrada exitosamente');
     }
@@ -228,6 +256,7 @@ export const AuthProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
     isAuthenticated: !!user,
     isLoading,
     authError,
+    clearAuthError,
   };
 
   return (

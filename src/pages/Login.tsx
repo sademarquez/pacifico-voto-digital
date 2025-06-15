@@ -1,10 +1,10 @@
 
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
-import { Shield, Eye, EyeOff, Terminal, Crown, Target, Users2, User, Plus } from "lucide-react";
+import { Shield, Eye, EyeOff, Terminal, Crown, Target, Users2, User, Plus, AlertCircle } from "lucide-react";
 import { useAuth } from "../contexts/AuthContext";
 import { useNavigate } from "react-router-dom";
 import { useToast } from "@/hooks/use-toast";
@@ -18,21 +18,48 @@ const Login = () => {
   const [isLoading, setIsLoading] = useState(false);
   const [isCreatingUsers, setIsCreatingUsers] = useState(false);
   
-  const { login, authError } = useAuth();
+  const { login, authError, clearAuthError } = useAuth();
   const navigate = useNavigate();
   const { toast } = useToast();
   const { createAllDemoUsers, demoUsers, FIXED_PASSWORD } = useDemoUsers();
 
+  // Limpiar error cuando el usuario empiece a escribir
+  useEffect(() => {
+    if (authError && (email || password !== "12345678")) {
+      clearAuthError();
+    }
+  }, [email, password, authError, clearAuthError]);
+
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
+    
+    if (!email.trim()) {
+      toast({
+        title: "Campo requerido",
+        description: "Por favor ingresa tu nombre de usuario.",
+        variant: "destructive"
+      });
+      return;
+    }
+
+    if (!password.trim()) {
+      toast({
+        title: "Campo requerido", 
+        description: "Por favor ingresa tu contraseña.",
+        variant: "destructive"
+      });
+      return;
+    }
+
     setIsLoading(true);
+    clearAuthError(); // Limpiar errores previos
 
     console.log('[LOGIN-UI] Formulario enviado');
     console.log('[LOGIN-UI] Usuario:', email);
     console.log('[LOGIN-UI] Contraseña:', password);
 
     try {
-      const success = await login(email, password);
+      const success = await login(email.trim(), password);
       
       console.log('[LOGIN-UI] Resultado del login:', success);
       
@@ -42,18 +69,13 @@ const Login = () => {
           description: `Has iniciado sesión correctamente como ${email}.`,
         });
         navigate("/dashboard");
-      } else {
-        toast({
-          title: "Error de Acceso",
-          description: "Credenciales incorrectas. Usa la contraseña: 12345678",
-          variant: "destructive"
-        });
       }
+      // Si hay error, se mostrará automáticamente por el estado authError
     } catch (error) {
       console.error('[LOGIN-UI] Error durante login:', error);
       toast({
         title: "Error",
-        description: "Ha ocurrido un error al iniciar sesión. Revisa la consola para más detalles.",
+        description: "Ha ocurrido un error inesperado. Revisa la consola para más detalles.",
         variant: "destructive"
       });
     } finally {
@@ -133,12 +155,13 @@ const Login = () => {
             <p className="text-blue-600">Sistema Jerárquico de Gestión Electoral</p>
           </CardHeader>
           <CardContent>
+            {/* Mostrar error de autenticación de forma persistente */}
             {authError && (
               <Alert variant="destructive" className="mb-4">
-                <Terminal className="h-4 w-4" />
-                <AlertTitle>Error de Conexión</AlertTitle>
+                <AlertCircle className="h-4 w-4" />
+                <AlertTitle>Error de Acceso</AlertTitle>
                 <AlertDescription>
-                  {authError} 
+                  {authError}
                   <br />
                   <small className="text-xs mt-2 block">
                     Usa la contraseña fija: <strong>12345678</strong>
@@ -158,7 +181,7 @@ const Login = () => {
                   placeholder="Desarrollador"
                   className="border-blue-200 focus:border-blue-500"
                   required
-                  disabled={!!authError}
+                  disabled={isLoading}
                 />
                 <p className="text-xs text-gray-500">Puedes usar el nombre (ej: "Desarrollador") o email</p>
               </div>
@@ -174,7 +197,7 @@ const Login = () => {
                     placeholder="12345678"
                     className="border-blue-200 focus:border-blue-500"
                     required
-                    disabled={!!authError}
+                    disabled={isLoading}
                   />
                   <Button
                     type="button"
@@ -182,7 +205,7 @@ const Login = () => {
                     size="icon"
                     className="absolute right-2 top-1/2 -translate-y-1/2 text-blue-600"
                     onClick={() => setShowPassword(!showPassword)}
-                    disabled={!!authError}
+                    disabled={isLoading}
                   >
                     {showPassword ? <EyeOff className="w-4 h-4" /> : <Eye className="w-4 h-4" />}
                   </Button>
@@ -193,7 +216,7 @@ const Login = () => {
               <Button 
                 type="submit" 
                 className="w-full bg-blue-600 hover:bg-blue-700" 
-                disabled={isLoading || !!authError}
+                disabled={isLoading}
               >
                 {isLoading ? "Iniciando sesión..." : "Iniciar Sesión"}
               </Button>
@@ -204,6 +227,7 @@ const Login = () => {
               <p>• URL Base: https://zecltlsdkbndhqimpjjo.supabase.co</p>
               <p>• Contraseña fija: <strong>12345678</strong></p>
               <p>• Login por nombre de usuario habilitado</p>
+              {authError && <p className="text-red-600 mt-1">• Error activo: {authError}</p>}
             </div>
           </CardContent>
         </Card>
@@ -244,6 +268,7 @@ const Login = () => {
                       onClick={() => {
                         setEmail(user.name);
                         setPassword("12345678");
+                        clearAuthError(); // Limpiar errores al seleccionar usuario
                       }}
                       className="text-green-600 border-green-300 hover:bg-green-100"
                     >
