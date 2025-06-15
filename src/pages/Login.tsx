@@ -33,12 +33,8 @@ const Login = () => {
       const result = await login(email, password);
       
       if (result.success) {
-        setError('✅ Login exitoso, redirigiendo...');
-        
-        // Esperar un momento para que el estado se actualice
-        setTimeout(() => {
-          navigate('/dashboard');
-        }, 500);
+        console.log('✅ Login exitoso, redirigiendo...');
+        navigate('/dashboard');
       } else {
         setError(result.error || 'Error desconocido en el login');
       }
@@ -56,7 +52,8 @@ const Login = () => {
     setError('');
   };
 
-  const testCredentials = [
+  // Credenciales reales que funcionan con la base de datos
+  const realCredentials = [
     { email: 'admin@micampana.com', password: 'AdminSecure2025!', role: 'Desarrollador' },
     { email: 'master@micampana.com', password: 'MasterSecure2025!', role: 'Master' },
     { email: 'candidato@micampana.com', password: 'CandidatoSecure2025!', role: 'Candidato' },
@@ -117,30 +114,10 @@ const Login = () => {
               </div>
 
               {error && (
-                <Alert variant={error.includes('exitoso') || error.includes('✅') ? 'default' : 'destructive'}>
+                <Alert variant="destructive">
                   <AlertDescription className="text-sm">{error}</AlertDescription>
                 </Alert>
               )}
-
-              {/* Credenciales de prueba - mantenidas para facilidad de testing */}
-              <div className="border-t pt-4">
-                <p className="text-sm text-gray-600 mb-2 text-center">Credenciales de prueba:</p>
-                <div className="grid grid-cols-2 gap-2 text-xs">
-                  {testCredentials.map((cred, index) => (
-                    <Button
-                      key={index}
-                      type="button"
-                      variant="outline"
-                      size="sm"
-                      onClick={() => quickLogin(cred.email, cred.password)}
-                      disabled={isLoading}
-                      className="text-xs p-2"
-                    >
-                      {cred.role}
-                    </Button>
-                  ))}
-                </div>
-              </div>
 
               <Button type="submit" className="w-full" disabled={isLoading}>
                 {isLoading ? (
@@ -155,6 +132,41 @@ const Login = () => {
                   </div>
                 )}
               </Button>
+
+              {/* Panel de credenciales de acceso */}
+              <div className="border-t pt-6 mt-6">
+                <div className="bg-gray-50 rounded-lg p-4">
+                  <h3 className="text-sm font-semibold text-gray-800 mb-3 text-center">
+                    🔑 Credenciales de Acceso Demo
+                  </h3>
+                  <div className="space-y-3">
+                    {realCredentials.map((cred, index) => (
+                      <div key={index} className="bg-white rounded border p-3">
+                        <div className="flex justify-between items-center mb-2">
+                          <span className="font-medium text-sm text-gray-800">{cred.role}</span>
+                          <Button
+                            type="button"
+                            variant="outline"
+                            size="sm"
+                            onClick={() => quickLogin(cred.email, cred.password)}
+                            disabled={isLoading}
+                            className="text-xs h-6 px-2"
+                          >
+                            Usar
+                          </Button>
+                        </div>
+                        <div className="text-xs text-gray-600 space-y-1">
+                          <div><strong>Email:</strong> {cred.email}</div>
+                          <div><strong>Pass:</strong> {cred.password}</div>
+                        </div>
+                      </div>
+                    ))}
+                  </div>
+                  <div className="mt-3 text-xs text-gray-500 text-center">
+                    Haz clic en "Usar" para completar automáticamente los campos
+                  </div>
+                </div>
+              </div>
             </form>
           </CardContent>
         </Card>

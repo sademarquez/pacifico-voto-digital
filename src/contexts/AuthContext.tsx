@@ -1,7 +1,7 @@
 
 import React, { createContext, useContext, useState, ReactNode, useEffect } from 'react';
 import { supabase } from '@/integrations/supabase/client';
-import { User as SupabaseUser, Session, AuthError } from '@supabase/supabase-js';
+import { User as SupabaseUser, Session } from '@supabase/supabase-js';
 
 interface User {
   id: string;
@@ -31,6 +31,72 @@ export const AuthProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
     
     let mounted = true;
 
+    // Función para cargar perfil del usuario
+    const loadUserProfile = async (supabaseUser: SupabaseUser): Promise<void> => {
+      try {
+        console.log('👤 Cargando perfil para:', supabaseUser.id);
+        
+        const { data: profile, error } = await supabase
+          .from('profiles')
+          .select('id, name, role')
+          .eq('id', supabaseUser.id)
+          .maybeSingle();
+
+        if (error) {
+          console.error('❌ Error consultando perfil:', error);
+          throw error;
+        }
+
+        if (profile) {
+          const userData: User = {
+            id: profile.id,
+            name: profile.name || supabaseUser.email || 'Usuario',
+            role: profile.role || 'votante',
+            email: supabaseUser.email || '',
+          };
+
+          console.log('✅ Perfil cargado:', userData.name, userData.role);
+          if (mounted) {
+            setUser(userData);
+          }
+        } else {
+          console.warn('⚠️ Perfil no encontrado, creando...');
+          
+          const { data: newProfile, error: createError } = await supabase
+            .from('profiles')
+            .insert([{
+              id: supabaseUser.id,
+              name: supabaseUser.email || 'Usuario',
+              role: 'votante'
+            }])
+            .select()
+            .single();
+
+          if (createError) {
+            console.error('❌ Error creando perfil:', createError);
+            throw createError;
+          }
+
+          const userData: User = {
+            id: newProfile.id,
+            name: newProfile.name || 'Usuario',
+            role: newProfile.role || 'votante',
+            email: supabaseUser.email || '',
+          };
+
+          console.log('✅ Perfil creado:', userData.name, userData.role);
+          if (mounted) {
+            setUser(userData);
+          }
+        }
+      } catch (error) {
+        console.error('💥 Error crítico en loadUserProfile:', error);
+        if (mounted) {
+          setUser(null);
+        }
+      }
+    };
+
     // Configurar listener de cambios de auth
     const { data: { subscription } } = supabase.auth.onAuthStateChange(async (event, newSession) => {
       if (!mounted) return;
@@ -40,29 +106,18 @@ export const AuthProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
       setSession(newSession);
       
       if (newSession?.user && event !== 'SIGNED_OUT') {
-        console.log('👤 Usuario autenticado, cargando perfil...');
-        try {
-          await loadUserProfile(newSession.user);
-        } catch (error) {
-          console.error('❌ Error cargando perfil:', error);
-          if (mounted) {
-            setUser(null);
-          }
-        }
+        await loadUserProfile(newSession.user);
       } else {
         console.log('🚪 Usuario desconectado');
-        if (mounted) {
-          setUser(null);
-        }
+        setUser(null);
       }
       
-      if (mounted) {
-        setIsLoading(false);
-      }
+      // Siempre desactivar loading después de procesar el cambio
+      setIsLoading(false);
     });
 
-    // Obtener sesión inicial
-    const initializeSession = async () => {
+    // Verificar sesión inicial
+    const initializeAuth = async () => {
       try {
         console.log('🔍 Verificando sesión inicial...');
         const { data: { session: initialSession }, error } = await supabase.auth.getSession();
@@ -73,7 +128,8 @@ export const AuthProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
           console.error('❌ Error obteniendo sesión inicial:', error);
         } else if (initialSession?.user) {
           console.log('✅ Sesión inicial encontrada:', initialSession.user.email);
-          // El listener manejará la carga del perfil
+          setSession(initialSession);
+          await loadUserProfile(initialSession.user);
         } else {
           console.log('ℹ️ No hay sesión inicial activa');
         }
@@ -81,17 +137,12 @@ export const AuthProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
         console.error('💥 Error crítico inicializando sesión:', error);
       } finally {
         if (mounted) {
-          // Asegurar que el loading se desactive después de la inicialización
-          setTimeout(() => {
-            if (mounted) {
-              setIsLoading(false);
-            }
-          }, 1000);
+          setIsLoading(false);
         }
       }
     };
 
-    initializeSession();
+    initializeAuth();
 
     return () => {
       mounted = false;
@@ -99,65 +150,6 @@ export const AuthProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
       subscription.unsubscribe();
     };
   }, []);
-
-  const loadUserProfile = async (supabaseUser: SupabaseUser): Promise<void> => {
-    try {
-      console.log('👤 Cargando perfil para:', supabaseUser.id);
-      
-      const { data: profile, error } = await supabase
-        .from('profiles')
-        .select('id, name, role')
-        .eq('id', supabaseUser.id)
-        .maybeSingle();
-
-      if (error) {
-        console.error('❌ Error consultando perfil:', error);
-        throw error;
-      }
-
-      if (profile) {
-        const userData: User = {
-          id: profile.id,
-          name: profile.name || supabaseUser.email || 'Usuario',
-          role: profile.role || 'votante',
-          email: supabaseUser.email || '',
-        };
-
-        console.log('✅ Perfil cargado:', userData.name, userData.role);
-        setUser(userData);
-      } else {
-        console.warn('⚠️ Perfil no encontrado, creando...');
-        
-        const { data: newProfile, error: createError } = await supabase
-          .from('profiles')
-          .insert([{
-            id: supabaseUser.id,
-            name: supabaseUser.email || 'Usuario',
-            role: 'votante'
-          }])
-          .select()
-          .single();
-
-        if (createError) {
-          console.error('❌ Error creando perfil:', createError);
-          throw createError;
-        }
-
-        const userData: User = {
-          id: newProfile.id,
-          name: newProfile.name || 'Usuario',
-          role: newProfile.role || 'votante',
-          email: supabaseUser.email || '',
-        };
-
-        console.log('✅ Perfil creado:', userData.name, userData.role);
-        setUser(userData);
-      }
-    } catch (error) {
-      console.error('💥 Error crítico en loadUserProfile:', error);
-      throw error;
-    }
-  };
 
   const login = async (email: string, password: string): Promise<{ success: boolean; error?: string }> => {
     console.log('🔐 Iniciando login para:', email);
