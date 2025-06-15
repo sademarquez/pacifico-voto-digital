@@ -103,7 +103,7 @@ const TerritoryManager = () => {
   });
 
   // Query para obtener territorios padre disponibles
-  const { data: parentTerritories = [] } = useQuery<ParentTerritory[]>({
+  const { data: parentTerritories = [] } = useQuery({
     queryKey: ['parent-territories', user?.id],
     queryFn: async (): Promise<ParentTerritory[]> => {
       if (!supabase || !user) return [];
@@ -117,13 +117,13 @@ const TerritoryManager = () => {
         console.error('Error fetching parent territories:', error);
         throw new Error(error.message);
       }
-      return data || [];
+      return (data as ParentTerritory[]) || [];
     },
     enabled: !!supabase && !!user
   });
 
   // Query para obtener usuarios para responsables
-  const { data: users = [] } = useQuery<User[]>({
+  const { data: users = [] } = useQuery({
     queryKey: ['users-for-territories'],
     queryFn: async (): Promise<User[]> => {
       if (!supabase) return [];
@@ -137,7 +137,7 @@ const TerritoryManager = () => {
         console.error('Error fetching users:', error);
         throw new Error(error.message);
       }
-      return data || [];
+      return (data as User[]) || [];
     },
     enabled: !!supabase
   });
