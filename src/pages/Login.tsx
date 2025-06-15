@@ -4,21 +4,24 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
-import { Shield, Eye, EyeOff, Terminal, Crown, Target, Users2, User } from "lucide-react";
+import { Shield, Eye, EyeOff, Terminal, Crown, Target, Users2, User, Plus } from "lucide-react";
 import { useAuth } from "../contexts/AuthContext";
 import { useNavigate } from "react-router-dom";
 import { useToast } from "@/hooks/use-toast";
 import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
+import { useDemoUsers } from "@/hooks/useDemoUsers";
 
 const Login = () => {
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [showPassword, setShowPassword] = useState(false);
   const [isLoading, setIsLoading] = useState(false);
+  const [isCreatingUsers, setIsCreatingUsers] = useState(false);
   
   const { login, authError } = useAuth();
   const navigate = useNavigate();
   const { toast } = useToast();
+  const { createAllDemoUsers, demoUsers } = useDemoUsers();
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -56,8 +59,28 @@ const Login = () => {
     }
   };
 
+  const handleCreateDemoUsers = async () => {
+    setIsCreatingUsers(true);
+    try {
+      await createAllDemoUsers();
+      toast({
+        title: "Usuarios creados",
+        description: "Los usuarios de demostración han sido creados exitosamente.",
+      });
+    } catch (error) {
+      console.error('Error creating demo users:', error);
+      toast({
+        title: "Error",
+        description: "Hubo un error al crear los usuarios de demostración.",
+        variant: "destructive"
+      });
+    } finally {
+      setIsCreatingUsers(false);
+    }
+  };
+
   // Usuarios de demostración con sus credenciales
-  const demoUsers = [
+  const demoUsersDisplay = [
     {
       role: "Desarrollador",
       email: "dev@micampana.com",
@@ -187,6 +210,14 @@ const Login = () => {
           <CardHeader>
             <CardTitle className="text-green-700 text-xl">🚀 Estructura Jerárquica</CardTitle>
             <p className="text-green-600">Usuarios de demostración disponibles</p>
+            <Button
+              onClick={handleCreateDemoUsers}
+              disabled={isCreatingUsers}
+              className="bg-green-600 hover:bg-green-700 text-white"
+            >
+              <Plus className="w-4 h-4 mr-2" />
+              {isCreatingUsers ? "Creando usuarios..." : "Crear usuarios demo"}
+            </Button>
           </CardHeader>
           <CardContent>
             <div className="space-y-3">
@@ -194,7 +225,7 @@ const Login = () => {
                 Contraseña para todos: <span className="bg-green-100 px-2 py-1 rounded">micampaña2025</span>
               </p>
               
-              {demoUsers.map((user, index) => {
+              {demoUsersDisplay.map((user, index) => {
                 const Icon = user.icon;
                 return (
                   <div key={index} className="flex items-center gap-3 p-3 border border-green-200 rounded-lg hover:bg-green-50 transition-colors">
@@ -233,8 +264,8 @@ const Login = () => {
             
             <div className="mt-4 p-3 bg-yellow-50 rounded-lg border border-yellow-200">
               <p className="text-xs text-yellow-800">
-                <strong>⚠️ Nota:</strong> Los usuarios demo se crearán automáticamente cuando intentes iniciar sesión.
-                Si tienes problemas, revisa la consola del navegador para detalles.
+                <strong>⚠️ Nota:</strong> Haz clic en "Crear usuarios demo" para crear automáticamente todos los usuarios de demostración.
+                Luego podrás usar cualquiera de las credenciales mostradas arriba.
               </p>
             </div>
           </CardContent>

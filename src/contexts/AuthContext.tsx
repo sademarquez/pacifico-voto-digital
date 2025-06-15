@@ -16,6 +16,7 @@ interface AuthContextType {
   user: User | null;
   login: (email: string, password:string) => Promise<boolean>;
   logout: () => Promise<void>;
+  signUp: (email: string, password: string, name: string, role: string) => Promise<boolean>;
   isAuthenticated: boolean;
   isLoading: boolean;
   authError: string | null;
@@ -97,6 +98,33 @@ export const AuthProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
     return true;
   };
 
+  const signUp = async (email: string, password: string, name: string, role: string): Promise<boolean> => {
+    if (!supabase) {
+      setAuthError("No se puede registrar usuario. La conexión con el backend no está disponible.");
+      console.error('Error de signup: Supabase client no está inicializado.');
+      return false;
+    }
+
+    setAuthError(null);
+    const { error } = await supabase.auth.signUp({
+      email,
+      password,
+      options: {
+        data: {
+          name: name,
+          role: role
+        }
+      }
+    });
+    
+    if (error) {
+      console.error('Error de signup en Supabase:', error.message);
+      return false;
+    }
+    
+    return true;
+  };
+
   const logout = async () => {
     if (!supabase) {
       setAuthError("No se puede cerrar sesión. La conexión con el backend no está disponible.");
@@ -113,6 +141,7 @@ export const AuthProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
     user,
     login,
     logout,
+    signUp,
     isAuthenticated: !!user,
     isLoading,
     authError,
