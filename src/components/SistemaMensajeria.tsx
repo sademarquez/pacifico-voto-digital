@@ -27,7 +27,7 @@ interface Message {
   content: string;
   priority: 'low' | 'medium' | 'high';
   status: 'draft' | 'sent' | 'delivered';
-  category: 'general' | 'urgent' | 'reminder' | 'announcement';
+  category: 'general' | 'emergency' | 'coordination' | 'event' | 'campaign';
   created_at: string;
   sent_at?: string;
   sender_id: string;
@@ -41,7 +41,7 @@ const SistemaMensajeria = () => {
     subject: string;
     content: string;
     priority: 'low' | 'medium' | 'high';
-    category: 'general' | 'urgent' | 'reminder' | 'announcement';
+    category: 'general' | 'emergency' | 'coordination' | 'event' | 'campaign';
   }>({
     subject: '',
     content: '',
@@ -75,8 +75,8 @@ const SistemaMensajeria = () => {
         subject: msg.subject,
         content: msg.content,
         priority: ['low', 'medium', 'high'].includes(msg.priority) ? msg.priority as 'low' | 'medium' | 'high' : 'medium',
-        status: msg.status,
-        category: ['general', 'urgent', 'reminder', 'announcement'].includes(msg.category) ? msg.category as 'general' | 'urgent' | 'reminder' | 'announcement' : 'general',
+        status: ['draft', 'sent', 'delivered'].includes(msg.status) ? msg.status as 'draft' | 'sent' | 'delivered' : 'sent',
+        category: ['general', 'emergency', 'coordination', 'event', 'campaign'].includes(msg.category) ? msg.category as 'general' | 'emergency' | 'coordination' | 'event' | 'campaign' : 'general',
         created_at: msg.created_at,
         sent_at: msg.sent_at,
         sender_id: msg.sender_id
@@ -101,17 +101,15 @@ const SistemaMensajeria = () => {
       
       const { error } = await supabase
         .from('messages')
-        .insert([
-          {
-            subject: newMessage.subject.trim(),
-            content: newMessage.content.trim(),
-            priority: newMessage.priority,
-            category: newMessage.category,
-            status: 'sent',
-            sent_at: new Date().toISOString(),
-            sender_id: user.id
-          }
-        ]);
+        .insert({
+          subject: newMessage.subject.trim(),
+          content: newMessage.content.trim(),
+          priority: newMessage.priority,
+          category: newMessage.category,
+          status: 'sent',
+          sent_at: new Date().toISOString(),
+          sender_id: user.id
+        });
 
       if (error) {
         throw error;
@@ -234,7 +232,7 @@ const SistemaMensajeria = () => {
                 <label className="block text-sm font-medium mb-2">Categoría</label>
                 <Select 
                   value={newMessage.category} 
-                  onValueChange={(value: 'general' | 'urgent' | 'reminder' | 'announcement') => 
+                  onValueChange={(value: 'general' | 'emergency' | 'coordination' | 'event' | 'campaign') => 
                     setNewMessage(prev => ({ ...prev, category: value }))
                   }
                 >
@@ -243,9 +241,10 @@ const SistemaMensajeria = () => {
                   </SelectTrigger>
                   <SelectContent>
                     <SelectItem value="general">General</SelectItem>
-                    <SelectItem value="urgent">Urgente</SelectItem>
-                    <SelectItem value="reminder">Recordatorio</SelectItem>
-                    <SelectItem value="announcement">Anuncio</SelectItem>
+                    <SelectItem value="emergency">Emergencia</SelectItem>
+                    <SelectItem value="coordination">Coordinación</SelectItem>
+                    <SelectItem value="event">Evento</SelectItem>
+                    <SelectItem value="campaign">Campaña</SelectItem>
                   </SelectContent>
                 </Select>
               </div>
