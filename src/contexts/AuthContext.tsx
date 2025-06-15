@@ -3,12 +3,13 @@ import React, { createContext, useContext, useState, ReactNode, useEffect } from
 import { supabase } from '@/lib/supabaseClient';
 import { User as SupabaseUser } from '@supabase/supabase-js';
 
-// Nuestra interfaz de usuario personalizada, que incluye el rol y el nombre.
+// Nueva interfaz de usuario con la jerarquía actualizada
 interface User {
   id: string;
   email: string;
   name: string;
-  role: 'master' | 'candidato' | 'votante';
+  role: 'desarrollador' | 'master' | 'candidato' | 'lider' | 'votante';
+  created_by?: string | null;
 }
 
 interface AuthContextType {
@@ -41,7 +42,7 @@ export const AuthProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
         if (supabaseUser) {
           const { data: profile, error } = await supabase
             .from('profiles')
-            .select('id, name, role')
+            .select('id, name, role, created_by')
             .eq('id', supabaseUser.id)
             .single();
           
@@ -55,9 +56,10 @@ export const AuthProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
               name: profile.name || supabaseUser.email || 'Usuario',
               role: profile.role as User['role'],
               email: supabaseUser.email || '',
+              created_by: profile.created_by
             });
+            setAuthError(null); // Limpiar errores al autenticar exitosamente
           } else {
-             // This can happen if the user existed before the profiles table/trigger was created
             console.warn("No profile found for user, signing them out.");
             await supabase.auth.signOut();
             setUser(null);
@@ -81,6 +83,7 @@ export const AuthProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
       return false;
     }
 
+    setAuthError(null); // Limpiar errores previos
     const { error } = await supabase.auth.signInWithPassword({
       email,
       password,
@@ -104,7 +107,6 @@ export const AuthProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
     if (error) {
       console.error('Error de logout en Supabase:', error.message);
     }
-    // El listener onAuthStateChange se encargará de poner el user a null.
   };
 
   const value = {
@@ -116,7 +118,6 @@ export const AuthProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
     authError,
   };
 
-  // No renderizar los componentes hijos hasta que sepamos el estado de autenticación.
   return (
     <AuthContext.Provider value={value}>
       {!isLoading && children}

@@ -1,6 +1,5 @@
 
 import { useAuth } from "../contexts/AuthContext";
-import { supabase } from "@/integrations/supabase/client";
 
 export const useDataSegregation = () => {
   const { user } = useAuth();
@@ -10,13 +9,19 @@ export const useDataSegregation = () => {
     if (!user) return null;
     
     switch (user.role) {
+      case 'desarrollador':
       case 'master':
-        // Master ve todos los territorios
+        // Desarrollador y Master ven todos los territorios
         return {};
       case 'candidato':
         // Candidato solo ve territorios donde es responsable o los creó
         return {
           or: `responsible_user_id.eq.${user.id},created_by.eq.${user.id}`
+        };
+      case 'lider':
+        // Líder ve territorios que maneja directamente
+        return {
+          responsible_user_id: user.id
         };
       case 'votante':
         // Votante solo ve información básica de su territorio
@@ -33,10 +38,16 @@ export const useDataSegregation = () => {
     if (!user) return null;
     
     switch (user.role) {
+      case 'desarrollador':
       case 'master':
         return {}; // Ve todos
       case 'candidato':
         // Solo votantes en territorios que maneja
+        return {
+          'territories.responsible_user_id': user.id
+        };
+      case 'lider':
+        // Votantes en su territorio específico
         return {
           'territories.responsible_user_id': user.id
         };
@@ -55,9 +66,11 @@ export const useDataSegregation = () => {
     if (!user) return null;
     
     switch (user.role) {
+      case 'desarrollador':
       case 'master':
         return {}; // Ve todas
       case 'candidato':
+      case 'lider':
         return {
           or: `created_by.eq.${user.id},affected_user_id.eq.${user.id}`
         };
@@ -70,12 +83,79 @@ export const useDataSegregation = () => {
     }
   };
 
+  // Permisos basados en la nueva jerarquía
+  const getPermissions = () => {
+    if (!user) return {
+      canCreateTerritory: false,
+      canManageUsers: false,
+      canViewAllData: false,
+      canCreateCandidatos: false,
+      canCreateLideres: false,
+      canCreateVotantes: false
+    };
+
+    switch (user.role) {
+      case 'desarrollador':
+        return {
+          canCreateTerritory: true,
+          canManageUsers: true,
+          canViewAllData: true,
+          canCreateCandidatos: true,
+          canCreateLideres: true,
+          canCreateVotantes: true
+        };
+      case 'master':
+        return {
+          canCreateTerritory: true,
+          canManageUsers: true,
+          canViewAllData: true,
+          canCreateCandidatos: true,
+          canCreateLideres: false,
+          canCreateVotantes: false
+        };
+      case 'candidato':
+        return {
+          canCreateTerritory: true,
+          canManageUsers: true,
+          canViewAllData: false,
+          canCreateCandidatos: false,
+          canCreateLideres: true,
+          canCreateVotantes: false
+        };
+      case 'lider':
+        return {
+          canCreateTerritory: false,
+          canManageUsers: true,
+          canViewAllData: false,
+          canCreateCandidatos: false,
+          canCreateLideres: false,
+          canCreateVotantes: true
+        };
+      case 'votante':
+        return {
+          canCreateTerritory: false,
+          canManageUsers: false,
+          canViewAllData: false,
+          canCreateCandidatos: false,
+          canCreateLideres: false,
+          canCreateVotantes: false
+        };
+      default:
+        return {
+          canCreateTerritory: false,
+          canManageUsers: false,
+          canViewAllData: false,
+          canCreateCandidatos: false,
+          canCreateLideres: false,
+          canCreateVotantes: false
+        };
+    }
+  };
+
   return {
     getTerritoryFilter,
     getVoterFilter,
     getAlertFilter,
-    canCreateTerritory: user?.role === 'master' || user?.role === 'candidato',
-    canManageUsers: user?.role === 'master' || user?.role === 'candidato',
-    canViewAllData: user?.role === 'master'
+    ...getPermissions()
   };
 };

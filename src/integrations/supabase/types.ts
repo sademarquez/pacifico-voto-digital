@@ -320,7 +320,7 @@ export type Database = {
           created_by: string | null
           id: string
           name: string | null
-          role: Database["public"]["Enums"]["user_role"]
+          role: Database["public"]["Enums"]["user_role"] | null
           updated_at: string
         }
         Insert: {
@@ -328,7 +328,7 @@ export type Database = {
           created_by?: string | null
           id: string
           name?: string | null
-          role?: Database["public"]["Enums"]["user_role"]
+          role?: Database["public"]["Enums"]["user_role"] | null
           updated_at?: string
         }
         Update: {
@@ -336,7 +336,7 @@ export type Database = {
           created_by?: string | null
           id?: string
           name?: string | null
-          role?: Database["public"]["Enums"]["user_role"]
+          role?: Database["public"]["Enums"]["user_role"] | null
           updated_at?: string
         }
         Relationships: [
@@ -685,6 +685,52 @@ export type Database = {
           },
         ]
       }
+      user_hierarchies: {
+        Row: {
+          created_at: string
+          created_by: string | null
+          id: string
+          subordinate_id: string | null
+          superior_id: string | null
+        }
+        Insert: {
+          created_at?: string
+          created_by?: string | null
+          id?: string
+          subordinate_id?: string | null
+          superior_id?: string | null
+        }
+        Update: {
+          created_at?: string
+          created_by?: string | null
+          id?: string
+          subordinate_id?: string | null
+          superior_id?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "user_hierarchies_created_by_fkey"
+            columns: ["created_by"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "user_hierarchies_subordinate_id_fkey"
+            columns: ["subordinate_id"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "user_hierarchies_superior_id_fkey"
+            columns: ["superior_id"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       voters: {
         Row: {
           address: string | null
@@ -759,7 +805,22 @@ export type Database = {
       [_ in never]: never
     }
     Functions: {
-      [_ in never]: never
+      can_manage_user: {
+        Args: { manager_id: string; target_id: string }
+        Returns: boolean
+      }
+      get_current_user_role: {
+        Args: Record<PropertyKey, never>
+        Returns: string
+      }
+      get_user_subordinates: {
+        Args: { user_id: string }
+        Returns: {
+          subordinate_id: string
+          subordinate_name: string
+          subordinate_role: string
+        }[]
+      }
     }
     Enums: {
       alert_status: "active" | "resolved" | "dismissed"
@@ -791,7 +852,7 @@ export type Database = {
         | "vereda"
         | "barrio"
         | "sector"
-      user_role: "master" | "candidato" | "votante"
+      user_role: "desarrollador" | "master" | "candidato" | "lider" | "votante"
     }
     CompositeTypes: {
       [_ in never]: never
@@ -940,7 +1001,7 @@ export const Constants = {
         "barrio",
         "sector",
       ],
-      user_role: ["master", "candidato", "votante"],
+      user_role: ["desarrollador", "master", "candidato", "lider", "votante"],
     },
   },
 } as const
