@@ -25,7 +25,6 @@ interface Territory {
   responsible_user_id?: string;
   parent?: { name: string };
   responsible?: { name: string };
-  children?: { id: string }[];
 }
 
 interface ParentTerritory {
@@ -66,8 +65,7 @@ const TerritoryManager = () => {
         .select(`
           *,
           parent:territories!parent_id(name),
-          responsible:profiles!responsible_user_id(name),
-          children:territories!parent_id(id)
+          responsible:profiles!responsible_user_id(name)
         `)
         .order('created_at', { ascending: false });
 
