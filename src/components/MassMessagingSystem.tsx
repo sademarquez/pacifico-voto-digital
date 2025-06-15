@@ -31,6 +31,7 @@ interface Territory {
 
 interface MassMessage {
   id: string;
+  subject: string;
   content: string;
   category: string;
   priority: string;
@@ -47,6 +48,7 @@ const MassMessagingSystem = () => {
   const queryClient = useQueryClient();
 
   const [newMessage, setNewMessage] = useState({
+    subject: '',
     content: '',
     category: 'general',
     priority: 'medium',
@@ -88,6 +90,7 @@ const MassMessagingSystem = () => {
       const { data, error } = await supabase
         .from('messages')
         .insert({
+          subject: messageData.subject,
           content: messageData.content,
           category: messageData.category,
           priority: messageData.priority,
@@ -109,6 +112,7 @@ const MassMessagingSystem = () => {
       });
       queryClient.invalidateQueries({ queryKey: ['mass-messages'] });
       setNewMessage({
+        subject: '',
         content: '',
         category: 'general',
         priority: 'medium',
@@ -173,10 +177,10 @@ const MassMessagingSystem = () => {
   });
 
   const handleCreateMessage = () => {
-    if (!newMessage.content) {
+    if (!newMessage.subject || !newMessage.content) {
       toast({
         title: "Error",
-        description: "Por favor completa el contenido del mensaje",
+        description: "Por favor completa el asunto y contenido del mensaje",
         variant: "destructive"
       });
       return;
@@ -228,6 +232,16 @@ const MassMessagingSystem = () => {
           </CardTitle>
         </CardHeader>
         <CardContent className="space-y-4">
+          <div className="space-y-2">
+            <Label htmlFor="subject">Asunto del Mensaje *</Label>
+            <Input
+              id="subject"
+              value={newMessage.subject}
+              onChange={(e) => setNewMessage({...newMessage, subject: e.target.value})}
+              placeholder="Escribe el asunto de tu mensaje..."
+            />
+          </div>
+
           <div className="grid md:grid-cols-2 gap-4">
             <div className="space-y-2">
               <Label htmlFor="category">Categoría</Label>
@@ -303,6 +317,7 @@ const MassMessagingSystem = () => {
             <Button 
               variant="outline"
               onClick={() => setNewMessage({
+                subject: '',
                 content: '',
                 category: 'general',
                 priority: 'medium',
@@ -346,6 +361,7 @@ const MassMessagingSystem = () => {
                   <CardContent className="p-4">
                     <div className="flex items-start justify-between mb-3">
                       <div className="flex-1">
+                        <h4 className="font-semibold text-slate-800 mb-2">{message.subject}</h4>
                         <p className="text-sm text-slate-600 line-clamp-3">
                           {message.content}
                         </p>
