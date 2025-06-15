@@ -39,6 +39,8 @@ export const AuthProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
     setIsLoading(true);
     const { data: authListener } = supabase.auth.onAuthStateChange(
       async (event, session) => {
+        console.log('Auth state change:', event, session?.user?.email);
+        
         const supabaseUser = session?.user ?? null;
         if (supabaseUser) {
           const { data: profile, error } = await supabase
@@ -59,7 +61,7 @@ export const AuthProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
               email: supabaseUser.email || '',
               created_by: profile.created_by
             });
-            setAuthError(null); // Limpiar errores al autenticar exitosamente
+            setAuthError(null);
           } else {
             console.warn("No profile found for user, signing them out.");
             await supabase.auth.signOut();
@@ -84,17 +86,21 @@ export const AuthProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
       return false;
     }
 
-    setAuthError(null); // Limpiar errores previos
-    const { error } = await supabase.auth.signInWithPassword({
-      email,
-      password,
+    console.log('Intentando login con:', email);
+    setAuthError(null);
+    
+    const { data, error } = await supabase.auth.signInWithPassword({
+      email: email.trim(),
+      password: password,
     });
     
     if (error) {
       console.error('Error de login en Supabase:', error.message);
+      setAuthError(`Error de login: ${error.message}`);
       return false;
     }
     
+    console.log('Login exitoso para:', email);
     return true;
   };
 
@@ -105,10 +111,12 @@ export const AuthProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
       return false;
     }
 
+    console.log('Intentando crear usuario:', email, 'con rol:', role);
     setAuthError(null);
-    const { error } = await supabase.auth.signUp({
-      email,
-      password,
+    
+    const { data, error } = await supabase.auth.signUp({
+      email: email.trim(),
+      password: password,
       options: {
         data: {
           name: name,
@@ -119,9 +127,14 @@ export const AuthProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
     
     if (error) {
       console.error('Error de signup en Supabase:', error.message);
+      if (error.message.includes('User already registered')) {
+        console.log('Usuario ya existe, esto es normal en demo');
+        return true; // Consideramos esto como éxito para usuarios demo
+      }
       return false;
     }
     
+    console.log('Signup exitoso para:', email);
     return true;
   };
 

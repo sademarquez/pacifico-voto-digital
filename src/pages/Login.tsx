@@ -1,4 +1,3 @@
-
 import { useState } from "react";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
@@ -79,11 +78,11 @@ const Login = () => {
     }
   };
 
-  // Usuarios de demostración con sus credenciales
+  // Usuarios de demostración con sus credenciales corregidas
   const demoUsersDisplay = [
     {
       role: "Desarrollador",
-      email: "dev@micampana.com",
+      email: "dev@micampana.co", // Email corregido
       icon: Shield,
       color: "text-purple-600",
       description: "Control total del sistema"
@@ -199,7 +198,7 @@ const Login = () => {
             <div className="mt-4 p-3 bg-gray-50 rounded-lg text-xs text-gray-600">
               <p><strong>Debug Info:</strong></p>
               <p>• URL Base: https://zecltlsdkbndhqimpjjo.supabase.co</p>
-              <p>• Usuarios demo disponibles (contraseña: micampaña2025)</p>
+              <p>• Usuarios demo disponibles (contraseña: micampana2025)</p>
               <p>• Si hay errores, revisa la consola del navegador</p>
             </div>
           </CardContent>
@@ -222,7 +221,7 @@ const Login = () => {
           <CardContent>
             <div className="space-y-3">
               <p className="text-sm text-green-700 font-medium mb-4">
-                Contraseña para todos: <span className="bg-green-100 px-2 py-1 rounded">micampaña2025</span>
+                Contraseña para todos: <span className="bg-green-100 px-2 py-1 rounded">micampana2025</span>
               </p>
               
               {demoUsersDisplay.map((user, index) => {
@@ -240,7 +239,7 @@ const Login = () => {
                       size="sm"
                       onClick={() => {
                         setEmail(user.email);
-                        setPassword("micampaña2025");
+                        setPassword("micampana2025");
                       }}
                       className="text-green-600 border-green-300 hover:bg-green-100"
                     >
