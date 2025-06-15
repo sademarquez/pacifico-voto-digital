@@ -52,12 +52,13 @@ const Login = () => {
     setError('');
   };
 
-  // Credenciales reales que funcionan con la base de datos
+  // Credenciales reales que funcionan con la base de datos + nueva credencial votante
   const realCredentials = [
-    { email: 'admin@micampana.com', password: 'AdminSecure2025!', role: 'Desarrollador' },
-    { email: 'master@micampana.com', password: 'MasterSecure2025!', role: 'Master' },
-    { email: 'candidato@micampana.com', password: 'CandidatoSecure2025!', role: 'Candidato' },
-    { email: 'lider@micampana.com', password: 'LiderSecure2025!', role: 'Líder' }
+    { email: 'admin@micampana.com', password: 'AdminSecure2025!', role: 'Desarrollador', description: 'Control total del sistema' },
+    { email: 'master@micampana.com', password: 'MasterSecure2025!', role: 'Master', description: 'Gestión de candidatos y campañas' },
+    { email: 'candidato@micampana.com', password: 'CandidatoSecure2025!', role: 'Candidato', description: 'Liderazgo territorial y equipos' },
+    { email: 'lider@micampana.com', password: 'LiderSecure2025!', role: 'Líder', description: 'Coordinación local y votantes' },
+    { email: 'votante@micampana.com', password: 'VotanteSecure2025!', role: 'Votante', description: 'Participación activa en campaña' }
   ];
 
   return (
@@ -143,7 +144,10 @@ const Login = () => {
                     {realCredentials.map((cred, index) => (
                       <div key={index} className="bg-white rounded border p-3">
                         <div className="flex justify-between items-center mb-2">
-                          <span className="font-medium text-sm text-gray-800">{cred.role}</span>
+                          <div>
+                            <span className="font-medium text-sm text-gray-800">{cred.role}</span>
+                            <p className="text-xs text-gray-500">{cred.description}</p>
+                          </div>
                           <Button
                             type="button"
                             variant="outline"
