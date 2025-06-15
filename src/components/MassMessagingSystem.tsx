@@ -31,7 +31,6 @@ interface Territory {
 
 interface MassMessage {
   id: string;
-  subject: string;
   content: string;
   category: string;
   priority: string;
@@ -48,7 +47,6 @@ const MassMessagingSystem = () => {
   const queryClient = useQueryClient();
 
   const [newMessage, setNewMessage] = useState({
-    subject: '',
     content: '',
     category: 'general',
     priority: 'medium',
@@ -90,7 +88,6 @@ const MassMessagingSystem = () => {
       const { data, error } = await supabase
         .from('messages')
         .insert({
-          subject: messageData.subject,
           content: messageData.content,
           category: messageData.category,
           priority: messageData.priority,
@@ -112,7 +109,6 @@ const MassMessagingSystem = () => {
       });
       queryClient.invalidateQueries({ queryKey: ['mass-messages'] });
       setNewMessage({
-        subject: '',
         content: '',
         category: 'general',
         priority: 'medium',
@@ -177,10 +173,10 @@ const MassMessagingSystem = () => {
   });
 
   const handleCreateMessage = () => {
-    if (!newMessage.subject || !newMessage.content) {
+    if (!newMessage.content) {
       toast({
         title: "Error",
-        description: "Por favor completa el asunto y contenido del mensaje",
+        description: "Por favor completa el contenido del mensaje",
         variant: "destructive"
       });
       return;
@@ -234,15 +230,6 @@ const MassMessagingSystem = () => {
         <CardContent className="space-y-4">
           <div className="grid md:grid-cols-2 gap-4">
             <div className="space-y-2">
-              <Label htmlFor="subject">Asunto *</Label>
-              <Input
-                id="subject"
-                value={newMessage.subject}
-                onChange={(e) => setNewMessage({...newMessage, subject: e.target.value})}
-                placeholder="Asunto del mensaje masivo"
-              />
-            </div>
-            <div className="space-y-2">
               <Label htmlFor="category">Categoría</Label>
               <Select value={newMessage.category} onValueChange={(value) => setNewMessage({...newMessage, category: value})}>
                 <SelectTrigger>
@@ -252,14 +239,11 @@ const MassMessagingSystem = () => {
                   <SelectItem value="general">General</SelectItem>
                   <SelectItem value="campaign">Campaña</SelectItem>
                   <SelectItem value="event">Evento</SelectItem>
-                  <SelectItem value="urgent">Urgente</SelectItem>
-                  <SelectItem value="survey">Encuesta</SelectItem>
+                  <SelectItem value="emergency">Emergencia</SelectItem>
+                  <SelectItem value="coordination">Coordinación</SelectItem>
                 </SelectContent>
               </Select>
             </div>
-          </div>
-
-          <div className="grid md:grid-cols-3 gap-4">
             <div className="space-y-2">
               <Label htmlFor="priority">Prioridad</Label>
               <Select value={newMessage.priority} onValueChange={(value) => setNewMessage({...newMessage, priority: value})}>
@@ -270,9 +254,13 @@ const MassMessagingSystem = () => {
                   <SelectItem value="low">Baja</SelectItem>
                   <SelectItem value="medium">Media</SelectItem>
                   <SelectItem value="high">Alta</SelectItem>
+                  <SelectItem value="urgent">Urgente</SelectItem>
                 </SelectContent>
               </Select>
             </div>
+          </div>
+
+          <div className="grid md:grid-cols-2 gap-4">
             <div className="space-y-2">
               <Label htmlFor="territory">Territorio (Opcional)</Label>
               <Select value={newMessage.territory_id} onValueChange={(value) => setNewMessage({...newMessage, territory_id: value})}>
@@ -315,7 +303,6 @@ const MassMessagingSystem = () => {
             <Button 
               variant="outline"
               onClick={() => setNewMessage({
-                subject: '',
                 content: '',
                 category: 'general',
                 priority: 'medium',
@@ -359,10 +346,7 @@ const MassMessagingSystem = () => {
                   <CardContent className="p-4">
                     <div className="flex items-start justify-between mb-3">
                       <div className="flex-1">
-                        <h3 className="font-semibold text-slate-800 mb-1">
-                          {message.subject}
-                        </h3>
-                        <p className="text-sm text-slate-600 line-clamp-2">
+                        <p className="text-sm text-slate-600 line-clamp-3">
                           {message.content}
                         </p>
                       </div>
@@ -413,6 +397,32 @@ const MassMessagingSystem = () => {
               ))}
             </div>
           )}
+        </CardContent>
+      </Card>
+
+      {/* Integración SellerChat */}
+      <Card className="border-l-4 border-l-emerald-600">
+        <CardHeader>
+          <CardTitle className="flex items-center gap-2">
+            <MessageSquare className="w-5 h-5" />
+            Integración SellerChat (Próximamente)
+          </CardTitle>
+        </CardHeader>
+        <CardContent>
+          <div className="bg-emerald-50 p-4 rounded-lg">
+            <h4 className="font-semibold text-emerald-800 mb-2">🚀 Potencia tu Campaña con SellerChat</h4>
+            <p className="text-emerald-700 text-sm mb-3">
+              Conecta chatbots inteligentes que responden 24/7, automatizan el seguimiento de leads y escalan infinitamente.
+            </p>
+            <div className="flex gap-2">
+              <Button size="sm" className="bg-emerald-600 hover:bg-emerald-700">
+                Ver Beneficios Completos
+              </Button>
+              <Button size="sm" variant="outline" className="border-emerald-600 text-emerald-600">
+                Solicitar Demo
+              </Button>
+            </div>
+          </div>
         </CardContent>
       </Card>
     </div>
