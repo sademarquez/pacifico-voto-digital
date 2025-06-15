@@ -11,34 +11,37 @@ interface DemoUser {
 export const useDemoUsers = () => {
   const { signUp } = useAuth();
 
+  // Contraseña fija simplificada para evitar problemas
+  const FIXED_PASSWORD = "12345678";
+
   const demoUsers: DemoUser[] = [
     {
       email: 'dev@micampana.com',
-      password: 'micampana2025',
+      password: FIXED_PASSWORD,
       name: 'Desarrollador',
       role: 'desarrollador'
     },
     {
       email: 'master1@demo.com',
-      password: 'micampana2025',
+      password: FIXED_PASSWORD,
       name: 'Master',
       role: 'master'
     },
     {
       email: 'candidato@demo.com',
-      password: 'micampana2025',
+      password: FIXED_PASSWORD,
       name: 'Candidato',
       role: 'candidato'
     },
     {
       email: 'lider@demo.com',
-      password: 'micampana2025',
+      password: FIXED_PASSWORD,
       name: 'Lider',
       role: 'lider'
     },
     {
       email: 'votante@demo.com',
-      password: 'micampana2025',
+      password: FIXED_PASSWORD,
       name: 'Votante',
       role: 'votante'
     }
@@ -46,37 +49,43 @@ export const useDemoUsers = () => {
 
   const createDemoUser = async (user: DemoUser): Promise<boolean> => {
     try {
-      console.log(`Creando usuario: ${user.name} (${user.email})`);
+      console.log(`[DEMO] Creando usuario: ${user.name} (${user.email}) con contraseña: ${FIXED_PASSWORD}`);
       const success = await signUp(user.email, user.password, user.name, user.role);
-      console.log(`Resultado para ${user.name}:`, success);
+      console.log(`[DEMO] Resultado para ${user.name}:`, success);
       return success;
     } catch (error) {
-      console.error(`Error creating demo user ${user.name}:`, error);
+      console.error(`[DEMO] Error creating user ${user.name}:`, error);
       return false;
     }
   };
 
   const createAllDemoUsers = async (): Promise<void> => {
-    console.log('Iniciando creación de usuarios demo...');
+    console.log('[DEMO] === INICIANDO CREACIÓN DE USUARIOS DEMO ===');
+    console.log(`[DEMO] Contraseña fija para todos: ${FIXED_PASSWORD}`);
     
     for (const user of demoUsers) {
       try {
+        console.log(`[DEMO] Procesando: ${user.name}...`);
         await createDemoUser(user);
-        // Pausa para evitar rate limiting
-        await new Promise(resolve => setTimeout(resolve, 2000));
+        // Pausa reducida para evitar rate limiting
+        await new Promise(resolve => setTimeout(resolve, 1500));
       } catch (error) {
-        console.error(`Error procesando usuario ${user.name}:`, error);
-        // Continúa con el siguiente usuario incluso si hay error
-        await new Promise(resolve => setTimeout(resolve, 1000));
+        console.error(`[DEMO] Error procesando ${user.name}:`, error);
+        await new Promise(resolve => setTimeout(resolve, 500));
       }
     }
     
-    console.log('Proceso de creación de usuarios demo completado');
+    console.log('[DEMO] === PROCESO COMPLETADO ===');
+    console.log('[DEMO] Usuarios disponibles para login:');
+    demoUsers.forEach(user => {
+      console.log(`[DEMO] - Nombre: "${user.name}" | Email: "${user.email}" | Contraseña: "${FIXED_PASSWORD}"`);
+    });
   };
 
   return {
     demoUsers,
     createDemoUser,
-    createAllDemoUsers
+    createAllDemoUsers,
+    FIXED_PASSWORD
   };
 };

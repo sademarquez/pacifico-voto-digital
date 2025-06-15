@@ -1,73 +1,97 @@
 
-# 🔐 GUÍA RÁPIDA - Credenciales y Acceso
+# 🔐 GUÍA RÁPIDA - Credenciales SIMPLIFICADAS
 
-## ⚡ Acceso Inmediato
+## ⚡ CONTRASEÑA FIJA PARA TODOS
 
-### 1. Ir a la página de login: `/login`
+### 🔑 **CONTRASEÑA ÚNICA: `12345678`**
 
-### 2. Hacer clic en "Crear usuarios demo" (botón verde)
-**¡IMPORTANTE!** Esto debe hacerse ANTES de intentar hacer login
+**TODOS LOS USUARIOS USAN LA MISMA CONTRASEÑA:** `12345678`
 
-### 3. Usar cualquiera de estas credenciales (NOMBRE o EMAIL):
+## 📋 CREDENCIALES ACTUALIZADAS
 
-| Rol | **NOMBRE** | Email | Contraseña |
-|---------|--------|--------|------------|
-| **Desarrollador** | `Desarrollador` | `dev@micampana.com` | `micampana2025` |
-| **Master** | `Master` | `master1@demo.com` | `micampana2025` |
-| **Candidato** | `Candidato` | `candidato@demo.com` | `micampana2025` |
-| **Líder** | `Lider` | `lider@demo.com` | `micampana2025` |
-| **Votante** | `Votante` | `votante@demo.com` | `micampana2025` |
+| Rol | **NOMBRE DE USUARIO** | Contraseña |
+|-----|----------------------|------------|
+| **Desarrollador** | `Desarrollador` | `12345678` |
+| **Master** | `Master` | `12345678` |
+| **Candidato** | `Candidato` | `12345678` |
+| **Líder** | `Lider` | `12345678` |
+| **Votante** | `Votante` | `12345678` |
 
-## 🎯 LOGIN SIMPLIFICADO
+## 🎯 PROCESO DE LOGIN SIMPLIFICADO
 
-**Ahora puedes usar solo el NOMBRE:**
-- Usuario: `Desarrollador`
-- Contraseña: `micampana2025`
+### 1. **Ir a `/login`**
 
-**O el email tradicional:**
-- Email: `dev@micampana.com`
-- Contraseña: `micampana2025`
+### 2. **Crear usuarios demo** (botón verde)
+- Hacer clic en "Crear usuarios demo"
+- Esperar confirmación
 
-## 🚨 Si NO Funciona el Login:
+### 3. **Usar credenciales:**
+- **Usuario:** `Desarrollador`
+- **Contraseña:** `12345678`
+
+## ✅ PRUEBA RÁPIDA
+
+**Para verificar que funciona:**
+
+1. Abrir `/login`
+2. Hacer clic en "Crear usuarios demo"
+3. En el formulario:
+   - **Nombre de Usuario:** `Desarrollador`
+   - **Contraseña:** `12345678`
+4. Hacer clic en "Iniciar Sesión"
+
+## 🔧 VENTAJAS DE LA SIMPLIFICACIÓN
+
+- **Sin caracteres especiales** (evita problemas con ñ, acentos)
+- **Contraseña memorable** y sin conflictos
+- **Login por nombre** evita problemas de email
+- **Proceso unificado** para todos los usuarios
+
+## 🚨 TROUBLESHOOTING
+
+### Si no funciona:
 
 1. **Verificar que se crearon los usuarios:**
-   - Buscar mensaje "Usuarios creados exitosamente"
-   - Si no aparece, volver a hacer clic en "Crear usuarios demo"
+   - Buscar mensaje "Usuarios creados"
+   - Ver logs en consola del navegador (F12)
 
 2. **Usar credenciales exactas:**
    - Nombre: `Desarrollador` (CON mayúscula inicial)
-   - Contraseña: `micampana2025` (SIN ñ)
+   - Contraseña: `12345678` (8 dígitos)
 
-3. **Revisar consola del navegador:**
-   - F12 → Console
-   - Buscar errores rojos
-   - Copiar el mensaje de error
+3. **Revisar base de datos:**
+   - Los usuarios deben existir en `auth.users`
+   - Los perfiles deben estar en `public.profiles`
 
-## 🔄 Proceso de Login Actualizado
+## 💡 ESTRUCTURA TÉCNICA
 
-```javascript
-// Ahora el sistema:
-1. Detecta si es nombre o email (por presencia de @)
-2. Si es nombre, busca el email correspondiente
-3. Realiza login con el email encontrado
-4. Muestra confirmación al completar
+```
+📊 BASE DE DATOS:
+├── auth.users (Supabase Auth)
+│   ├── Email: dev@micampana.com
+│   └── Password: 12345678
+│
+└── public.profiles
+    ├── name: "Desarrollador"
+    ├── role: "desarrollador"
+    └── id: [UUID de auth.users]
+
+🔐 LOGIN PROCESS:
+1. Usuario ingresa: "Desarrollador"
+2. Sistema busca email por nombre
+3. Realiza login con email encontrado
+4. Autentica con contraseña: 12345678
 ```
 
-## ✅ Verificación Rápida
+## 🎯 USUARIOS RECOMENDADOS PARA PRUEBAS
 
-**Después de crear usuarios, probar login con:**
-- `Desarrollador` / `micampana2025`
-- O `Master` / `micampana2025`
+**Usuario Principal:**
+- `Desarrollador` / `12345678` - Todos los permisos
 
-## 🎯 Usuario Recomendado para Pruebas
+**Usuarios Secundarios:**
+- `Master` / `12345678` - Gestión de candidatos
+- `Candidato` / `12345678` - Gestión territorial
 
-**Usar:** `Desarrollador` / `micampana2025`
-- Tiene todos los permisos
-- Puede ver todo el sistema
-- Ideal para pruebas completas
+---
 
-## 💡 Ventajas del Login por Nombre
-
-- **Sin caracteres especiales** (evita problemas con ñ, acentos)
-- **Más fácil de recordar** que emails largos
-- **Compatible con ambos** (nombre y email funcionan)
+*Sistema actualizado con contraseña fija para máxima simplicidad*

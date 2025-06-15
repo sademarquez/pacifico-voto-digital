@@ -1,8 +1,8 @@
+
 import React, { createContext, useContext, useState, ReactNode, useEffect } from 'react';
 import { supabase } from '@/lib/supabaseClient';
 import { User as SupabaseUser } from '@supabase/supabase-js';
 
-// Nueva interfaz de usuario con la jerarquía actualizada
 interface User {
   id: string;
   email: string;
@@ -13,7 +13,7 @@ interface User {
 
 interface AuthContextType {
   user: User | null;
-  login: (nameOrEmail: string, password:string) => Promise<boolean>;
+  login: (nameOrEmail: string, password: string) => Promise<boolean>;
   logout: () => Promise<void>;
   signUp: (email: string, password: string, name: string, role: string) => Promise<boolean>;
   isAuthenticated: boolean;
@@ -38,7 +38,7 @@ export const AuthProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
     setIsLoading(true);
     const { data: authListener } = supabase.auth.onAuthStateChange(
       async (event, session) => {
-        console.log('Auth state change:', event, session?.user?.email);
+        console.log('[AUTH] State change:', event, session?.user?.email);
         
         const supabaseUser = session?.user ?? null;
         if (supabaseUser) {
@@ -49,10 +49,11 @@ export const AuthProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
             .single();
           
           if (error && error.code !== 'PGRST116') {
-            console.error("Error fetching profile:", error);
+            console.error("[AUTH] Error fetching profile:", error);
             setAuthError("Error al cargar el perfil de usuario.");
             setUser(null);
           } else if (profile) {
+            console.log('[AUTH] Usuario autenticado:', profile.name, 'Rol:', profile.role);
             setUser({
               id: profile.id,
               name: profile.name || supabaseUser.email || 'Usuario',
@@ -62,11 +63,12 @@ export const AuthProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
             });
             setAuthError(null);
           } else {
-            console.warn("No profile found for user, signing them out.");
+            console.warn("[AUTH] No profile found for user, signing them out.");
             await supabase.auth.signOut();
             setUser(null);
           }
         } else {
+          console.log('[AUTH] Usuario desconectado');
           setUser(null);
         }
         setIsLoading(false);
@@ -81,42 +83,78 @@ export const AuthProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
   const login = async (nameOrEmail: string, password: string): Promise<boolean> => {
     if (!supabase) {
       setAuthError("No se puede iniciar sesión. La conexión con el backend no está disponible.");
-      console.error('Error de login: Supabase client no está inicializado.');
+      console.error('[LOGIN] Error: Supabase client no está inicializado.');
       return false;
     }
 
-    console.log('Intentando login con:', nameOrEmail);
+    console.log('[LOGIN] === INICIO DE SESIÓN ===');
+    console.log('[LOGIN] Intentando login con:', nameOrEmail);
+    console.log('[LOGIN] Contraseña recibida:', password);
     setAuthError(null);
     
     let email = nameOrEmail;
     
     // Si no contiene @, buscar el email por nombre
     if (!nameOrEmail.includes('@')) {
-      console.log('Buscando email por nombre:', nameOrEmail);
-      const { data: profile, error } = await supabase
-        .from('profiles')
-        .select('id')
-        .eq('name', nameOrEmail)
-        .single();
+      console.log('[LOGIN] Buscando email por nombre:', nameOrEmail);
       
-      if (error || !profile) {
-        console.error('Usuario no encontrado por nombre:', nameOrEmail);
-        setAuthError(`Usuario "${nameOrEmail}" no encontrado`);
+      try {
+        const { data: profiles, error } = await supabase
+          .from('profiles')
+          .select('id')
+          .eq('name', nameOrEmail);
+        
+        if (error) {
+          console.error('[LOGIN] Error buscando perfil:', error);
+          setAuthError(`Error buscando usuario: ${error.message}`);
+          return false;
+        }
+        
+        if (!profiles || profiles.length === 0) {
+          console.error('[LOGIN] Usuario no encontrado por nombre:', nameOrEmail);
+          setAuthError(`Usuario "${nameOrEmail}" no encontrado`);
+          return false;
+        }
+        
+        const profile = profiles[0];
+        console.log('[LOGIN] Perfil encontrado:', profile.id);
+        
+        // Obtener el email del usuario desde auth.users usando RPC
+        const { data: userData, error: userError } = await supabase.rpc('get_user_email', {
+          user_id: profile.id
+        });
+        
+        if (userError) {
+          console.error('[LOGIN] Error obteniendo email:', userError);
+          // Fallback: usar emails conocidos
+          const emailMap: { [key: string]: string } = {
+            'Desarrollador': 'dev@micampana.com',
+            'Master': 'master1@demo.com',
+            'Candidato': 'candidato@demo.com',
+            'Lider': 'lider@demo.com',
+            'Votante': 'votante@demo.com'
+          };
+          
+          email = emailMap[nameOrEmail];
+          if (!email) {
+            setAuthError('No se pudo determinar el email del usuario');
+            return false;
+          }
+          console.log('[LOGIN] Usando email del mapa:', email);
+        } else {
+          email = userData;
+        }
+        
+        console.log('[LOGIN] Email para login:', email);
+      } catch (error) {
+        console.error('[LOGIN] Error en búsqueda de usuario:', error);
+        setAuthError('Error al buscar usuario');
         return false;
       }
-      
-      // Obtener el email del usuario desde auth.users
-      const { data: { user: authUser }, error: authError } = await supabase.auth.admin.getUserById(profile.id);
-      
-      if (authError || !authUser) {
-        console.error('Error obteniendo datos de auth:', authError);
-        setAuthError('Error al obtener datos de autenticación');
-        return false;
-      }
-      
-      email = authUser.email || '';
-      console.log('Email encontrado:', email);
     }
+    
+    console.log('[LOGIN] Intentando autenticación con email:', email);
+    console.log('[LOGIN] Contraseña utilizada:', password);
     
     const { data, error } = await supabase.auth.signInWithPassword({
       email: email.trim(),
@@ -124,23 +162,23 @@ export const AuthProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
     });
     
     if (error) {
-      console.error('Error de login en Supabase:', error.message);
+      console.error('[LOGIN] Error de login en Supabase:', error);
       setAuthError(`Error de login: ${error.message}`);
       return false;
     }
     
-    console.log('Login exitoso para:', nameOrEmail);
+    console.log('[LOGIN] === LOGIN EXITOSO ===');
+    console.log('[LOGIN] Usuario autenticado:', data.user?.email);
     return true;
   };
 
   const signUp = async (email: string, password: string, name: string, role: string): Promise<boolean> => {
     if (!supabase) {
-      setAuthError("No se puede registrar usuario. La conexión con el backend no está disponible.");
-      console.error('Error de signup: Supabase client no está inicializado.');
+      console.error('[SIGNUP] Error: Supabase client no está inicializado.');
       return false;
     }
 
-    console.log('Intentando crear usuario:', email, 'con rol:', role);
+    console.log('[SIGNUP] Creando usuario:', { email, name, role, password });
     setAuthError(null);
     
     const { data, error } = await supabase.auth.signUp({
@@ -155,27 +193,30 @@ export const AuthProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
     });
     
     if (error) {
-      console.error('Error de signup en Supabase:', error.message);
+      console.error('[SIGNUP] Error:', error.message);
       if (error.message.includes('User already registered')) {
-        console.log('Usuario ya existe, esto es normal en demo');
-        return true; // Consideramos esto como éxito para usuarios demo
+        console.log('[SIGNUP] Usuario ya existe, esto es normal en demo');
+        return true;
       }
       return false;
     }
     
-    console.log('Signup exitoso para:', email);
+    console.log('[SIGNUP] Usuario creado exitosamente:', email);
     return true;
   };
 
   const logout = async () => {
     if (!supabase) {
-      setAuthError("No se puede cerrar sesión. La conexión con el backend no está disponible.");
-      console.error('Error de logout: Supabase client no está inicializado.');
+      console.error('[LOGOUT] Error: Supabase client no está inicializado.');
       return;
     }
+    
+    console.log('[LOGOUT] Cerrando sesión...');
     const { error } = await supabase.auth.signOut();
     if (error) {
-      console.error('Error de logout en Supabase:', error.message);
+      console.error('[LOGOUT] Error:', error.message);
+    } else {
+      console.log('[LOGOUT] Sesión cerrada exitosamente');
     }
   };
 

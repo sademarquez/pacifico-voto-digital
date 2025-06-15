@@ -13,7 +13,7 @@ import { useDemoUsers } from "@/hooks/useDemoUsers";
 
 const Login = () => {
   const [email, setEmail] = useState("");
-  const [password, setPassword] = useState("");
+  const [password, setPassword] = useState("12345678"); // Contraseña fija por defecto
   const [showPassword, setShowPassword] = useState(false);
   const [isLoading, setIsLoading] = useState(false);
   const [isCreatingUsers, setIsCreatingUsers] = useState(false);
@@ -21,34 +21,36 @@ const Login = () => {
   const { login, authError } = useAuth();
   const navigate = useNavigate();
   const { toast } = useToast();
-  const { createAllDemoUsers, demoUsers } = useDemoUsers();
+  const { createAllDemoUsers, demoUsers, FIXED_PASSWORD } = useDemoUsers();
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     setIsLoading(true);
 
-    console.log('Attempting login with:', { email, password: password ? '***' : 'empty' });
+    console.log('[LOGIN-UI] Formulario enviado');
+    console.log('[LOGIN-UI] Usuario:', email);
+    console.log('[LOGIN-UI] Contraseña:', password);
 
     try {
       const success = await login(email, password);
       
-      console.log('Login result:', success);
+      console.log('[LOGIN-UI] Resultado del login:', success);
       
       if (success) {
         toast({
           title: "¡Bienvenido!",
-          description: "Has iniciado sesión correctamente.",
+          description: `Has iniciado sesión correctamente como ${email}.`,
         });
         navigate("/dashboard");
       } else {
         toast({
           title: "Error de Acceso",
-          description: "Email o contraseña incorrectos. Verifica las credenciales.",
+          description: "Credenciales incorrectas. Usa la contraseña: 12345678",
           variant: "destructive"
         });
       }
     } catch (error) {
-      console.error('Login error:', error);
+      console.error('[LOGIN-UI] Error durante login:', error);
       toast({
         title: "Error",
         description: "Ha ocurrido un error al iniciar sesión. Revisa la consola para más detalles.",
@@ -65,10 +67,10 @@ const Login = () => {
       await createAllDemoUsers();
       toast({
         title: "Usuarios creados",
-        description: "Los usuarios de demostración han sido creados exitosamente.",
+        description: `Los usuarios de demostración han sido creados con contraseña: ${FIXED_PASSWORD}`,
       });
     } catch (error) {
-      console.error('Error creating demo users:', error);
+      console.error('[LOGIN-UI] Error creating demo users:', error);
       toast({
         title: "Error",
         description: "Hubo un error al crear los usuarios de demostración.",
@@ -79,39 +81,39 @@ const Login = () => {
     }
   };
 
-  // Usuarios de demostración con sus credenciales corregidas
+  // Usuarios de demostración simplificados
   const demoUsersDisplay = [
     {
       role: "Desarrollador",
-      email: "dev@micampana.com", // Email corregido
+      name: "Desarrollador",
       icon: Shield,
       color: "text-purple-600",
       description: "Control total del sistema"
     },
     {
       role: "Master",
-      email: "master1@demo.com", 
+      name: "Master",
       icon: Crown,
       color: "text-red-600",
       description: "Gestión de candidatos"
     },
     {
       role: "Candidato",
-      email: "candidato@demo.com",
+      name: "Candidato",
       icon: Target,
-      color: "text-blue-600", 
+      color: "text-blue-600",
       description: "Gestión territorial"
     },
     {
       role: "Líder",
-      email: "lider@demo.com",
+      name: "Lider",
       icon: Users2,
       color: "text-orange-600",
       description: "Coordinación local"
     },
     {
       role: "Votante",
-      email: "votante@demo.com",
+      name: "Votante",
       icon: User,
       color: "text-green-600",
       description: "Usuario base"
@@ -139,7 +141,7 @@ const Login = () => {
                   {authError} 
                   <br />
                   <small className="text-xs mt-2 block">
-                    Verifica la consola del navegador para más detalles técnicos.
+                    Usa la contraseña fija: <strong>12345678</strong>
                   </small>
                 </AlertDescription>
               </Alert>
@@ -147,17 +149,18 @@ const Login = () => {
             
             <form onSubmit={handleSubmit} className="space-y-4">
               <div className="space-y-2">
-                <Label htmlFor="email" className="text-blue-700">Email</Label>
+                <Label htmlFor="email" className="text-blue-700">Nombre de Usuario</Label>
                 <Input
                   id="email"
-                  type="email"
+                  type="text"
                   value={email}
                   onChange={(e) => setEmail(e.target.value)}
-                  placeholder="usuario@demo.com"
+                  placeholder="Desarrollador"
                   className="border-blue-200 focus:border-blue-500"
                   required
                   disabled={!!authError}
                 />
+                <p className="text-xs text-gray-500">Puedes usar el nombre (ej: "Desarrollador") o email</p>
               </div>
               
               <div className="space-y-2">
@@ -168,7 +171,7 @@ const Login = () => {
                     type={showPassword ? "text" : "password"}
                     value={password}
                     onChange={(e) => setPassword(e.target.value)}
-                    placeholder="micampana2025"
+                    placeholder="12345678"
                     className="border-blue-200 focus:border-blue-500"
                     required
                     disabled={!!authError}
@@ -184,6 +187,7 @@ const Login = () => {
                     {showPassword ? <EyeOff className="w-4 h-4" /> : <Eye className="w-4 h-4" />}
                   </Button>
                 </div>
+                <p className="text-xs text-green-600 font-medium">Contraseña fija para todos: <span className="bg-green-100 px-1 rounded">12345678</span></p>
               </div>
 
               <Button 
@@ -195,12 +199,11 @@ const Login = () => {
               </Button>
             </form>
             
-            {/* Información de debug */}
             <div className="mt-4 p-3 bg-gray-50 rounded-lg text-xs text-gray-600">
               <p><strong>Debug Info:</strong></p>
               <p>• URL Base: https://zecltlsdkbndhqimpjjo.supabase.co</p>
-              <p>• Usuarios demo disponibles (contraseña: micampana2025)</p>
-              <p>• Si hay errores, revisa la consola del navegador</p>
+              <p>• Contraseña fija: <strong>12345678</strong></p>
+              <p>• Login por nombre de usuario habilitado</p>
             </div>
           </CardContent>
         </Card>
@@ -222,7 +225,7 @@ const Login = () => {
           <CardContent>
             <div className="space-y-3">
               <p className="text-sm text-green-700 font-medium mb-4">
-                Contraseña para todos: <span className="bg-green-100 px-2 py-1 rounded">micampana2025</span>
+                Contraseña FIJA para todos: <span className="bg-green-100 px-2 py-1 rounded font-bold">12345678</span>
               </p>
               
               {demoUsersDisplay.map((user, index) => {
@@ -232,15 +235,15 @@ const Login = () => {
                     <Icon className={`w-6 h-6 ${user.color}`} />
                     <div className="flex-1">
                       <div className="font-medium text-gray-800">{user.role}</div>
-                      <div className="text-sm text-gray-600">{user.email}</div>
+                      <div className="text-sm text-gray-600">Nombre: {user.name}</div>
                       <div className="text-xs text-gray-500">{user.description}</div>
                     </div>
                     <Button
                       variant="outline"
                       size="sm"
                       onClick={() => {
-                        setEmail(user.email);
-                        setPassword("micampana2025");
+                        setEmail(user.name);
+                        setPassword("12345678");
                       }}
                       className="text-green-600 border-green-300 hover:bg-green-100"
                     >
@@ -264,8 +267,8 @@ const Login = () => {
             
             <div className="mt-4 p-3 bg-yellow-50 rounded-lg border border-yellow-200">
               <p className="text-xs text-yellow-800">
-                <strong>⚠️ Nota:</strong> Haz clic en "Crear usuarios demo" para crear automáticamente todos los usuarios de demostración.
-                Luego podrás usar cualquiera de las credenciales mostradas arriba.
+                <strong>✅ SIMPLIFICADO:</strong> Contraseña única <strong>12345678</strong> para evitar problemas.
+                Login por nombre de usuario (ej: "Desarrollador") o email tradicional.
               </p>
             </div>
           </CardContent>
