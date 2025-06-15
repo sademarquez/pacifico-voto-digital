@@ -1,9 +1,9 @@
-
 import { useEffect, useRef, useState } from "react";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
+import { useAuth } from "../contexts/AuthContext";
 import { 
   MapPin, 
   Users, 
@@ -35,6 +35,7 @@ const MapaEstructura = () => {
   const [marcadores, setMarcadores] = useState<any[]>([]);
   const [filtroTipo, setFiltroTipo] = useState<string>("todos");
   const [personaSeleccionada, setPersonaSeleccionada] = useState<PersonaEnMapa | null>(null);
+  const { user } = useAuth();
 
   const personas: PersonaEnMapa[] = [
     {
@@ -156,9 +157,25 @@ const MapaEstructura = () => {
       script.onload = () => {
         const L = (window as any).L;
         
+        let initialView = { center: [2.4448, -76.6147], zoom: 10 }; // Vista por defecto (Cauca)
+
+        // Lógica para personalizar la vista según el rol
+        switch (user?.role) {
+          case 'master': // El candidato puede ver todo el departamento
+          case 'candidato':
+            initialView = { center: [2.9, -76.9], zoom: 8 }; // Vista Departamento del Cauca
+            break;
+          case 'votante': // El líder ve una zona más cercana, como un municipio
+             // Suponiendo que el votante es un 'lider' o 'sublider' para el mapa
+            initialView = { center: [2.4448, -76.6147], zoom: 12 }; // Vista Municipio (Popayán)
+            break;
+          default:
+            initialView = { center: [2.9, -76.9], zoom: 8 }; // Vista pública
+        }
+        
         const nuevoMapa = L.map(mapRef.current, {
-          center: [2.4448, -76.6147],
-          zoom: 11,
+          center: initialView.center,
+          zoom: initialView.zoom,
           minZoom: 8,
           maxZoom: 18
         });
@@ -176,7 +193,7 @@ const MapaEstructura = () => {
       link.href = 'https://unpkg.com/leaflet@1.9.4/dist/leaflet.css';
       document.head.appendChild(link);
     }
-  }, []);
+  }, [user]);
 
   useEffect(() => {
     if (map && personas.length > 0) {
