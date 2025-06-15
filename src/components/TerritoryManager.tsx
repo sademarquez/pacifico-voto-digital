@@ -1,7 +1,7 @@
 
 import { useState } from "react";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
-import { supabase } from "@/integrations/supabase/client";
+import { supabase } from "@/lib/supabaseClient";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -14,6 +14,32 @@ import { useDataSegregation } from "../hooks/useDataSegregation";
 import { useToast } from "@/hooks/use-toast";
 
 type TerritoryType = 'departamento' | 'municipio' | 'corregimiento' | 'vereda' | 'barrio' | 'sector';
+
+interface Territory {
+  id: string;
+  name: string;
+  type: TerritoryType;
+  parent_id?: string;
+  population_estimate?: number;
+  voter_estimate?: number;
+  created_by?: string;
+  responsible_user_id?: string;
+  parent?: { name: string };
+  responsible?: { name: string };
+  children?: { count: number }[];
+}
+
+interface ParentTerritory {
+  id: string;
+  name: string;
+  type: string;
+}
+
+interface User {
+  id: string;
+  name: string;
+  role: string;
+}
 
 const TerritoryManager = () => {
   const { user } = useAuth();
@@ -30,9 +56,9 @@ const TerritoryManager = () => {
   });
 
   // Query para obtener territorios filtrados
-  const { data: territories = [], isLoading } = useQuery({
+  const { data: territories = [], isLoading } = useQuery<Territory[]>({
     queryKey: ['territories', user?.id],
-    queryFn: async () => {
+    queryFn: async (): Promise<Territory[]> => {
       if (!supabase || !user) return [];
       
       const filter = getTerritoryFilter();
@@ -70,9 +96,9 @@ const TerritoryManager = () => {
   });
 
   // Query para obtener territorios padre disponibles
-  const { data: parentTerritories = [] } = useQuery({
+  const { data: parentTerritories = [] } = useQuery<ParentTerritory[]>({
     queryKey: ['parent-territories', user?.id],
-    queryFn: async () => {
+    queryFn: async (): Promise<ParentTerritory[]> => {
       if (!supabase || !user) return [];
       
       const { data, error } = await supabase
@@ -90,9 +116,9 @@ const TerritoryManager = () => {
   });
 
   // Query para obtener usuarios para responsables
-  const { data: users = [] } = useQuery({
+  const { data: users = [] } = useQuery<User[]>({
     queryKey: ['users-for-territories'],
-    queryFn: async () => {
+    queryFn: async (): Promise<User[]> => {
       if (!supabase) return [];
       
       const { data, error } = await supabase
@@ -296,7 +322,7 @@ const TerritoryManager = () => {
             </div>
           ) : (
             <div className="space-y-4">
-              {territories.map((territory: any) => (
+              {territories.map((territory) => (
                 <div key={territory.id} className="border rounded-lg p-4">
                   <div className="flex items-start justify-between mb-2">
                     <div>

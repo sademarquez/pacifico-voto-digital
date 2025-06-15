@@ -1,15 +1,15 @@
 
 import { createClient } from '@supabase/supabase-js'
 
-const supabaseUrl = import.meta.env.VITE_SUPABASE_URL
-const supabaseAnonKey = import.meta.env.VITE_SUPABASE_ANON_KEY
+const supabaseUrl = 'https://zecltlsdkbndhqimpjjo.supabase.co'
+const supabaseAnonKey = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InplY2x0bHNka2JuZGhxaW1wampvIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NDk5NzI2MTIsImV4cCI6MjA2NTU0ODYxMn0.bOBZZ8RoPf9AU6FWg5WBIki11oA2xFkZcRS3QBzNZd0'
 
-const supabase = (supabaseUrl && supabaseAnonKey) 
-  ? createClient(supabaseUrl, supabaseAnonKey) 
-  : null;
-
-if (!supabase) {
-  console.error("Supabase URL o Anon Key no encontradas. Asegúrate de haber conectado Supabase en la configuración de tu proyecto Lovable. Si el problema persiste, intenta refrescar la página o reconectar Supabase.")
-}
+const supabase = createClient(supabaseUrl, supabaseAnonKey, {
+  auth: {
+    storage: typeof window !== 'undefined' ? window.localStorage : undefined,
+    persistSession: true,
+    autoRefreshToken: true,
+  }
+});
 
 export { supabase }

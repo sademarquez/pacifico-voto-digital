@@ -1,7 +1,6 @@
-
 import { useState } from "react";
 import { useQuery } from "@tanstack/react-query";
-import { supabase } from "@/integrations/supabase/client";
+import { supabase } from "@/lib/supabaseClient";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
@@ -10,12 +9,15 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@
 import { useAuth } from "../contexts/AuthContext";
 import { useDataSegregation } from "../hooks/useDataSegregation";
 
+type AlertPriority = 'urgent' | 'high' | 'medium' | 'low';
+type AlertType = 'security' | 'logistics' | 'political' | 'emergency' | 'information';
+
 interface MapaAlerta {
   id: string;
   title: string;
   description: string;
-  type: string;
-  priority: string;
+  type: AlertType;
+  priority: AlertPriority;
   status: string;
   territory_id: string;
   territories?: {
@@ -36,9 +38,9 @@ const MapaAlertas = () => {
   const [filterType, setFilterType] = useState<string>('all');
 
   // Query para obtener alertas con filtros aplicados
-  const { data: alerts = [], isLoading, refetch } = useQuery({
+  const { data: alerts = [], isLoading, refetch } = useQuery<MapaAlerta[]>({
     queryKey: ['mapa-alerts', user?.id, filterPriority, filterType],
-    queryFn: async () => {
+    queryFn: async (): Promise<MapaAlerta[]> => {
       if (!supabase || !user) return [];
       
       const baseFilter = getAlertFilter();
@@ -67,10 +69,10 @@ const MapaAlertas = () => {
 
       // Aplicar filtros adicionales
       if (filterPriority !== 'all') {
-        query = query.eq('priority', filterPriority);
+        query = query.eq('priority', filterPriority as AlertPriority);
       }
       if (filterType !== 'all') {
-        query = query.eq('type', filterType);
+        query = query.eq('type', filterType as AlertType);
       }
 
       const { data, error } = await query;
@@ -83,7 +85,7 @@ const MapaAlertas = () => {
     enabled: !!supabase && !!user
   });
 
-  const getPriorityColor = (priority: string) => {
+  const getPriorityColor = (priority: AlertPriority) => {
     switch (priority) {
       case 'urgent': return 'bg-red-500';
       case 'high': return 'bg-orange-500';
@@ -93,7 +95,7 @@ const MapaAlertas = () => {
     }
   };
 
-  const getPriorityBadgeColor = (priority: string) => {
+  const getPriorityBadgeColor = (priority: AlertPriority) => {
     switch (priority) {
       case 'urgent': return 'bg-red-100 text-red-800 border-red-300';
       case 'high': return 'bg-orange-100 text-orange-800 border-orange-300';
@@ -103,7 +105,7 @@ const MapaAlertas = () => {
     }
   };
 
-  const getTypeColor = (type: string) => {
+  const getTypeColor = (type: AlertType) => {
     switch (type) {
       case 'security': return 'bg-red-50 text-red-700';
       case 'emergency': return 'bg-red-50 text-red-700';
@@ -193,7 +195,7 @@ const MapaAlertas = () => {
                     No hay alertas activas
                   </div>
                 ) : (
-                  alerts.map((alerta: MapaAlerta) => (
+                  alerts.map((alerta) => (
                     <div
                       key={alerta.id}
                       className={`p-3 border rounded-lg cursor-pointer transition-colors hover:bg-gray-50 ${
@@ -230,7 +232,7 @@ const MapaAlertas = () => {
                 {/* Simulación de mapa con alertas */}
                 <div className="absolute inset-0 p-6">
                   <div className="grid grid-cols-3 gap-4 h-full">
-                    {alerts.slice(0, 9).map((alerta: MapaAlerta, index) => (
+                    {alerts.slice(0, 9).map((alerta, index) => (
                       <div
                         key={alerta.id}
                         className={`rounded-lg border-2 p-4 cursor-pointer transition-all hover:scale-105 ${
