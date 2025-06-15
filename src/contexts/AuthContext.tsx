@@ -29,8 +29,12 @@ export const AuthProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
   useEffect(() => {
     console.log('🔧 AuthProvider inicializando...');
     
+    let mounted = true;
+
     // Configurar listener de cambios de auth
     const { data: { subscription } } = supabase.auth.onAuthStateChange(async (event, newSession) => {
+      if (!mounted) return;
+      
       console.log('🔄 Auth state changed:', event, newSession?.user?.email || 'No user');
       
       setSession(newSession);
@@ -41,14 +45,20 @@ export const AuthProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
           await loadUserProfile(newSession.user);
         } catch (error) {
           console.error('❌ Error cargando perfil:', error);
-          setUser(null);
+          if (mounted) {
+            setUser(null);
+          }
         }
       } else {
         console.log('🚪 Usuario desconectado');
-        setUser(null);
+        if (mounted) {
+          setUser(null);
+        }
       }
       
-      setIsLoading(false);
+      if (mounted) {
+        setIsLoading(false);
+      }
     });
 
     // Obtener sesión inicial
@@ -57,25 +67,34 @@ export const AuthProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
         console.log('🔍 Verificando sesión inicial...');
         const { data: { session: initialSession }, error } = await supabase.auth.getSession();
         
+        if (!mounted) return;
+        
         if (error) {
           console.error('❌ Error obteniendo sesión inicial:', error);
-          setIsLoading(false);
         } else if (initialSession?.user) {
           console.log('✅ Sesión inicial encontrada:', initialSession.user.email);
           // El listener manejará la carga del perfil
         } else {
           console.log('ℹ️ No hay sesión inicial activa');
-          setIsLoading(false);
         }
       } catch (error) {
         console.error('💥 Error crítico inicializando sesión:', error);
-        setIsLoading(false);
+      } finally {
+        if (mounted) {
+          // Asegurar que el loading se desactive después de la inicialización
+          setTimeout(() => {
+            if (mounted) {
+              setIsLoading(false);
+            }
+          }, 1000);
+        }
       }
     };
 
     initializeSession();
 
     return () => {
+      mounted = false;
       console.log('🧹 Limpiando AuthProvider');
       subscription.unsubscribe();
     };
