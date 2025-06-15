@@ -25,7 +25,7 @@ interface Territory {
   responsible_user_id?: string;
   parent?: { name: string };
   responsible?: { name: string };
-  children?: { count: number }[];
+  children?: { id: string }[];
 }
 
 interface ParentTerritory {
@@ -55,7 +55,7 @@ const TerritoryManager = () => {
   });
 
   // Query para obtener territorios filtrados
-  const { data: territories = [], isLoading } = useQuery<Territory[]>({
+  const { data: territories = [], isLoading } = useQuery({
     queryKey: ['territories', user?.id],
     queryFn: async (): Promise<Territory[]> => {
       if (!supabase || !user) return [];
@@ -67,7 +67,7 @@ const TerritoryManager = () => {
           *,
           parent:territories!parent_id(name),
           responsible:profiles!responsible_user_id(name),
-          children:territories!parent_id(count)
+          children:territories!parent_id(id)
         `)
         .order('created_at', { ascending: false });
 
