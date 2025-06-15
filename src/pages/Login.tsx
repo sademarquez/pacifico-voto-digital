@@ -8,7 +8,7 @@ import { Label } from '@/components/ui/label';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Alert, AlertDescription } from '@/components/ui/alert';
 import { DebugAuthPanel } from '@/components/DebugAuthPanel';
-import { Vote, Eye, EyeOff, LogIn, AlertTriangle } from 'lucide-react';
+import { Vote, Eye, EyeOff, LogIn, AlertTriangle, CheckCircle } from 'lucide-react';
 import { supabase } from '@/integrations/supabase/client';
 
 const Login = () => {
@@ -18,8 +18,14 @@ const Login = () => {
   const [error, setError] = useState('');
   const [isLoading, setIsLoading] = useState(false);
   const [debugInfo, setDebugInfo] = useState<any>(null);
-  const { login } = useAuth();
+  const { login, isAuthenticated } = useAuth();
   const navigate = useNavigate();
+
+  // Redirigir si ya está autenticado
+  if (isAuthenticated) {
+    navigate('/dashboard');
+    return null;
+  }
 
   const testConnection = async () => {
     try {
@@ -32,7 +38,8 @@ const Login = () => {
         connection: error ? 'ERROR' : 'OK',
         error: error?.message || null,
         timestamp: new Date().toISOString(),
-        duration: `${duration}ms`
+        duration: `${duration}ms`,
+        type: 'connection'
       });
       
       if (error) {
@@ -40,7 +47,7 @@ const Login = () => {
         setError(`Error de conexión: ${error.message}`);
       } else {
         console.log('✅ Connection test passed');
-        setError('');
+        setError('Conexión exitosa a la base de datos');
       }
     } catch (error) {
       console.error('💥 Critical connection error:', error);
@@ -48,9 +55,12 @@ const Login = () => {
     }
   };
 
-  const testDirectLogin = async () => {
+  const testDirectAuth = async () => {
     console.log('🧪 Testing direct Supabase auth...');
+    setIsLoading(true);
+    
     try {
+      // Test con credenciales conocidas
       const { data, error } = await supabase.auth.signInWithPassword({
         email: 'lider@micampana.com',
         password: 'LiderSecure2025!',
@@ -69,14 +79,37 @@ const Login = () => {
 
       if (error) {
         setError(`Test directo falló: ${error.message}`);
+        setDebugInfo({
+          connection: 'AUTH_ERROR',
+          error: error.message,
+          timestamp: new Date().toISOString(),
+          type: 'auth_test'
+        });
       } else if (data.user) {
-        setError('Test directo exitoso - La conexión funciona');
+        setError('✅ Test directo exitoso - Autenticación funciona correctamente');
+        setDebugInfo({
+          connection: 'AUTH_OK',
+          error: null,
+          timestamp: new Date().toISOString(),
+          type: 'auth_test',
+          userEmail: data.user.email
+        });
+        
         console.log('✅ Direct test successful, signing out...');
+        // Cerrar sesión inmediatamente después del test
         await supabase.auth.signOut();
       }
     } catch (error) {
       console.error('💥 Direct test error:', error);
       setError(`Error en test directo: ${error}`);
+      setDebugInfo({
+        connection: 'CRITICAL_ERROR',
+        error: String(error),
+        timestamp: new Date().toISOString(),
+        type: 'auth_test'
+      });
+    } finally {
+      setIsLoading(false);
     }
   };
 
@@ -85,21 +118,25 @@ const Login = () => {
     setError('');
     setIsLoading(true);
 
-    console.log('🚀 Iniciando proceso de login...');
+    console.log('🚀 Iniciando proceso de login para:', email);
 
     try {
       const result = await login(email, password);
+      
       if (result.success) {
-        console.log('✅ Login exitoso, redirigiendo...');
-        // Small delay to ensure state is updated
+        console.log('✅ Login exitoso, esperando redirección...');
+        setError('✅ Login exitoso, redirigiendo...');
+        
+        // Esperar un momento para que el estado se actualice
         setTimeout(() => {
           navigate('/dashboard');
-        }, 100);
+        }, 500);
       } else {
-        setError(result.error || 'Error desconocido');
+        console.error('❌ Login falló:', result.error);
+        setError(result.error || 'Error desconocido en el login');
       }
     } catch (error) {
-      console.error('💥 Error en handleSubmit:', error);
+      console.error('💥 Error crítico en handleSubmit:', error);
       setError('Error de conexión. Intenta nuevamente.');
     } finally {
       setIsLoading(false);
@@ -110,13 +147,14 @@ const Login = () => {
     setEmail(testEmail);
     setPassword(testPassword);
     setError('');
+    setDebugInfo(null);
   };
 
   const testCredentials = [
     { email: 'admin@micampana.com', password: 'AdminSecure2025!', role: 'Desarrollador' },
     { email: 'master@micampana.com', password: 'MasterSecure2025!', role: 'Master' },
     { email: 'candidato@micampana.com', password: 'CandidatoSecure2025!', role: 'Candidato' },
-    { email: 'lider@micampana.com', password: 'LiderSecure2025!', role: 'Líder Territorial' }
+    { email: 'lider@micampana.com', password: 'LiderSecure2025!', role: 'Líder' }
   ];
 
   return (
@@ -128,11 +166,11 @@ const Login = () => {
               <Vote className="w-8 h-8 text-white" />
             </div>
             <CardTitle className="text-2xl font-bold text-gray-900">Mi Campaña</CardTitle>
-            <p className="text-gray-600">Sistema Electoral - Mejorado v3</p>
+            <p className="text-gray-600">Sistema Electoral - Mejorado v4</p>
           </CardHeader>
           
           <CardContent>
-            {/* Test de conexión y debug */}
+            {/* Botones de diagnóstico */}
             <div className="mb-4 space-y-2">
               <div className="grid grid-cols-2 gap-2">
                 <Button 
@@ -140,6 +178,7 @@ const Login = () => {
                   variant="outline" 
                   size="sm"
                   onClick={testConnection}
+                  disabled={isLoading}
                 >
                   🧪 Test DB
                 </Button>
@@ -147,20 +186,27 @@ const Login = () => {
                   type="button" 
                   variant="outline" 
                   size="sm"
-                  onClick={testDirectLogin}
+                  onClick={testDirectAuth}
+                  disabled={isLoading}
                 >
                   🔐 Test Auth
                 </Button>
               </div>
               
               {debugInfo && (
-                <Alert variant={debugInfo.connection === 'OK' ? 'default' : 'destructive'}>
-                  <AlertTriangle className="h-4 w-4" />
+                <Alert variant={debugInfo.connection.includes('OK') ? 'default' : 'destructive'}>
+                  <div className="flex items-center gap-2">
+                    {debugInfo.connection.includes('OK') ? 
+                      <CheckCircle className="h-4 w-4" /> : 
+                      <AlertTriangle className="h-4 w-4" />
+                    }
+                  </div>
                   <AlertDescription className="text-xs">
                     <strong>Estado:</strong> {debugInfo.connection}<br/>
-                    <strong>Tiempo:</strong> {debugInfo.duration}<br/>
-                    {debugInfo.error && <span><strong>Error:</strong> {debugInfo.error}<br/></span>}
-                    <strong>Hora:</strong> {new Date(debugInfo.timestamp).toLocaleTimeString()}
+                    {debugInfo.duration && <><strong>Duración:</strong> {debugInfo.duration}<br/></>}
+                    {debugInfo.userEmail && <><strong>Usuario:</strong> {debugInfo.userEmail}<br/></>}
+                    {debugInfo.error && <><strong>Error:</strong> {debugInfo.error}<br/></>}
+                    <strong>Timestamp:</strong> {new Date(debugInfo.timestamp).toLocaleTimeString()}
                   </AlertDescription>
                 </Alert>
               )}
@@ -207,11 +253,12 @@ const Login = () => {
               </div>
 
               {error && (
-                <Alert variant={error.includes('exitoso') ? 'default' : 'destructive'}>
+                <Alert variant={error.includes('exitoso') || error.includes('✅') ? 'default' : 'destructive'}>
                   <AlertDescription className="text-sm">{error}</AlertDescription>
                 </Alert>
               )}
 
+              {/* Credenciales de prueba */}
               <div className="grid grid-cols-2 gap-2 text-xs">
                 {testCredentials.map((cred, index) => (
                   <Button
@@ -223,7 +270,7 @@ const Login = () => {
                     disabled={isLoading}
                     className="text-xs p-2"
                   >
-                    {cred.role.split(' ')[0]}
+                    {cred.role}
                   </Button>
                 ))}
               </div>
@@ -232,7 +279,7 @@ const Login = () => {
                 {isLoading ? (
                   <div className="flex items-center gap-2">
                     <div className="w-4 h-4 border-2 border-white/30 border-t-white rounded-full animate-spin" />
-                    Iniciando sesión...
+                    Procesando...
                   </div>
                 ) : (
                   <div className="flex items-center gap-2">

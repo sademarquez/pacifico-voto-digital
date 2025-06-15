@@ -27,60 +27,72 @@ export const AuthProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
   const [isLoading, setIsLoading] = useState(true);
 
   useEffect(() => {
-    console.log('🔧 AuthProvider inicializando v3...');
+    console.log('🔧 AuthProvider inicializando v4...');
     
-    // Listen for auth changes FIRST
-    const { data: { subscription } } = supabase.auth.onAuthStateChange(async (event, session) => {
-      console.log('🔄 Auth state changed:', event, session?.user?.email || 'No user');
+    let profileLoadingPromise: Promise<void> | null = null;
+
+    // Configurar listener de cambios de auth PRIMERO
+    const { data: { subscription } } = supabase.auth.onAuthStateChange(async (event, newSession) => {
+      console.log('🔄 Auth state changed:', event, newSession?.user?.email || 'No user');
       
-      setSession(session);
+      // Actualizar sesión inmediatamente
+      setSession(newSession);
       
-      if (session?.user) {
-        // Use setTimeout to defer profile loading and avoid blocking auth flow
-        setTimeout(async () => {
-          try {
-            await loadUserProfile(session.user);
-          } catch (error) {
-            console.error('❌ Error cargando perfil:', error);
-            // Don't clear session on profile load error
-          }
-        }, 100);
+      if (newSession?.user && event !== 'SIGNED_OUT') {
+        console.log('👤 Usuario autenticado, cargando perfil...');
+        
+        // Cancelar carga de perfil anterior si existe
+        if (profileLoadingPromise) {
+          console.log('⏸️ Cancelando carga de perfil anterior');
+        }
+        
+        // Crear nueva promesa de carga de perfil
+        profileLoadingPromise = loadUserProfile(newSession.user);
+        
+        try {
+          await profileLoadingPromise;
+        } catch (error) {
+          console.error('❌ Error cargando perfil después de auth change:', error);
+          // No limpiar la sesión en caso de error de perfil
+        }
       } else {
-        console.log('🚪 Usuario desconectado');
+        console.log('🚪 Usuario desconectado o evento SIGNED_OUT');
         setUser(null);
+        profileLoadingPromise = null;
       }
     });
 
-    // Get initial session AFTER setting up listener
-    const getInitialSession = async () => {
+    // Obtener sesión inicial DESPUÉS de configurar el listener
+    const initializeSession = async () => {
       try {
-        console.log('🔍 Obteniendo sesión inicial...');
-        const { data: { session }, error } = await supabase.auth.getSession();
+        console.log('🔍 Verificando sesión inicial...');
+        const { data: { session: initialSession }, error } = await supabase.auth.getSession();
         
         if (error) {
           console.error('❌ Error obteniendo sesión inicial:', error);
-        } else if (session?.user) {
-          console.log('✅ Sesión inicial encontrada:', session.user.email);
-          setSession(session);
-          // Load profile in background
-          setTimeout(async () => {
-            try {
-              await loadUserProfile(session.user);
-            } catch (error) {
-              console.error('❌ Error cargando perfil inicial:', error);
-            }
-          }, 100);
+        } else if (initialSession?.user) {
+          console.log('✅ Sesión inicial encontrada:', initialSession.user.email);
+          
+          // Solo establecer sesión, el listener se encargará del perfil
+          setSession(initialSession);
+          
+          // Cargar perfil para sesión inicial
+          try {
+            await loadUserProfile(initialSession.user);
+          } catch (error) {
+            console.error('❌ Error cargando perfil inicial:', error);
+          }
         } else {
-          console.log('ℹ️ No hay sesión inicial');
+          console.log('ℹ️ No hay sesión inicial activa');
         }
       } catch (error) {
-        console.error('💥 Error crítico obteniendo sesión:', error);
+        console.error('💥 Error crítico inicializando sesión:', error);
       } finally {
         setIsLoading(false);
       }
     };
 
-    getInitialSession();
+    initializeSession();
 
     return () => {
       console.log('🧹 Limpiando AuthProvider');
@@ -88,9 +100,9 @@ export const AuthProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
     };
   }, []);
 
-  const loadUserProfile = async (supabaseUser: SupabaseUser) => {
+  const loadUserProfile = async (supabaseUser: SupabaseUser): Promise<void> => {
     try {
-      console.log('👤 Cargando perfil para usuario:', supabaseUser.id);
+      console.log('👤 Cargando perfil para:', supabaseUser.id);
       
       const { data: profile, error } = await supabase
         .from('profiles')
@@ -111,25 +123,18 @@ export const AuthProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
           email: supabaseUser.email || '',
         };
 
+        console.log('✅ Perfil cargado:', userData.name, userData.role);
         setUser(userData);
-        console.log('✅ Perfil cargado exitosamente:', {
-          id: userData.id,
-          name: userData.name,
-          role: userData.role,
-          email: userData.email
-        });
       } else {
-        console.warn('⚠️ Perfil no encontrado, creando uno nuevo...');
+        console.warn('⚠️ Perfil no encontrado, creando...');
         
         const { data: newProfile, error: createError } = await supabase
           .from('profiles')
-          .insert([
-            {
-              id: supabaseUser.id,
-              name: supabaseUser.email || 'Usuario',
-              role: 'votante'
-            }
-          ])
+          .insert([{
+            id: supabaseUser.id,
+            name: supabaseUser.email || 'Usuario',
+            role: 'votante'
+          }])
           .select()
           .single();
 
@@ -145,12 +150,12 @@ export const AuthProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
           email: supabaseUser.email || '',
         };
 
+        console.log('✅ Perfil creado:', userData.name, userData.role);
         setUser(userData);
-        console.log('✅ Perfil creado y cargado:', userData);
       }
     } catch (error) {
-      console.error('💥 Error en loadUserProfile:', error);
-      // Don't throw error to avoid breaking auth flow
+      console.error('💥 Error crítico en loadUserProfile:', error);
+      throw error; // Re-lanzar para manejo en el llamador
     }
   };
 
@@ -158,9 +163,6 @@ export const AuthProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
     console.log('🔐 Iniciando login para:', email);
     
     try {
-      // Clear any existing state
-      setUser(null);
-      
       const { data, error } = await supabase.auth.signInWithPassword({
         email: email.trim(),
         password: password,
@@ -183,11 +185,11 @@ export const AuthProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
 
       if (data.user && data.session) {
         console.log('✅ Login exitoso para:', data.user.email);
-        // Session will be handled by onAuthStateChange
+        // La sesión se manejará automáticamente por onAuthStateChange
         return { success: true };
       }
 
-      return { success: false, error: 'Login sin usuario devuelto' };
+      return { success: false, error: 'Login sin datos de usuario' };
     } catch (error) {
       console.error('💥 Error crítico en login:', error);
       return { success: false, error: `Error crítico: ${error}` };
@@ -197,12 +199,20 @@ export const AuthProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
   const logout = async () => {
     console.log('🚪 Cerrando sesión...');
     try {
-      await supabase.auth.signOut();
+      // Limpiar estado local primero
       setUser(null);
       setSession(null);
-      console.log('✅ Sesión cerrada exitosamente');
+      
+      // Luego cerrar sesión en Supabase
+      const { error } = await supabase.auth.signOut();
+      
+      if (error) {
+        console.error('❌ Error cerrando sesión:', error);
+      } else {
+        console.log('✅ Sesión cerrada exitosamente');
+      }
     } catch (error) {
-      console.error('❌ Error cerrando sesión:', error);
+      console.error('💥 Error crítico cerrando sesión:', error);
     }
   };
 
@@ -214,6 +224,15 @@ export const AuthProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
     isAuthenticated: !!user && !!session,
     isLoading,
   };
+
+  console.log('📊 Estado actual AuthContext:', {
+    hasUser: !!user,
+    hasSession: !!session,
+    isAuthenticated: !!user && !!session,
+    isLoading,
+    userName: user?.name,
+    userRole: user?.role
+  });
 
   return (
     <AuthContext.Provider value={value}>
