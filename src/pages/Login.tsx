@@ -4,7 +4,7 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
-import { Shield, Eye, EyeOff, Crown, Target, Users2, User, Plus, AlertCircle } from "lucide-react";
+import { Shield, Eye, EyeOff, Crown, Target, Users2, User, AlertCircle } from "lucide-react";
 import { useAuth } from "../contexts/AuthContext";
 import { useNavigate } from "react-router-dom";
 import { useToast } from "@/hooks/use-toast";
@@ -16,12 +16,11 @@ const Login = () => {
   const [password, setPassword] = useState("12345678");
   const [showPassword, setShowPassword] = useState(false);
   const [isLoading, setIsLoading] = useState(false);
-  const [isCreatingUsers, setIsCreatingUsers] = useState(false);
   
   const { login, authError, clearAuthError, isAuthenticated } = useAuth();
   const navigate = useNavigate();
   const { toast } = useToast();
-  const { createAllDemoUsers, FIXED_PASSWORD } = useDemoUsers();
+  const { FIXED_PASSWORD } = useDemoUsers();
 
   // Redirigir si ya está autenticado
   useEffect(() => {
@@ -71,7 +70,6 @@ const Login = () => {
           title: "¡Bienvenido!",
           description: `Login exitoso como ${email}.`,
         });
-        // La redirección se maneja automáticamente por el useEffect
       }
     } catch (error) {
       console.error('[LOGIN-UI] Error durante login:', error);
@@ -82,26 +80,6 @@ const Login = () => {
       });
     } finally {
       setIsLoading(false);
-    }
-  };
-
-  const handleCreateDemoUsers = async () => {
-    setIsCreatingUsers(true);
-    try {
-      await createAllDemoUsers();
-      toast({
-        title: "Usuarios creados",
-        description: `Usuarios demo creados con contraseña: ${FIXED_PASSWORD}`,
-      });
-    } catch (error) {
-      console.error('[LOGIN-UI] Error creando usuarios demo:', error);
-      toast({
-        title: "Error",
-        description: "Error al crear usuarios demo.",
-        variant: "destructive"
-      });
-    } finally {
-      setIsCreatingUsers(false);
     }
   };
 
@@ -206,16 +184,8 @@ const Login = () => {
         {/* Panel de Usuarios Demo */}
         <Card className="w-full border-green-200 shadow-lg">
           <CardHeader>
-            <CardTitle className="text-green-700 text-xl">🚀 Usuarios Demo</CardTitle>
-            <p className="text-green-600">Usuarios disponibles para pruebas</p>
-            <Button
-              onClick={handleCreateDemoUsers}
-              disabled={isCreatingUsers}
-              className="bg-green-600 hover:bg-green-700 text-white"
-            >
-              <Plus className="w-4 h-4 mr-2" />
-              {isCreatingUsers ? "Creando usuarios..." : "Crear usuarios demo"}
-            </Button>
+            <CardTitle className="text-green-700 text-xl">👥 Usuarios Disponibles</CardTitle>
+            <p className="text-green-600">Usuarios fijos del sistema</p>
           </CardHeader>
           <CardContent>
             <div className="space-y-3">

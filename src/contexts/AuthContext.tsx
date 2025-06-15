@@ -14,7 +14,6 @@ interface AuthContextType {
   user: User | null;
   login: (nameOrEmail: string, password: string) => Promise<boolean>;
   logout: () => Promise<void>;
-  signUp: (email: string, password: string, name: string, role: string) => Promise<boolean>;
   isAuthenticated: boolean;
   isLoading: boolean;
   authError: string | null;
@@ -33,13 +32,6 @@ export const AuthProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
   useEffect(() => {
     console.log('[AUTH] Inicializando AuthProvider...');
     
-    if (!supabase) {
-      console.error('[AUTH] Supabase client no disponible');
-      setAuthError("Error de conexión con la base de datos");
-      setIsLoading(false);
-      return;
-    }
-
     // Obtener sesión actual
     const getInitialSession = async () => {
       try {
@@ -106,8 +98,7 @@ export const AuthProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
         setAuthError(null);
       } else {
         console.warn('[AUTH] No se encontró perfil para el usuario');
-        setAuthError('No se encontró perfil de usuario. Contacta al administrador.');
-        await supabase.auth.signOut();
+        setAuthError('No se encontró perfil de usuario.');
       }
     } catch (error) {
       console.error('[AUTH] Error en loadUserProfile:', error);
@@ -121,7 +112,7 @@ export const AuthProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
     
     let email = nameOrEmail;
 
-    // Mapeo de nombres a emails
+    // Mapeo de nombres a emails para usuarios fijos
     if (!nameOrEmail.includes('@')) {
       const emailMap: { [key: string]: string } = {
         'Desarrollador': 'dev@demo.com',
@@ -166,40 +157,6 @@ export const AuthProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
     }
   };
 
-  const signUp = async (email: string, password: string, name: string, role: string): Promise<boolean> => {
-    console.log('[AUTH] Creando usuario:', { email, name, role });
-    
-    try {
-      const { data, error } = await supabase.auth.signUp({
-        email: email.trim(),
-        password: password,
-        options: {
-          data: {
-            name: name,
-            role: role
-          }
-        }
-      });
-      
-      if (error) {
-        console.error('[AUTH] Error en signUp:', error);
-        if (error.message.includes('User already registered')) {
-          console.log('[AUTH] Usuario ya existe - esto es normal en demo');
-          return true;
-        }
-        setAuthError(`Error creando usuario: ${error.message}`);
-        return false;
-      }
-      
-      console.log('[AUTH] Usuario creado exitosamente:', email);
-      return true;
-    } catch (error) {
-      console.error('[AUTH] Error en signUp:', error);
-      setAuthError('Error inesperado creando usuario');
-      return false;
-    }
-  };
-
   const logout = async () => {
     console.log('[AUTH] Cerrando sesión...');
     try {
@@ -222,7 +179,6 @@ export const AuthProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
     user,
     login,
     logout,
-    signUp,
     isAuthenticated: !!user,
     isLoading,
     authError,

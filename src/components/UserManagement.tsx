@@ -1,7 +1,6 @@
-
 import { useState } from "react";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
-import { supabase } from "@/lib/supabaseClient";
+import { supabase } from "@/integrations/supabase/client";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -45,7 +44,6 @@ const UserManagement = () => {
   const { data: users = [], isLoading: isLoadingUsers } = useQuery<Profile[]>({
     queryKey: ['users'],
     queryFn: async () => {
-      if (!supabase) return [];
       const { data, error } = await supabase.from('profiles').select('*').order('created_at', { ascending: false });
       if (error) {
         console.error("Error fetching users:", error);
@@ -54,12 +52,12 @@ const UserManagement = () => {
       }
       return data;
     },
-    enabled: !!supabase && canManageUsers,
+    enabled: canManageUsers,
   });
 
   const createUserMutation = useMutation({
     mutationFn: async ({ email, name, role }: typeof newUser) => {
-      if (!supabase || !currentUser || !role) throw new Error("Cliente no disponible o rol no seleccionado.");
+      if (!currentUser || !role) throw new Error("Cliente no disponible o rol no seleccionado.");
 
       // 1. Create the user in Supabase Auth
       const { data: signUpData, error: signUpError } = await supabase.auth.signUp({
