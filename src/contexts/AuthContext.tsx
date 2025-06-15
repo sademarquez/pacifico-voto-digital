@@ -27,42 +27,31 @@ export const AuthProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
   const [isLoading, setIsLoading] = useState(true);
 
   useEffect(() => {
-    console.log('🔧 AuthProvider inicializando v4...');
+    console.log('🔧 AuthProvider inicializando...');
     
-    let profileLoadingPromise: Promise<void> | null = null;
-
-    // Configurar listener de cambios de auth PRIMERO
+    // Configurar listener de cambios de auth
     const { data: { subscription } } = supabase.auth.onAuthStateChange(async (event, newSession) => {
       console.log('🔄 Auth state changed:', event, newSession?.user?.email || 'No user');
       
-      // Actualizar sesión inmediatamente
       setSession(newSession);
       
       if (newSession?.user && event !== 'SIGNED_OUT') {
         console.log('👤 Usuario autenticado, cargando perfil...');
-        
-        // Cancelar carga de perfil anterior si existe
-        if (profileLoadingPromise) {
-          console.log('⏸️ Cancelando carga de perfil anterior');
-        }
-        
-        // Crear nueva promesa de carga de perfil
-        profileLoadingPromise = loadUserProfile(newSession.user);
-        
         try {
-          await profileLoadingPromise;
+          await loadUserProfile(newSession.user);
         } catch (error) {
-          console.error('❌ Error cargando perfil después de auth change:', error);
-          // No limpiar la sesión en caso de error de perfil
+          console.error('❌ Error cargando perfil:', error);
+          setUser(null);
         }
       } else {
-        console.log('🚪 Usuario desconectado o evento SIGNED_OUT');
+        console.log('🚪 Usuario desconectado');
         setUser(null);
-        profileLoadingPromise = null;
       }
+      
+      setIsLoading(false);
     });
 
-    // Obtener sesión inicial DESPUÉS de configurar el listener
+    // Obtener sesión inicial
     const initializeSession = async () => {
       try {
         console.log('🔍 Verificando sesión inicial...');
@@ -70,24 +59,16 @@ export const AuthProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
         
         if (error) {
           console.error('❌ Error obteniendo sesión inicial:', error);
+          setIsLoading(false);
         } else if (initialSession?.user) {
           console.log('✅ Sesión inicial encontrada:', initialSession.user.email);
-          
-          // Solo establecer sesión, el listener se encargará del perfil
-          setSession(initialSession);
-          
-          // Cargar perfil para sesión inicial
-          try {
-            await loadUserProfile(initialSession.user);
-          } catch (error) {
-            console.error('❌ Error cargando perfil inicial:', error);
-          }
+          // El listener manejará la carga del perfil
         } else {
           console.log('ℹ️ No hay sesión inicial activa');
+          setIsLoading(false);
         }
       } catch (error) {
         console.error('💥 Error crítico inicializando sesión:', error);
-      } finally {
         setIsLoading(false);
       }
     };
@@ -155,7 +136,7 @@ export const AuthProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
       }
     } catch (error) {
       console.error('💥 Error crítico en loadUserProfile:', error);
-      throw error; // Re-lanzar para manejo en el llamador
+      throw error;
     }
   };
 
@@ -185,7 +166,6 @@ export const AuthProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
 
       if (data.user && data.session) {
         console.log('✅ Login exitoso para:', data.user.email);
-        // La sesión se manejará automáticamente por onAuthStateChange
         return { success: true };
       }
 
@@ -199,11 +179,9 @@ export const AuthProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
   const logout = async () => {
     console.log('🚪 Cerrando sesión...');
     try {
-      // Limpiar estado local primero
       setUser(null);
       setSession(null);
       
-      // Luego cerrar sesión en Supabase
       const { error } = await supabase.auth.signOut();
       
       if (error) {
