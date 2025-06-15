@@ -44,12 +44,16 @@ const UserManagement = () => {
   const { data: users = [], isLoading: isLoadingUsers } = useQuery<Profile[]>({
     queryKey: ['users'],
     queryFn: async () => {
+      console.log('🔍 Fetching users for role:', currentUser?.role);
+      
       const { data, error } = await supabase.from('profiles').select('*').order('created_at', { ascending: false });
       if (error) {
         console.error("Error fetching users:", error);
         toast({ title: "Error", description: "No se pudieron cargar los usuarios.", variant: "destructive" });
         return [];
       }
+      
+      console.log('📋 Users loaded:', data.length);
       return data;
     },
     enabled: canManageUsers,
@@ -58,6 +62,8 @@ const UserManagement = () => {
   const createUserMutation = useMutation({
     mutationFn: async ({ email, name, role }: typeof newUser) => {
       if (!currentUser || !role) throw new Error("Cliente no disponible o rol no seleccionado.");
+
+      console.log('👤 Creating user:', { email, role, createdBy: currentUser.role });
 
       // 1. Create the user in Supabase Auth
       const { data: signUpData, error: signUpError } = await supabase.auth.signUp({
@@ -70,7 +76,10 @@ const UserManagement = () => {
         }
       });
 
-      if (signUpError) throw signUpError;
+      if (signUpError) {
+        console.error('❌ Sign up error:', signUpError);
+        throw signUpError;
+      }
       if (!signUpData.user) throw new Error("No se pudo crear el usuario.");
 
       // 2. Update the profile with the correct role and created_by
@@ -80,10 +89,11 @@ const UserManagement = () => {
         .eq('id', signUpData.user.id);
 
       if (updateError) {
-        console.error("Failed to update role:", updateError);
+        console.error("❌ Failed to update role:", updateError);
         throw new Error(`El usuario fue creado pero no se pudo asignar el rol. Error: ${updateError.message}`);
       }
       
+      console.log('✅ User created successfully:', signUpData.user.email);
       return signUpData.user;
     },
     onSuccess: (createdUser) => {
@@ -108,6 +118,8 @@ const UserManagement = () => {
     
     const roles = [];
     
+    console.log('🔐 Checking permissions for role:', currentUser.role);
+    
     // Desarrollador puede crear Masters
     if (currentUser.role === 'desarrollador') {
       roles.push({ value: 'master', label: 'Master', icon: Crown, description: 'Gestiona candidatos y campañas completas' });
@@ -128,6 +140,7 @@ const UserManagement = () => {
       roles.push({ value: 'votante', label: 'Votante', icon: User, description: 'Usuario base del sistema' });
     }
     
+    console.log('📝 Available roles:', roles.map(r => r.value));
     return roles;
   };
 
@@ -141,6 +154,7 @@ const UserManagement = () => {
       return;
     }
     
+    console.log('🚀 Creating user:', newUser);
     createUserMutation.mutate(newUser);
   };
 
@@ -182,6 +196,14 @@ const UserManagement = () => {
       <div className="text-center p-8">
         <h2 className="text-xl font-semibold text-gray-600">Acceso Restringido</h2>
         <p className="text-gray-500">No tienes permisos para gestionar usuarios.</p>
+        <div className="mt-4 p-4 bg-blue-50 rounded-lg">
+          <p className="text-sm text-blue-700">
+            Rol actual: <strong>{currentUser?.role}</strong>
+          </p>
+          <p className="text-sm text-blue-600 mt-1">
+            Para gestionar usuarios necesitas el rol de: Master, Candidato o Líder
+          </p>
+        </div>
       </div>
     );
   }
@@ -190,7 +212,20 @@ const UserManagement = () => {
 
   return (
     <div className="space-y-6">
-      {/* Create User Form */}
+      {/* Debug info */}
+      <div className="bg-yellow-50 border border-yellow-200 rounded-lg p-4">
+        <h3 className="font-medium text-yellow-800">Debug Info</h3>
+        <p className="text-sm text-yellow-700">
+          Usuario: {currentUser?.name} ({currentUser?.role})
+        </p>
+        <p className="text-sm text-yellow-700">
+          Permisos: Candidatos={canCreateCandidatos.toString()}, Líderes={canCreateLideres.toString()}, Votantes={canCreateVotantes.toString()}
+        </p>
+        <p className="text-sm text-yellow-700">
+          Roles disponibles: {availableRoles.map(r => r.label).join(', ')}
+        </p>
+      </div>
+
       {availableRoles.length > 0 && (
         <Card>
           <CardHeader>

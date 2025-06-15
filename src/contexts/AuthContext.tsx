@@ -1,6 +1,7 @@
+
 import React, { createContext, useContext, useState, ReactNode, useEffect } from 'react';
 import { supabase } from '@/integrations/supabase/client';
-import { User as SupabaseUser } from '@supabase/supabase-js';
+import { User as SupabaseUser, Session } from '@supabase/supabase-js';
 
 interface User {
   id: string;
@@ -11,69 +12,56 @@ interface User {
 
 interface AuthContextType {
   user: User | null;
-  login: (nameOrEmail: string, password: string) => Promise<boolean>;
+  session: Session | null;
+  login: (email: string, password: string) => Promise<boolean>;
   logout: () => Promise<void>;
   isAuthenticated: boolean;
   isLoading: boolean;
-  authError: string | null;
-  clearAuthError: () => void;
 }
 
 const AuthContext = createContext<AuthContextType | undefined>(undefined);
 
 export const AuthProvider: React.FC<{ children: ReactNode }> = ({ children }) => {
   const [user, setUser] = useState<User | null>(null);
+  const [session, setSession] = useState<Session | null>(null);
   const [isLoading, setIsLoading] = useState(true);
-  const [authError, setAuthError] = useState<string | null>(null);
-
-  const clearAuthError = () => setAuthError(null);
 
   useEffect(() => {
-    console.log('[AUTH] Inicializando AuthProvider...');
-    
-    // Obtener sesión actual
+    // Get initial session
     const getInitialSession = async () => {
-      try {
-        const { data: { session }, error } = await supabase.auth.getSession();
-        console.log('[AUTH] Sesión inicial:', session?.user?.email || 'No session');
-        
-        if (error) {
-          console.error('[AUTH] Error obteniendo sesión:', error);
-          setAuthError(`Error de sesión: ${error.message}`);
-        } else if (session?.user) {
-          await loadUserProfile(session.user);
-        }
-      } catch (error) {
-        console.error('[AUTH] Error en getInitialSession:', error);
-        setAuthError('Error cargando sesión inicial');
-      } finally {
-        setIsLoading(false);
-      }
-    };
-
-    // Escuchar cambios de autenticación
-    const { data: authListener } = supabase.auth.onAuthStateChange(async (event, session) => {
-      console.log('[AUTH] Cambio de estado:', event, session?.user?.email || 'No user');
+      const { data: { session }, error } = await supabase.auth.getSession();
       
-      if (session?.user) {
+      if (error) {
+        console.error('Error getting session:', error);
+      } else if (session?.user) {
+        setSession(session);
         await loadUserProfile(session.user);
-      } else {
-        console.log('[AUTH] Usuario desconectado');
-        setUser(null);
       }
-    });
+      setIsLoading(false);
+    };
 
     getInitialSession();
 
-    return () => {
-      authListener?.subscription.unsubscribe();
-    };
+    // Listen for auth changes
+    const { data: { subscription } } = supabase.auth.onAuthStateChange(async (event, session) => {
+      console.log('Auth state changed:', event, session?.user?.email);
+      
+      if (session?.user) {
+        setSession(session);
+        setTimeout(async () => {
+          await loadUserProfile(session.user);
+        }, 0);
+      } else {
+        setUser(null);
+        setSession(null);
+      }
+    });
+
+    return () => subscription.unsubscribe();
   }, []);
 
   const loadUserProfile = async (supabaseUser: SupabaseUser) => {
     try {
-      console.log('[AUTH] Cargando perfil para:', supabaseUser.email);
-      
       const { data: profile, error } = await supabase
         .from('profiles')
         .select('id, name, role')
@@ -81,54 +69,27 @@ export const AuthProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
         .maybeSingle();
 
       if (error) {
-        console.error('[AUTH] Error cargando perfil:', error);
-        setAuthError(`Error cargando perfil: ${error.message}`);
+        console.error('Error loading profile:', error);
         return;
       }
 
       if (profile) {
-        console.log('[AUTH] Perfil encontrado:', profile);
-        setUser({
+        const userData: User = {
           id: profile.id,
           name: profile.name || supabaseUser.email || 'Usuario',
           role: profile.role,
           email: supabaseUser.email || '',
-        });
-        setAuthError(null);
-      } else {
-        console.warn('[AUTH] No se encontró perfil para el usuario');
-        setAuthError('No se encontró perfil de usuario.');
+        };
+
+        setUser(userData);
+        console.log('User profile loaded:', userData.role, userData.name);
       }
     } catch (error) {
-      console.error('[AUTH] Error en loadUserProfile:', error);
-      setAuthError('Error cargando datos del usuario');
+      console.error('Error loading user profile:', error);
     }
   };
 
-  const login = async (nameOrEmail: string, password: string): Promise<boolean> => {
-    console.log('[AUTH] Iniciando login para:', nameOrEmail);
-    setAuthError(null);
-    
-    let email = nameOrEmail;
-
-    // Mapeo de nombres a emails para usuarios fijos
-    if (!nameOrEmail.includes('@')) {
-      const emailMap: { [key: string]: string } = {
-        'Desarrollador': 'dev@demo.com',
-        'Master': 'master@demo.com',
-        'Candidato': 'candidato@demo.com',
-        'Lider': 'lider@demo.com',
-        'Votante': 'votante@demo.com'
-      };
-
-      email = emailMap[nameOrEmail];
-      if (!email) {
-        setAuthError(`Usuario "${nameOrEmail}" no encontrado`);
-        return false;
-      }
-      console.log('[AUTH] Email mapeado:', email);
-    }
-
+  const login = async (email: string, password: string): Promise<boolean> => {
     try {
       const { data, error } = await supabase.auth.signInWithPassword({
         email: email.trim(),
@@ -136,54 +97,34 @@ export const AuthProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
       });
 
       if (error) {
-        console.error('[AUTH] Error de login:', error);
-        let errorMsg = 'Error de login: ';
-        if (error.message.includes('Invalid login credentials')) {
-          errorMsg = 'Credenciales incorrectas. Verifica usuario y contraseña.';
-        } else if (error.message.includes('Email not confirmed')) {
-          errorMsg = 'Email no confirmado. Por favor, revisa tu correo para activar tu cuenta.';
-        } else {
-          errorMsg += error.message;
-        }
-        setAuthError(errorMsg);
+        console.error('Login error:', error);
         return false;
       }
 
-      console.log('[AUTH] Login exitoso para:', data.user?.email);
-      return true;
+      return !!data.user;
     } catch (error) {
-      console.error('[AUTH] Error en login:', error);
-      setAuthError('Error inesperado durante el login');
+      console.error('Login error:', error);
       return false;
     }
   };
 
   const logout = async () => {
-    console.log('[AUTH] Cerrando sesión...');
     try {
-      const { error } = await supabase.auth.signOut();
-      if (error) {
-        console.error('[AUTH] Error en logout:', error);
-        setAuthError(`Error cerrando sesión: ${error.message}`);
-      } else {
-        console.log('[AUTH] Sesión cerrada exitosamente');
-        setUser(null);
-        setAuthError(null);
-      }
+      await supabase.auth.signOut();
+      setUser(null);
+      setSession(null);
     } catch (error) {
-      console.error('[AUTH] Error en logout:', error);
-      setAuthError('Error inesperado cerrando sesión');
+      console.error('Logout error:', error);
     }
   };
 
   const value = {
     user,
+    session,
     login,
     logout,
-    isAuthenticated: !!user,
+    isAuthenticated: !!user && !!session,
     isLoading,
-    authError,
-    clearAuthError,
   };
 
   return (
@@ -196,7 +137,7 @@ export const AuthProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
 export const useAuth = () => {
   const context = useContext(AuthContext);
   if (context === undefined) {
-    throw new Error('useAuth debe ser usado dentro de un AuthProvider');
+    throw new Error('useAuth must be used within an AuthProvider');
   }
   return context;
 };
