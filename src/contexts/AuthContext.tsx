@@ -22,19 +22,6 @@ interface AuthContextType {
 
 const AuthContext = createContext<AuthContextType | undefined>(undefined);
 
-// NOTA: Los perfiles de usuario con roles aún no se guardan en la base de datos.
-// Esta es una función temporal para crear un perfil para la UI.
-// En el siguiente paso, crearemos una tabla `profiles` en Supabase para almacenar estos datos.
-const createTemporaryUserProfile = (supabaseUser: SupabaseUser): User => {
-  return {
-    id: supabaseUser.id,
-    email: supabaseUser.email || '',
-    // Por ahora, el nombre será el email y el rol será 'votante' para evitar que la UI se rompa.
-    name: supabaseUser.email || 'Usuario',
-    role: 'votante' 
-  };
-};
-
 export const AuthProvider: React.FC<{ children: ReactNode }> = ({ children }) => {
   const [user, setUser] = useState<User | null>(null);
   const [isLoading, setIsLoading] = useState(true);
@@ -52,10 +39,29 @@ export const AuthProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
       async (event, session) => {
         const supabaseUser = session?.user ?? null;
         if (supabaseUser) {
-          // En el futuro, aquí obtendremos el perfil de la base de datos.
-          // Por ahora, creamos uno temporal.
-          const userProfile = createTemporaryUserProfile(supabaseUser);
-          setUser(userProfile);
+          const { data: profile, error } = await supabase
+            .from('profiles')
+            .select('id, name, role')
+            .eq('id', supabaseUser.id)
+            .single();
+          
+          if (error && error.code !== 'PGRST116') {
+            console.error("Error fetching profile:", error);
+            setAuthError("Error al cargar el perfil de usuario.");
+            setUser(null);
+          } else if (profile) {
+            setUser({
+              id: profile.id,
+              name: profile.name || supabaseUser.email || 'Usuario',
+              role: profile.role as User['role'],
+              email: supabaseUser.email || '',
+            });
+          } else {
+             // This can happen if the user existed before the profiles table/trigger was created
+            console.warn("No profile found for user, signing them out.");
+            await supabase.auth.signOut();
+            setUser(null);
+          }
         } else {
           setUser(null);
         }
@@ -64,7 +70,6 @@ export const AuthProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
     );
 
     return () => {
-      // Si supabase no existe, authListener será undefined
       authListener?.subscription.unsubscribe();
     };
   }, []);

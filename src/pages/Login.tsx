@@ -39,7 +39,7 @@ const Login = () => {
         if (!authError) {
           toast({
             title: "Error de Acceso",
-            description: "Email o contraseña incorrectos. Aún no hay usuarios creados.",
+            description: "Email o contraseña incorrectos.",
             variant: "destructive"
           });
         }
