@@ -13,7 +13,7 @@ export const useDemoUsers = () => {
 
   const demoUsers: DemoUser[] = [
     {
-      email: 'dev@micampana.com', // Cambiado de .co a .com
+      email: 'dev@micampana.com',
       password: 'micampana2025',
       name: 'Desarrollador',
       role: 'desarrollador'
@@ -21,37 +21,37 @@ export const useDemoUsers = () => {
     {
       email: 'master1@demo.com',
       password: 'micampana2025',
-      name: 'Master Demo',
+      name: 'Master',
       role: 'master'
     },
     {
       email: 'candidato@demo.com',
       password: 'micampana2025',
-      name: 'Candidato Demo',
+      name: 'Candidato',
       role: 'candidato'
     },
     {
       email: 'lider@demo.com',
       password: 'micampana2025',
-      name: 'Líder Demo',
+      name: 'Lider',
       role: 'lider'
     },
     {
       email: 'votante@demo.com',
       password: 'micampana2025',
-      name: 'Votante Demo',
+      name: 'Votante',
       role: 'votante'
     }
   ];
 
   const createDemoUser = async (user: DemoUser): Promise<boolean> => {
     try {
-      console.log(`Creando usuario: ${user.email}`);
+      console.log(`Creando usuario: ${user.name} (${user.email})`);
       const success = await signUp(user.email, user.password, user.name, user.role);
-      console.log(`Resultado para ${user.email}:`, success);
+      console.log(`Resultado para ${user.name}:`, success);
       return success;
     } catch (error) {
-      console.error(`Error creating demo user ${user.email}:`, error);
+      console.error(`Error creating demo user ${user.name}:`, error);
       return false;
     }
   };
@@ -62,10 +62,10 @@ export const useDemoUsers = () => {
     for (const user of demoUsers) {
       try {
         await createDemoUser(user);
-        // Pausa más larga para evitar rate limiting
+        // Pausa para evitar rate limiting
         await new Promise(resolve => setTimeout(resolve, 2000));
       } catch (error) {
-        console.error(`Error procesando usuario ${user.email}:`, error);
+        console.error(`Error procesando usuario ${user.name}:`, error);
         // Continúa con el siguiente usuario incluso si hay error
         await new Promise(resolve => setTimeout(resolve, 1000));
       }

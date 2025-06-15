@@ -8,15 +8,25 @@
 ### 2. Hacer clic en "Crear usuarios demo" (botón verde)
 **¡IMPORTANTE!** Esto debe hacerse ANTES de intentar hacer login
 
-### 3. Usar cualquiera de estas credenciales:
+### 3. Usar cualquiera de estas credenciales (NOMBRE o EMAIL):
 
-| Usuario | Email | Contraseña |
-|---------|--------|------------|
-| **Desarrollador** | `dev@micampana.com` | `micampana2025` |
-| **Master** | `master1@demo.com` | `micampana2025` |
-| **Candidato** | `candidato@demo.com` | `micampana2025` |
-| **Líder** | `lider@demo.com` | `micampana2025` |
-| **Votante** | `votante@demo.com` | `micampana2025` |
+| Rol | **NOMBRE** | Email | Contraseña |
+|---------|--------|--------|------------|
+| **Desarrollador** | `Desarrollador` | `dev@micampana.com` | `micampana2025` |
+| **Master** | `Master` | `master1@demo.com` | `micampana2025` |
+| **Candidato** | `Candidato` | `candidato@demo.com` | `micampana2025` |
+| **Líder** | `Lider` | `lider@demo.com` | `micampana2025` |
+| **Votante** | `Votante` | `votante@demo.com` | `micampana2025` |
+
+## 🎯 LOGIN SIMPLIFICADO
+
+**Ahora puedes usar solo el NOMBRE:**
+- Usuario: `Desarrollador`
+- Contraseña: `micampana2025`
+
+**O el email tradicional:**
+- Email: `dev@micampana.com`
+- Contraseña: `micampana2025`
 
 ## 🚨 Si NO Funciona el Login:
 
@@ -24,8 +34,8 @@
    - Buscar mensaje "Usuarios creados exitosamente"
    - Si no aparece, volver a hacer clic en "Crear usuarios demo"
 
-2. **Verificar credenciales exactas:**
-   - Email: `dev@micampana.com` (CON .com, NO .co)
+2. **Usar credenciales exactas:**
+   - Nombre: `Desarrollador` (CON mayúscula inicial)
    - Contraseña: `micampana2025` (SIN ñ)
 
 3. **Revisar consola del navegador:**
@@ -33,25 +43,31 @@
    - Buscar errores rojos
    - Copiar el mensaje de error
 
-## 🔄 Proceso de Creación (Técnico)
+## 🔄 Proceso de Login Actualizado
 
 ```javascript
-// Lo que hace el botón "Crear usuarios demo":
-1. supabase.auth.signUp() // Crea en auth.users
-2. Actualiza tabla profiles con rol correcto
-3. Pausa 2 segundos entre usuarios (evita rate limiting)
+// Ahora el sistema:
+1. Detecta si es nombre o email (por presencia de @)
+2. Si es nombre, busca el email correspondiente
+3. Realiza login con el email encontrado
 4. Muestra confirmación al completar
 ```
 
 ## ✅ Verificación Rápida
 
-**Después de crear usuarios, verificar en Supabase:**
-- Auth → Users → Debe mostrar 5 usuarios
-- Database → profiles → Debe mostrar 5 perfiles con roles
+**Después de crear usuarios, probar login con:**
+- `Desarrollador` / `micampana2025`
+- O `Master` / `micampana2025`
 
 ## 🎯 Usuario Recomendado para Pruebas
 
-**Usar:** `dev@micampana.com` / `micampana2025`
+**Usar:** `Desarrollador` / `micampana2025`
 - Tiene todos los permisos
 - Puede ver todo el sistema
 - Ideal para pruebas completas
+
+## 💡 Ventajas del Login por Nombre
+
+- **Sin caracteres especiales** (evita problemas con ñ, acentos)
+- **Más fácil de recordar** que emails largos
+- **Compatible con ambos** (nombre y email funcionan)

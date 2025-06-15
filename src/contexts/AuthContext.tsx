@@ -1,4 +1,3 @@
-
 import React, { createContext, useContext, useState, ReactNode, useEffect } from 'react';
 import { supabase } from '@/lib/supabaseClient';
 import { User as SupabaseUser } from '@supabase/supabase-js';
@@ -14,7 +13,7 @@ interface User {
 
 interface AuthContextType {
   user: User | null;
-  login: (email: string, password:string) => Promise<boolean>;
+  login: (nameOrEmail: string, password:string) => Promise<boolean>;
   logout: () => Promise<void>;
   signUp: (email: string, password: string, name: string, role: string) => Promise<boolean>;
   isAuthenticated: boolean;
@@ -79,15 +78,45 @@ export const AuthProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
     };
   }, []);
 
-  const login = async (email: string, password: string): Promise<boolean> => {
+  const login = async (nameOrEmail: string, password: string): Promise<boolean> => {
     if (!supabase) {
       setAuthError("No se puede iniciar sesión. La conexión con el backend no está disponible.");
       console.error('Error de login: Supabase client no está inicializado.');
       return false;
     }
 
-    console.log('Intentando login con:', email);
+    console.log('Intentando login con:', nameOrEmail);
     setAuthError(null);
+    
+    let email = nameOrEmail;
+    
+    // Si no contiene @, buscar el email por nombre
+    if (!nameOrEmail.includes('@')) {
+      console.log('Buscando email por nombre:', nameOrEmail);
+      const { data: profile, error } = await supabase
+        .from('profiles')
+        .select('id')
+        .eq('name', nameOrEmail)
+        .single();
+      
+      if (error || !profile) {
+        console.error('Usuario no encontrado por nombre:', nameOrEmail);
+        setAuthError(`Usuario "${nameOrEmail}" no encontrado`);
+        return false;
+      }
+      
+      // Obtener el email del usuario desde auth.users
+      const { data: { user: authUser }, error: authError } = await supabase.auth.admin.getUserById(profile.id);
+      
+      if (authError || !authUser) {
+        console.error('Error obteniendo datos de auth:', authError);
+        setAuthError('Error al obtener datos de autenticación');
+        return false;
+      }
+      
+      email = authUser.email || '';
+      console.log('Email encontrado:', email);
+    }
     
     const { data, error } = await supabase.auth.signInWithPassword({
       email: email.trim(),
@@ -100,7 +129,7 @@ export const AuthProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
       return false;
     }
     
-    console.log('Login exitoso para:', email);
+    console.log('Login exitoso para:', nameOrEmail);
     return true;
   };
 
