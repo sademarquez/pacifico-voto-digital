@@ -18,13 +18,13 @@ interface Territory {
   id: string;
   name: string;
   type: TerritoryType;
-  parent_id?: string;
-  population_estimate?: number;
-  voter_estimate?: number;
-  created_by?: string;
-  responsible_user_id?: string;
-  parent?: { name: string };
-  responsible?: { name: string };
+  parent_id?: string | null;
+  population_estimate?: number | null;
+  voter_estimate?: number | null;
+  created_by?: string | null;
+  responsible_user_id?: string | null;
+  parent?: { name: string } | null;
+  responsible?: { name: string } | null;
 }
 
 interface ParentTerritory {
@@ -63,7 +63,14 @@ const TerritoryManager = () => {
       let query = supabase
         .from('territories')
         .select(`
-          *,
+          id,
+          name,
+          type,
+          parent_id,
+          population_estimate,
+          voter_estimate,
+          responsible_user_id,
+          created_by,
           parent:territories!parent_id(name),
           responsible:profiles!responsible_user_id(name)
         `)
