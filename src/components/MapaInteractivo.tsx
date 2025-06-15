@@ -1,25 +1,25 @@
-
 import { useEffect, useRef, useState } from "react";
+import { useQuery } from "@tanstack/react-query";
+import { supabase } from "@/lib/supabaseClient";
 import { Button } from "@/components/ui/button";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { MapPin, Layers, Navigation, AlertTriangle, Users } from "lucide-react";
+import { useDataSegregation } from "@/hooks/useDataSegregation";
 
 interface Alerta {
   id: string;
-  municipio: string;
-  tipo: string;
-  severidad: 'baja' | 'media' | 'alta' | 'crítica';
-  descripcion: string;
-  lat: number;
-  lng: number;
-  fecha: string;
-  lider?: string;
+  title: string;
+  type: string;
+  priority: 'low' | 'medium' | 'high' | 'urgent';
+  description: string;
+  territory: { name: string } | null;
+  created_at: string;
+  created_by_user: { name: string } | null;
 }
 
 interface MapaInteractivoProps {
-  alertas: Alerta[];
   onAlertaClick?: (alerta: Alerta) => void;
 }
 
@@ -52,13 +52,54 @@ const tiposCapas = [
   { id: 'satelite', nombre: 'Vista Satelital', url: 'https://server.arcgisonline.com/ArcGIS/rest/services/World_Imagery/MapServer/tile/{z}/{y}/{x}' }
 ];
 
-const MapaInteractivo: React.FC<MapaInteractivoProps> = ({ alertas, onAlertaClick }) => {
+const MapaInteractivo: React.FC<MapaInteractivoProps> = ({ onAlertaClick }) => {
   const mapRef = useRef<HTMLDivElement>(null);
   const [map, setMap] = useState<any>(null);
   const [marcadores, setMarcadores] = useState<any[]>([]);
   const [municipioSeleccionado, setMunicipioSeleccionado] = useState<string>("");
   const [capaActiva, setCapaActiva] = useState<string>("politico");
   const [alertaSeleccionada, setAlertaSeleccionada] = useState<Alerta | null>(null);
+  const { getAlertFilter } = useDataSegregation();
+
+  // Query para obtener alertas reales de la base de datos
+  const { data: alertas = [] } = useQuery({
+    queryKey: ['map-alerts'],
+    queryFn: async () => {
+      if (!supabase) return [];
+      
+      const { data, error } = await supabase
+        .from('alerts')
+        .select(`
+          *,
+          territory:territories(name),
+          created_by_user:profiles!alerts_created_by_fkey(name)
+        `)
+        .eq('status', 'active')
+        .order('priority', { ascending: false })
+        .order('created_at', { ascending: false });
+
+      if (error) {
+        console.error("Error fetching alerts:", error);
+        return [];
+      }
+
+      // Convertir alertas de BD a formato del mapa con coordenadas de municipios
+      return (data || []).map(alert => {
+        const territorio = alert.territory?.name;
+        const municipio = municipiosCauca.find(m => 
+          territorio?.toLowerCase().includes(m.nombre.toLowerCase())
+        );
+        
+        return {
+          ...alert,
+          lat: municipio?.lat || 2.4448, // Default a Popayán
+          lng: municipio?.lng || -76.6147,
+          municipio: territorio || 'Sin territorio'
+        };
+      });
+    },
+    enabled: !!supabase
+  });
 
   useEffect(() => {
     if (typeof window !== 'undefined' && mapRef.current && !map) {
@@ -108,8 +149,8 @@ const MapaInteractivo: React.FC<MapaInteractivoProps> = ({ alertas, onAlertaClic
       const L = (window as any).L;
       const nuevosMarcadores: any[] = [];
 
-      alertas.forEach((alerta) => {
-        const color = getSeverityColor(alerta.severidad);
+      alertas.forEach((alerta: any) => {
+        const color = getSeverityColor(alerta.priority);
         const icon = L.divIcon({
           className: 'custom-marker',
           html: `<div style="background-color: ${color}; border: 2px solid white; border-radius: 50%; width: 20px; height: 20px; display: flex; align-items: center; justify-content: center; box-shadow: 0 2px 4px rgba(0,0,0,0.3);">
@@ -124,13 +165,13 @@ const MapaInteractivo: React.FC<MapaInteractivoProps> = ({ alertas, onAlertaClic
           .bindPopup(`
             <div class="p-3 min-w-48">
               <h3 class="font-bold text-purple-800">${alerta.municipio}</h3>
-              <p class="text-sm text-gray-600 mb-2">${alerta.tipo}</p>
-              <p class="text-xs mb-2">${alerta.descripcion}</p>
+              <p class="text-sm text-gray-600 mb-2">${alerta.type}</p>
+              <p class="text-xs mb-2">${alerta.description || alerta.title}</p>
               <div class="flex justify-between items-center">
-                <span class="text-xs px-2 py-1 rounded-full bg-${color}-100 text-${color}-800">
-                  ${alerta.severidad.toUpperCase()}
+                <span class="text-xs px-2 py-1 rounded-full bg-${color.replace('#', '')}-100">
+                  ${alerta.priority.toUpperCase()}
                 </span>
-                ${alerta.lider ? `<span class="text-xs text-purple-600">👤 ${alerta.lider}</span>` : ''}
+                ${alerta.created_by_user ? `<span class="text-xs text-purple-600">👤 ${alerta.created_by_user.name}</span>` : ''}
               </div>
             </div>
           `);
@@ -147,14 +188,14 @@ const MapaInteractivo: React.FC<MapaInteractivoProps> = ({ alertas, onAlertaClic
 
       setMarcadores(nuevosMarcadores);
     }
-  }, [map, alertas]);
+  }, [map, alertas, onAlertaClick]);
 
-  const getSeverityColor = (severidad: string) => {
-    switch (severidad) {
-      case 'baja': return '#10b981';
-      case 'media': return '#f59e0b';
-      case 'alta': return '#ef4444';
-      case 'crítica': return '#dc2626';
+  const getSeverityColor = (priority: string) => {
+    switch (priority) {
+      case 'low': return '#10b981';
+      case 'medium': return '#f59e0b';
+      case 'high': return '#ef4444';
+      case 'urgent': return '#dc2626';
       default: return '#6b7280';
     }
   };
@@ -257,6 +298,22 @@ const MapaInteractivo: React.FC<MapaInteractivoProps> = ({ alertas, onAlertaClic
               </Button>
             </div>
           </div>
+
+          {/* Estadísticas de alertas */}
+          <div className="mt-4 flex gap-4">
+            <Badge variant="outline" className="bg-red-50">
+              {alertas.filter(a => a.priority === 'urgent').length} Urgentes
+            </Badge>
+            <Badge variant="outline" className="bg-orange-50">
+              {alertas.filter(a => a.priority === 'high').length} Altas
+            </Badge>
+            <Badge variant="outline" className="bg-yellow-50">
+              {alertas.filter(a => a.priority === 'medium').length} Medias
+            </Badge>
+            <Badge variant="outline" className="bg-green-50">
+              {alertas.filter(a => a.priority === 'low').length} Bajas
+            </Badge>
+          </div>
         </CardContent>
       </Card>
 
@@ -283,26 +340,26 @@ const MapaInteractivo: React.FC<MapaInteractivoProps> = ({ alertas, onAlertaClic
           <CardContent>
             <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
               <div>
-                <p><strong>Tipo:</strong> {alertaSeleccionada.tipo}</p>
-                <p><strong>Fecha:</strong> {alertaSeleccionada.fecha}</p>
-                <p><strong>Descripción:</strong> {alertaSeleccionada.descripcion}</p>
+                <p><strong>Tipo:</strong> {alertaSeleccionada.type}</p>
+                <p><strong>Fecha:</strong> {new Date(alertaSeleccionada.created_at).toLocaleString()}</p>
+                <p><strong>Descripción:</strong> {alertaSeleccionada.description || alertaSeleccionada.title}</p>
               </div>
               <div className="flex flex-col gap-2">
                 <Badge 
                   variant="outline" 
                   className={`w-fit ${
-                    alertaSeleccionada.severidad === 'crítica' ? 'border-red-500 text-red-700' :
-                    alertaSeleccionada.severidad === 'alta' ? 'border-orange-500 text-orange-700' :
-                    alertaSeleccionada.severidad === 'media' ? 'border-yellow-500 text-yellow-700' :
+                    alertaSeleccionada.priority === 'urgent' ? 'border-red-500 text-red-700' :
+                    alertaSeleccionada.priority === 'high' ? 'border-orange-500 text-orange-700' :
+                    alertaSeleccionada.priority === 'medium' ? 'border-yellow-500 text-yellow-700' :
                     'border-green-500 text-green-700'
                   }`}
                 >
-                  Severidad: {alertaSeleccionada.severidad.toUpperCase()}
+                  Prioridad: {alertaSeleccionada.priority.toUpperCase()}
                 </Badge>
-                {alertaSeleccionada.lider && (
+                {alertaSeleccionada.created_by_user && (
                   <div className="flex items-center gap-2 text-purple-700">
                     <Users className="w-4 h-4" />
-                    <span className="text-sm">Líder asignado: {alertaSeleccionada.lider}</span>
+                    <span className="text-sm">Creado por: {alertaSeleccionada.created_by_user.name}</span>
                   </div>
                 )}
               </div>
