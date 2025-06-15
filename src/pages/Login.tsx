@@ -56,21 +56,16 @@ const Login = () => {
   };
 
   const testDirectAuth = async () => {
-    console.log('🧪 Testing direct Supabase auth...');
+    console.log('🧪 Testing direct Supabase auth (read-only test)...');
     setIsLoading(true);
     
     try {
-      // Test con credenciales conocidas
-      const { data, error } = await supabase.auth.signInWithPassword({
-        email: 'lider@micampana.com',
-        password: 'LiderSecure2025!',
-      });
-
-      console.log('📊 Direct login result:', {
-        hasData: !!data,
-        hasUser: !!data?.user,
-        hasSession: !!data?.session,
-        error: error ? {
+      // Test SOLO la conectividad de auth sin hacer login real
+      const { data: { session }, error } = await supabase.auth.getSession();
+      
+      console.log('📊 Auth connectivity test:', {
+        hasCurrentSession: !!session,
+        authError: error ? {
           message: error.message,
           status: error.status,
           name: error.name
@@ -78,30 +73,26 @@ const Login = () => {
       });
 
       if (error) {
-        setError(`Test directo falló: ${error.message}`);
+        setError(`Test de auth falló: ${error.message}`);
         setDebugInfo({
           connection: 'AUTH_ERROR',
           error: error.message,
           timestamp: new Date().toISOString(),
           type: 'auth_test'
         });
-      } else if (data.user) {
-        setError('✅ Test directo exitoso - Autenticación funciona correctamente');
+      } else {
+        setError('✅ Test de conectividad de auth exitoso');
         setDebugInfo({
           connection: 'AUTH_OK',
           error: null,
           timestamp: new Date().toISOString(),
           type: 'auth_test',
-          userEmail: data.user.email
+          hasSession: !!session
         });
-        
-        console.log('✅ Direct test successful, signing out...');
-        // Cerrar sesión inmediatamente después del test
-        await supabase.auth.signOut();
       }
     } catch (error) {
-      console.error('💥 Direct test error:', error);
-      setError(`Error en test directo: ${error}`);
+      console.error('💥 Auth connectivity test error:', error);
+      setError(`Error en test de auth: ${error}`);
       setDebugInfo({
         connection: 'CRITICAL_ERROR',
         error: String(error),
@@ -166,7 +157,7 @@ const Login = () => {
               <Vote className="w-8 h-8 text-white" />
             </div>
             <CardTitle className="text-2xl font-bold text-gray-900">Mi Campaña</CardTitle>
-            <p className="text-gray-600">Sistema Electoral - Mejorado v4</p>
+            <p className="text-gray-600">Sistema Electoral - Mejorado v5</p>
           </CardHeader>
           
           <CardContent>
@@ -204,7 +195,7 @@ const Login = () => {
                   <AlertDescription className="text-xs">
                     <strong>Estado:</strong> {debugInfo.connection}<br/>
                     {debugInfo.duration && <><strong>Duración:</strong> {debugInfo.duration}<br/></>}
-                    {debugInfo.userEmail && <><strong>Usuario:</strong> {debugInfo.userEmail}<br/></>}
+                    {debugInfo.hasSession !== undefined && <><strong>Sesión Activa:</strong> {debugInfo.hasSession ? 'Sí' : 'No'}<br/></>}
                     {debugInfo.error && <><strong>Error:</strong> {debugInfo.error}<br/></>}
                     <strong>Timestamp:</strong> {new Date(debugInfo.timestamp).toLocaleTimeString()}
                   </AlertDescription>
