@@ -48,9 +48,9 @@ function App() {
 
   return (
     <QueryClientProvider client={queryClient}>
-      <AuthProvider>
-        <Toaster />
-        <BrowserRouter>
+      <BrowserRouter>
+        <AuthProvider>
+          <Toaster />
           <div className="min-h-screen bg-background">
             <Navigation />
             <Routes>
@@ -134,8 +134,8 @@ function App() {
             </Routes>
             <ChatbotProvider />
           </div>
-        </BrowserRouter>
-      </AuthProvider>
+        </AuthProvider>
+      </BrowserRouter>
     </QueryClientProvider>
   );
 }
