@@ -1,6 +1,8 @@
+
 import { useState } from "react";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
+import { PostgrestError } from "@supabase/supabase-js";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -86,7 +88,7 @@ const TerritoryManager = () => {
 
       query = query.order('created_at', { ascending: false });
 
-      const { data, error } = await query;
+      const { data, error }: { data: Territory[] | null; error: PostgrestError | null } = await query;
       if (error) {
         console.error('Error fetching territories:', error);
         throw new Error(error.message);
@@ -102,7 +104,7 @@ const TerritoryManager = () => {
     queryFn: async () => {
       if (!supabase || !user) return [];
       
-      const { data, error } = await supabase
+      const { data, error }: { data: ParentTerritory[] | null; error: PostgrestError | null } = await supabase
         .from('territories')
         .select('id, name, type')
         .order('name');
@@ -122,7 +124,7 @@ const TerritoryManager = () => {
     queryFn: async () => {
       if (!supabase) return [];
       
-      const { data, error } = await supabase
+      const { data, error }: { data: User[] | null; error: PostgrestError | null } = await supabase
         .from('profiles')
         .select('id, name, role')
         .order('name');
