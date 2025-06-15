@@ -133,11 +133,11 @@ const Login = () => {
             </Button>
           </div>
 
-          <div className="mt-4 p-4 bg-yellow-50 rounded-lg border border-yellow-200">
-             <h3 className="font-medium text-sm text-yellow-800 mb-2">🚀 ¡Sistema de Acceso Actualizado!</h3>
-             <p className="text-xs text-yellow-700">
-               Hemos conectado la aplicación a un backend seguro. Los usuarios de demostración ya no funcionan.
-               El próximo paso será habilitar la pantalla de registro para que puedas crear tu primer usuario real.
+          <div className="mt-4 p-4 bg-green-50 rounded-lg border border-green-200">
+             <h3 className="font-medium text-sm text-green-800 mb-2">🚀 ¡Sistema Actualizado y Funcionando!</h3>
+             <p className="text-xs text-green-700">
+               La aplicación ahora tiene una base de datos real y un sistema de usuarios completamente funcional. 
+               Los usuarios master pueden crear candidatos, y los candidatos pueden crear votantes.
              </p>
           </div>
         </CardContent>
