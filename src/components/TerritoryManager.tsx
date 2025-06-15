@@ -1,4 +1,3 @@
-
 import { useState } from "react";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
@@ -24,8 +23,6 @@ interface Territory {
   voter_estimate?: number | null;
   created_by?: string | null;
   responsible_user_id?: string | null;
-  parent?: { name: string } | null;
-  responsible?: { name: string } | null;
 }
 
 interface ParentTerritory {
@@ -71,9 +68,7 @@ const TerritoryManager = () => {
           population_estimate,
           voter_estimate,
           responsible_user_id,
-          created_by,
-          parent:territories!parent_id(name),
-          responsible:profiles!responsible_user_id(name)
+          created_by
         `);
 
       // Aplicar filtros según el rol
@@ -328,46 +323,51 @@ const TerritoryManager = () => {
             </div>
           ) : (
             <div className="space-y-4">
-              {territories.map((territory) => (
-                <div key={territory.id} className="border rounded-lg p-4">
-                  <div className="flex items-start justify-between mb-2">
-                    <div>
-                      <h3 className="font-semibold text-lg">{territory.name}</h3>
-                      {territory.parent && (
-                        <p className="text-sm text-gray-500">
-                          Parte de: {territory.parent.name}
-                        </p>
-                      )}
+              {territories.map((territory) => {
+                const parent = parentTerritories.find(p => p.id === territory.parent_id);
+                const responsible = users.find(u => u.id === territory.responsible_user_id);
+                
+                return (
+                  <div key={territory.id} className="border rounded-lg p-4">
+                    <div className="flex items-start justify-between mb-2">
+                      <div>
+                        <h3 className="font-semibold text-lg">{territory.name}</h3>
+                        {parent && (
+                          <p className="text-sm text-gray-500">
+                            Parte de: {parent.name}
+                          </p>
+                        )}
+                      </div>
+                      <Badge className={getTypeColor(territory.type)}>
+                        {territory.type}
+                      </Badge>
                     </div>
-                    <Badge className={getTypeColor(territory.type)}>
-                      {territory.type}
-                    </Badge>
-                  </div>
-                  
-                  <div className="grid grid-cols-1 md:grid-cols-3 gap-4 mt-3">
-                    <div className="flex items-center gap-2">
-                      <Users className="w-4 h-4 text-blue-600" />
-                      <span className="text-sm">
-                        Población: {formatNumber(territory.population_estimate)}
-                      </span>
-                    </div>
-                    <div className="flex items-center gap-2">
-                      <BarChart3 className="w-4 h-4 text-green-600" />
-                      <span className="text-sm">
-                        Votantes: {formatNumber(territory.voter_estimate)}
-                      </span>
-                    </div>
-                    {territory.responsible && (
+                    
+                    <div className="grid grid-cols-1 md:grid-cols-3 gap-4 mt-3">
                       <div className="flex items-center gap-2">
-                        <Users className="w-4 h-4 text-purple-600" />
+                        <Users className="w-4 h-4 text-blue-600" />
                         <span className="text-sm">
-                          Responsable: {territory.responsible.name}
+                          Población: {formatNumber(territory.population_estimate)}
                         </span>
                       </div>
-                    )}
+                      <div className="flex items-center gap-2">
+                        <BarChart3 className="w-4 h-4 text-green-600" />
+                        <span className="text-sm">
+                          Votantes: {formatNumber(territory.voter_estimate)}
+                        </span>
+                      </div>
+                      {responsible && (
+                        <div className="flex items-center gap-2">
+                          <Users className="w-4 h-4 text-purple-600" />
+                          <span className="text-sm">
+                            Responsable: {responsible.name}
+                          </span>
+                        </div>
+                      )}
+                    </div>
                   </div>
-                </div>
-              ))}
+                );
+              })}
             </div>
           )}
         </CardContent>
