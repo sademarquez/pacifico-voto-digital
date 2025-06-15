@@ -24,12 +24,15 @@ const Login = () => {
   const testConnection = async () => {
     try {
       console.log('🧪 Testing Supabase connection...');
+      const start = Date.now();
       const { data, error } = await supabase.from('profiles').select('count').limit(1);
+      const duration = Date.now() - start;
       
       setDebugInfo({
         connection: error ? 'ERROR' : 'OK',
         error: error?.message || null,
-        timestamp: new Date().toISOString()
+        timestamp: new Date().toISOString(),
+        duration: `${duration}ms`
       });
       
       if (error) {
@@ -45,6 +48,38 @@ const Login = () => {
     }
   };
 
+  const testDirectLogin = async () => {
+    console.log('🧪 Testing direct Supabase auth...');
+    try {
+      const { data, error } = await supabase.auth.signInWithPassword({
+        email: 'lider@micampana.com',
+        password: 'LiderSecure2025!',
+      });
+
+      console.log('📊 Direct login result:', {
+        hasData: !!data,
+        hasUser: !!data?.user,
+        hasSession: !!data?.session,
+        error: error ? {
+          message: error.message,
+          status: error.status,
+          name: error.name
+        } : null
+      });
+
+      if (error) {
+        setError(`Test directo falló: ${error.message}`);
+      } else if (data.user) {
+        setError('Test directo exitoso');
+        console.log('✅ Direct test successful, signing out...');
+        await supabase.auth.signOut();
+      }
+    } catch (error) {
+      console.error('💥 Direct test error:', error);
+      setError(`Error en test directo: ${error}`);
+    }
+  };
+
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     setError('');
@@ -56,12 +91,12 @@ const Login = () => {
       // Test de conexión primero
       await testConnection();
       
-      const success = await login(email, password);
-      if (success) {
+      const result = await login(email, password);
+      if (result.success) {
         console.log('✅ Login exitoso, redirigiendo...');
         navigate('/dashboard');
       } else {
-        setError('Credenciales incorrectas o error del sistema. Revisa los logs de consola.');
+        setError(result.error || 'Error desconocido');
       }
     } catch (error) {
       console.error('💥 Error en handleSubmit:', error);
@@ -93,28 +128,39 @@ const Login = () => {
               <Vote className="w-8 h-8 text-white" />
             </div>
             <CardTitle className="text-2xl font-bold text-gray-900">Mi Campaña</CardTitle>
-            <p className="text-gray-600">Sistema Electoral - Test de Conexión</p>
+            <p className="text-gray-600">Sistema Electoral - Debug Mode</p>
           </CardHeader>
           
           <CardContent>
-            {/* Test de conexión */}
-            <div className="mb-4">
-              <Button 
-                type="button" 
-                variant="outline" 
-                onClick={testConnection}
-                className="w-full mb-2"
-              >
-                🧪 Test Conexión Supabase
-              </Button>
+            {/* Test de conexión y debug */}
+            <div className="mb-4 space-y-2">
+              <div className="grid grid-cols-2 gap-2">
+                <Button 
+                  type="button" 
+                  variant="outline" 
+                  size="sm"
+                  onClick={testConnection}
+                >
+                  🧪 Test DB
+                </Button>
+                <Button 
+                  type="button" 
+                  variant="outline" 
+                  size="sm"
+                  onClick={testDirectLogin}
+                >
+                  🔐 Test Auth
+                </Button>
+              </div>
               
               {debugInfo && (
                 <Alert variant={debugInfo.connection === 'OK' ? 'default' : 'destructive'}>
                   <AlertTriangle className="h-4 w-4" />
-                  <AlertDescription>
-                    <strong>Conexión:</strong> {debugInfo.connection}<br/>
+                  <AlertDescription className="text-xs">
+                    <strong>Estado:</strong> {debugInfo.connection}<br/>
+                    <strong>Tiempo:</strong> {debugInfo.duration}<br/>
                     {debugInfo.error && <span><strong>Error:</strong> {debugInfo.error}<br/></span>}
-                    <strong>Timestamp:</strong> {debugInfo.timestamp}
+                    <strong>Hora:</strong> {new Date(debugInfo.timestamp).toLocaleTimeString()}
                   </AlertDescription>
                 </Alert>
               )}
@@ -162,7 +208,7 @@ const Login = () => {
 
               {error && (
                 <Alert variant="destructive">
-                  <AlertDescription>{error}</AlertDescription>
+                  <AlertDescription className="text-sm">{error}</AlertDescription>
                 </Alert>
               )}
 
@@ -175,6 +221,7 @@ const Login = () => {
                     size="sm"
                     onClick={() => quickLogin(cred.email, cred.password)}
                     disabled={isLoading}
+                    className="text-xs p-2"
                   >
                     {cred.role.split(' ')[0]}
                   </Button>

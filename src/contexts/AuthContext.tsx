@@ -1,7 +1,7 @@
 
 import React, { createContext, useContext, useState, ReactNode, useEffect } from 'react';
 import { supabase } from '@/integrations/supabase/client';
-import { User as SupabaseUser, Session } from '@supabase/supabase-js';
+import { User as SupabaseUser, Session, AuthError } from '@supabase/supabase-js';
 
 interface User {
   id: string;
@@ -13,7 +13,7 @@ interface User {
 interface AuthContextType {
   user: User | null;
   session: Session | null;
-  login: (email: string, password: string) => Promise<boolean>;
+  login: (email: string, password: string) => Promise<{ success: boolean; error?: string }>;
   logout: () => Promise<void>;
   isAuthenticated: boolean;
   isLoading: boolean;
@@ -27,7 +27,7 @@ export const AuthProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
   const [isLoading, setIsLoading] = useState(true);
 
   useEffect(() => {
-    console.log('🔧 AuthProvider inicializando...');
+    console.log('🔧 AuthProvider inicializando v2...');
     
     // Get initial session
     const getInitialSession = async () => {
@@ -148,7 +148,7 @@ export const AuthProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
     }
   };
 
-  const login = async (email: string, password: string): Promise<boolean> => {
+  const login = async (email: string, password: string): Promise<{ success: boolean; error?: string }> => {
     console.log('🔐 Iniciando login para:', email);
     
     try {
@@ -161,35 +161,60 @@ export const AuthProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
       
       if (testError) {
         console.error('❌ Error de conectividad:', testError);
-        return false;
+        return { success: false, error: `Error de conectividad: ${testError.message}` };
       }
       
       console.log('✅ Conectividad OK, procediendo con login...');
 
+      // Intentar el login
       const { data, error } = await supabase.auth.signInWithPassword({
         email: email.trim(),
         password: password,
       });
 
+      // Log detallado del error
       if (error) {
-        console.error('❌ Error de login:', {
+        console.error('❌ Error de login completo:', {
           message: error.message,
           status: error.status,
-          name: error.name
+          name: error.name,
+          stack: error.stack,
+          details: error
         });
-        return false;
+
+        // Clasificar tipos de errores
+        let userFriendlyError = '';
+        if (error.message.includes('Invalid login credentials')) {
+          userFriendlyError = 'Credenciales incorrectas. Verifica email y contraseña.';
+        } else if (error.message.includes('Email not confirmed')) {
+          userFriendlyError = 'Email no confirmado. Verifica tu correo.';
+        } else if (error.message.includes('Database error')) {
+          userFriendlyError = 'Error de base de datos. El usuario puede no existir o hay un problema de configuración.';
+        } else if (error.message.includes('confirmation_token')) {
+          userFriendlyError = 'Error de esquema de base de datos. Contacta al administrador.';
+        } else {
+          userFriendlyError = `Error: ${error.message}`;
+        }
+
+        return { success: false, error: userFriendlyError };
       }
 
       if (data.user) {
         console.log('✅ Login exitoso para:', data.user.email);
-        return true;
+        console.log('📊 Datos de usuario:', {
+          id: data.user.id,
+          email: data.user.email,
+          created_at: data.user.created_at,
+          email_confirmed_at: data.user.email_confirmed_at
+        });
+        return { success: true };
       }
 
       console.log('⚠️ Login sin error pero sin usuario');
-      return false;
+      return { success: false, error: 'Login sin usuario devuelto' };
     } catch (error) {
       console.error('💥 Error crítico en login:', error);
-      return false;
+      return { success: false, error: `Error crítico: ${error}` };
     }
   };
 
