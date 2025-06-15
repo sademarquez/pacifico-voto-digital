@@ -3,10 +3,14 @@ import { useAuth } from '@/contexts/AuthContext';
 import { useDataSegregation } from '@/hooks/useDataSegregation';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
-import { CheckCircle, XCircle, User, Shield } from 'lucide-react';
+import { Button } from '@/components/ui/button';
+import { CheckCircle, XCircle, User, Shield, Bug } from 'lucide-react';
+import { SystemDiagnostics } from './SystemDiagnostics';
+import { useState } from 'react';
 
 export const DebugAuthPanel = () => {
   const { user, isAuthenticated } = useAuth();
+  const [showDiagnostics, setShowDiagnostics] = useState(false);
   const {
     canCreateCandidatos,
     canCreateLideres, 
@@ -35,6 +39,14 @@ export const DebugAuthPanel = () => {
           <CardTitle className="text-sm flex items-center gap-2">
             <Shield className="w-4 h-4" />
             Debug Auth
+            <Button
+              variant="outline"
+              size="sm"
+              onClick={() => setShowDiagnostics(!showDiagnostics)}
+              className="ml-auto h-6 px-2"
+            >
+              <Bug className="w-3 h-3" />
+            </Button>
           </CardTitle>
         </CardHeader>
         <CardContent className="space-y-2">
@@ -64,8 +76,23 @@ export const DebugAuthPanel = () => {
               </div>
             ))}
           </div>
+
+          <div className="border-t pt-2">
+            <p className="text-xs font-medium mb-1">Estado Sistema:</p>
+            <div className="text-xs space-y-1">
+              <div>Auth: {isAuthenticated ? '✅' : '❌'}</div>
+              <div>User: {user ? '✅' : '❌'}</div>
+              <div>Role: {user?.role || 'N/A'}</div>
+            </div>
+          </div>
         </CardContent>
       </Card>
+
+      {showDiagnostics && (
+        <div className="max-w-lg">
+          <SystemDiagnostics />
+        </div>
+      )}
 
       <Card className="bg-blue-50/95 backdrop-blur">
         <CardHeader className="pb-2">
