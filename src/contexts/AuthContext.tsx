@@ -17,6 +17,7 @@ interface AuthContextType {
   logout: () => Promise<void>;
   isAuthenticated: boolean;
   isLoading: boolean;
+  authError: string | null;
 }
 
 const AuthContext = createContext<AuthContextType | undefined>(undefined);
@@ -37,8 +38,15 @@ const createTemporaryUserProfile = (supabaseUser: SupabaseUser): User => {
 export const AuthProvider: React.FC<{ children: ReactNode }> = ({ children }) => {
   const [user, setUser] = useState<User | null>(null);
   const [isLoading, setIsLoading] = useState(true);
+  const [authError, setAuthError] = useState<string | null>(null);
 
   useEffect(() => {
+    if (!supabase) {
+      setAuthError("Fallo la conexión con el backend (Supabase). Revisa la consola del navegador para más detalles.");
+      setIsLoading(false);
+      return;
+    }
+
     setIsLoading(true);
     const { data: authListener } = supabase.auth.onAuthStateChange(
       async (event, session) => {
@@ -56,11 +64,18 @@ export const AuthProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
     );
 
     return () => {
-      authListener.subscription.unsubscribe();
+      // Si supabase no existe, authListener será undefined
+      authListener?.subscription.unsubscribe();
     };
   }, []);
 
   const login = async (email: string, password: string): Promise<boolean> => {
+    if (!supabase) {
+      setAuthError("No se puede iniciar sesión. La conexión con el backend no está disponible.");
+      console.error('Error de login: Supabase client no está inicializado.');
+      return false;
+    }
+
     const { error } = await supabase.auth.signInWithPassword({
       email,
       password,
@@ -75,6 +90,11 @@ export const AuthProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
   };
 
   const logout = async () => {
+    if (!supabase) {
+      setAuthError("No se puede cerrar sesión. La conexión con el backend no está disponible.");
+      console.error('Error de logout: Supabase client no está inicializado.');
+      return;
+    }
     const { error } = await supabase.auth.signOut();
     if (error) {
       console.error('Error de logout en Supabase:', error.message);
@@ -87,7 +107,8 @@ export const AuthProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
     login,
     logout,
     isAuthenticated: !!user,
-    isLoading
+    isLoading,
+    authError,
   };
 
   // No renderizar los componentes hijos hasta que sepamos el estado de autenticación.
@@ -105,4 +126,3 @@ export const useAuth = () => {
   }
   return context;
 };
-

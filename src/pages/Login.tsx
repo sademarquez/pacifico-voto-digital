@@ -1,12 +1,14 @@
+
 import { useState } from "react";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
-import { Shield, Eye, EyeOff } from "lucide-react";
+import { Shield, Eye, EyeOff, Terminal } from "lucide-react";
 import { useAuth } from "../contexts/AuthContext";
 import { useNavigate } from "react-router-dom";
 import { useToast } from "@/hooks/use-toast";
+import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
 
 const Login = () => {
   const [email, setEmail] = useState("");
@@ -14,7 +16,7 @@ const Login = () => {
   const [showPassword, setShowPassword] = useState(false);
   const [isLoading, setIsLoading] = useState(false);
   
-  const { login } = useAuth();
+  const { login, authError } = useAuth();
   const navigate = useNavigate();
   const { toast } = useToast();
 
@@ -32,11 +34,15 @@ const Login = () => {
         });
         navigate("/");
       } else {
-        toast({
-          title: "Error de Acceso",
-          description: "Email o contraseña incorrectos. Aún no hay usuarios creados.",
-          variant: "destructive"
-        });
+        // El authError del contexto ya informa de problemas de conexión.
+        // Este toast es para credenciales inválidas.
+        if (!authError) {
+          toast({
+            title: "Error de Acceso",
+            description: "Email o contraseña incorrectos. Aún no hay usuarios creados.",
+            variant: "destructive"
+          });
+        }
       }
     } catch (error) {
       console.error('Login error:', error);
@@ -61,6 +67,15 @@ const Login = () => {
           <p className="text-blue-600">Inicia sesión en tu cuenta</p>
         </CardHeader>
         <CardContent>
+          {authError && (
+            <Alert variant="destructive" className="mb-4">
+              <Terminal className="h-4 w-4" />
+              <AlertTitle>Error de Conexión</AlertTitle>
+              <AlertDescription>
+                {authError} Por favor, intenta refrescar la página.
+              </AlertDescription>
+            </Alert>
+          )}
           <form onSubmit={handleSubmit} className="space-y-4">
             <div className="space-y-2">
               <Label htmlFor="email" className="text-blue-700">Email</Label>
@@ -72,6 +87,7 @@ const Login = () => {
                 placeholder="usuario@demo.com"
                 className="border-blue-200 focus:border-blue-500"
                 required
+                disabled={!!authError}
               />
             </div>
             
@@ -86,6 +102,7 @@ const Login = () => {
                   placeholder="Tu contraseña"
                   className="border-blue-200 focus:border-blue-500"
                   required
+                  disabled={!!authError}
                 />
                 <Button
                   type="button"
@@ -93,6 +110,7 @@ const Login = () => {
                   size="icon"
                   className="absolute right-2 top-1/2 -translate-y-1/2 text-blue-600"
                   onClick={() => setShowPassword(!showPassword)}
+                  disabled={!!authError}
                 >
                   {showPassword ? <EyeOff className="w-4 h-4" /> : <Eye className="w-4 h-4" />}
                 </Button>
@@ -102,7 +120,7 @@ const Login = () => {
             <Button 
               type="submit" 
               className="w-full bg-blue-600 hover:bg-blue-700" 
-              disabled={isLoading}
+              disabled={isLoading || !!authError}
             >
               {isLoading ? "Iniciando sesión..." : "Iniciar Sesión"}
             </Button>
