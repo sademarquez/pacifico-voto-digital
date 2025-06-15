@@ -1,4 +1,3 @@
-
 import { useState } from "react";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
@@ -87,18 +86,26 @@ const MassMessagingSystem = () => {
   // Mutación para crear mensaje masivo
   const createMessageMutation = useMutation({
     mutationFn: async (messageData: typeof newMessage) => {
+      const insertData: any = {
+        subject: messageData.subject,
+        content: messageData.content,
+        category: messageData.category,
+        priority: messageData.priority,
+        sender_id: user?.id,
+        status: messageData.scheduled_for ? 'scheduled' : 'draft'
+      };
+
+      if (messageData.territory_id) {
+        insertData.territory_id = messageData.territory_id;
+      }
+
+      if (messageData.scheduled_for) {
+        insertData.scheduled_for = messageData.scheduled_for;
+      }
+
       const { data, error } = await supabase
         .from('messages')
-        .insert({
-          subject: messageData.subject,
-          content: messageData.content,
-          category: messageData.category,
-          priority: messageData.priority,
-          territory_id: messageData.territory_id || null,
-          scheduled_for: messageData.scheduled_for || null,
-          sender_id: user?.id,
-          status: messageData.scheduled_for ? 'scheduled' : 'draft'
-        })
+        .insert(insertData)
         .select()
         .single();
 
@@ -129,7 +136,6 @@ const MassMessagingSystem = () => {
     }
   });
 
-  // Mutación para enviar mensaje inmediatamente
   const sendMessageMutation = useMutation({
     mutationFn: async (messageId: string) => {
       // Simular envío a través de N8N webhook

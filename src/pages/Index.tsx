@@ -18,7 +18,8 @@ import {
   Crown,
   Shield,
   Star,
-  AlertTriangle
+  AlertTriangle,
+  Calendar
 } from "lucide-react";
 import { Link } from "react-router-dom";
 import { useAuth } from "../contexts/AuthContext";
@@ -30,7 +31,6 @@ const Index = () => {
     return null;
   }
 
-  // Módulos personalizados según el rol
   const getPersonalizedModules = () => {
     const baseModules = [
       {
