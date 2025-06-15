@@ -1,4 +1,3 @@
-
 import { useState, useEffect } from "react";
 import { useAuth } from "../contexts/AuthContext";
 import { useSearchParams } from "react-router-dom";
@@ -19,6 +18,7 @@ import {
   Calendar,
   BarChart3
 } from "lucide-react";
+import DashboardVisitante from "../components/DashboardVisitante";
 
 const Dashboard = () => {
   const { user } = useAuth();
@@ -78,7 +78,7 @@ const Dashboard = () => {
       ];
     }
 
-    // Para votantes - vista limitada
+    // Para votantes y visitantes - vista limitada
     return baseTabs;
   };
 
@@ -120,6 +120,8 @@ const Dashboard = () => {
                 <MasterDashboard />
                 <PersonalizedActions />
               </div>
+            ) : user.role === 'visitante' ? (
+              <DashboardVisitante />
             ) : user.role === 'votante' ? (
               <DashboardVotante />
             ) : user.role === 'candidato' ? (

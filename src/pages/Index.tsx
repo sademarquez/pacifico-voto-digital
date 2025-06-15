@@ -1,4 +1,3 @@
-
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
@@ -217,6 +216,42 @@ const Index = () => {
             priority: 5
           }
         ];
+      case 'visitante':
+        return [
+          ...baseModules,
+          {
+            title: "Mapa de Alertas",
+            description: "Información en tiempo real de tu comunidad",
+            icon: MapPin,
+            href: "/dashboard",
+            color: "bg-orange-600",
+            priority: 2
+          },
+          {
+            title: "Conoce al Candidato",
+            description: "Propuestas y contacto directo",
+            icon: Users,
+            href: "/candidato",
+            color: "bg-purple-600",
+            priority: 3
+          },
+          {
+            title: "Tu Comunidad",
+            description: "Conecta con vecinos y participa",
+            icon: Network,
+            href: "/comunidad",
+            color: "bg-green-600",
+            priority: 4
+          },
+          {
+            title: "Eventos Públicos",
+            description: "Actividades y encuentros ciudadanos",
+            icon: Calendar,
+            href: "/eventos-publicos",
+            color: "bg-blue-600",
+            priority: 5
+          }
+        ];
 
       default:
         return baseModules;
@@ -265,6 +300,16 @@ const Index = () => {
           color: "bg-indigo-600",
           description: "Contribución valiosa al equipo"
         };
+      
+      case 'visitante':
+        return {
+          icon: MapPin,
+          title: "Visitante Bienvenido",
+          subtitle: "Explora tu Comunidad",
+          color: "bg-orange-600",
+          description: "Descubre información pública de tu zona"
+        };
+      
       default:
         return {
           icon: Users,
