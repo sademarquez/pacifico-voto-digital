@@ -37,10 +37,10 @@ export const useDemoUsers = () => {
       role: 'lider'
     },
     {
-      email: 'visitante@demo.com',
+      email: 'votante@demo.com',
       password: FIXED_PASSWORD,
-      name: 'Visitante',
-      role: 'visitante'
+      name: 'Votante',
+      role: 'votante'
     }
   ];
 

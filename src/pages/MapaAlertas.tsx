@@ -2,149 +2,399 @@
 import { useState } from "react";
 import { useQuery } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
-import { GoogleMap, LoadScript, Marker } from '@react-google-maps/api';
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
-import { Circle } from 'lucide-react';
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
+import { 
+  MapPin, 
+  AlertTriangle, 
+  Users, 
+  Vote,
+  Heart,
+  Phone,
+  MessageCircle,
+  Share2,
+  Calendar,
+  Trophy,
+  Target,
+  Star,
+  Navigation,
+  Home,
+  Building2
+} from "lucide-react";
 
-interface Alert {
+interface LocationData {
   id: string;
-  title: string;
-  description: string;
-  type: 'security' | 'logistics' | 'social' | 'political';
-  status: 'active' | 'resolved' | 'archived';
-  priority: 'low' | 'medium' | 'high';
-  created_at: string;
-  territory: {
-    id: string;
-    name: string;
-    coordinates: { lat: number; lng: number };
-  } | null;
+  name: string;
+  type: string;
+  alerts: number;
+  population: number;
+  events: number;
 }
 
 const MapaAlertas = () => {
-  const [mapCenter, setMapCenter] = useState({ lat: 4.60971, lng: -74.08175 }); // Centro de Colombia
-  const [zoomLevel, setZoomLevel] = useState(6);
+  const [selectedLocation, setSelectedLocation] = useState<LocationData | null>(null);
+  const [showCandidateInfo, setShowCandidateInfo] = useState(false);
+  
+  const locations: LocationData[] = [
+    { id: "bogota-centro", name: "Bogotá Centro", type: "zona", alerts: 3, population: 45000, events: 2 },
+    { id: "chapinero", name: "Chapinero", type: "barrio", alerts: 1, population: 32000, events: 4 },
+    { id: "suba", name: "Suba", type: "barrio", alerts: 2, population: 67000, events: 1 },
+    { id: "usaquen", name: "Usaquén", type: "barrio", alerts: 0, population: 28000, events: 3 },
+    { id: "kennedy", name: "Kennedy", type: "barrio", alerts: 4, population: 89000, events: 2 },
+    { id: "engativa", name: "Engativá", type: "barrio", alerts: 1, population: 52000, events: 5 }
+  ];
 
-  const { data: alerts = [], isLoading } = useQuery({
-    queryKey: ['alerts-map'],
-    queryFn: async (): Promise<Alert[]> => {
-      let { data, error } = await supabase
+  // Query para alertas según ubicación seleccionada
+  const { data: locationAlerts = [], isLoading } = useQuery({
+    queryKey: ['visitor-alerts', selectedLocation?.id],
+    queryFn: async () => {
+      if (!selectedLocation) return [];
+      
+      const { data, error } = await supabase
         .from('alerts')
         .select(`
-          id,
-          title,
-          description,
-          type,
-          status,
-          priority,
-          created_at,
-          territory:territories (
-            id,
-            name,
-            coordinates
-          )
-        `);
-      
+          *,
+          territories(name, type)
+        `)
+        .eq('status', 'active')
+        .order('priority', { ascending: false })
+        .limit(6);
+
       if (error) {
-        console.error("Error fetching alerts for map:", error);
+        console.error('Error obteniendo alertas:', error);
         return [];
       }
-
-      // Filtrar alertas que no tienen territorio o coordenadas
-      const validAlerts = data.filter(alert => 
-        alert.territory && 
-        alert.territory.coordinates &&
-        typeof (alert.territory.coordinates as any).lat === 'number' &&
-        typeof (alert.territory.coordinates as any).lng === 'number'
-      );
-
-      return validAlerts as Alert[];
+      
+      return data || [];
     },
-    refetchOnWindowFocus: false,
+    enabled: !!selectedLocation
   });
 
-  const getAlertTypeColor = (type: string) => {
-    switch (type) {
-      case 'security': return 'bg-red-100 text-red-800';
-      case 'logistics': return 'bg-blue-100 text-blue-800';
-      case 'social': return 'bg-green-100 text-green-800';
-      case 'political': return 'bg-yellow-100 text-yellow-800';
-      default: return 'bg-gray-100 text-gray-800';
+  const handleLocationSelect = (locationId: string) => {
+    const location = locations.find(l => l.id === locationId);
+    setSelectedLocation(location || null);
+    
+    // Mostrar info del candidato después de seleccionar ubicación
+    if (location) {
+      setTimeout(() => {
+        setShowCandidateInfo(true);
+      }, 2000);
     }
   };
 
-  const getAlertPriorityColor = (priority: string) => {
+  const candidateInfo = {
+    name: "María González",
+    position: "Alcaldía Local",
+    photo: "/lovable-uploads/83527a7a-6d3b-4edb-bdfc-312894177818.png",
+    slogan: "¡Juntos por el Cambio Real!",
+    whatsapp: "+57 300 123 4567",
+    proposals: [
+      "🏥 Salud gratuita para todos",
+      "🎓 Educación de calidad",
+      "🚌 Transporte público eficiente",
+      "🌳 Espacios verdes en cada barrio",
+      "💼 Empleos dignos para jóvenes"
+    ]
+  };
+
+  const getAlertColor = (priority: string) => {
     switch (priority) {
-      case 'low': return 'text-green-500';
-      case 'medium': return 'text-yellow-500';
-      case 'high': return 'text-red-500';
-      default: return 'text-gray-500';
+      case 'urgent': return 'bg-red-500 text-white';
+      case 'high': return 'bg-orange-500 text-white';
+      case 'medium': return 'bg-yellow-500 text-white';
+      case 'low': return 'bg-green-500 text-white';
+      default: return 'bg-gray-500 text-white';
     }
   };
 
-  const mapStyles = {
-    height: '600px',
-    width: '100%'
-  }
+  const getAlertIcon = (type: string) => {
+    switch (type) {
+      case 'security': return <AlertTriangle className="w-4 h-4" />;
+      case 'event': return <Calendar className="w-4 h-4" />;
+      case 'campaign': return <Vote className="w-4 h-4" />;
+      default: return <MapPin className="w-4 h-4" />;
+    }
+  };
 
   return (
-    <div className="container mx-auto p-4">
-      <Card>
-        <CardHeader>
-          <CardTitle>Mapa de Alertas</CardTitle>
-        </CardHeader>
-        <CardContent>
-          <LoadScript googleMapsApiKey={import.meta.env.VITE_GOOGLE_MAPS_API_KEY || ''}>
-            <GoogleMap
-              mapContainerStyle={mapStyles}
-              center={mapCenter}
-              zoom={zoomLevel}
-            >
-              {alerts.map((alert) => (
-                <Marker
-                  key={alert.id}
-                  position={{
-                    lat: (alert.territory?.coordinates as any).lat,
-                    lng: (alert.territory?.coordinates as any).lng
-                  }}
-                  title={alert.title}
-                />
-              ))}
-            </GoogleMap>
-          </LoadScript>
-        </CardContent>
-      </Card>
+    <div className="min-h-screen bg-gradient-to-br from-blue-50 via-white to-gray-50">
+      {/* Header de Bienvenida */}
+      <div className="bg-gradient-to-r from-blue-600 via-purple-600 to-indigo-600 text-white p-6">
+        <div className="container mx-auto text-center">
+          <h1 className="text-3xl font-bold mb-2">¡Bienvenido a MI CAMPAÑA!</h1>
+          <p className="text-lg opacity-90 mb-4">
+            Descubre lo que está pasando en tu comunidad
+          </p>
+          <div className="flex justify-center items-center gap-2">
+            <Star className="w-6 h-6 text-yellow-300" />
+            <span className="text-yellow-300 font-semibold">Tu voz cuenta, tu voto transforma</span>
+          </div>
+        </div>
+      </div>
 
-      <div className="mt-4">
-        <h2 className="text-xl font-semibold mb-2">Listado de Alertas</h2>
-        {isLoading ? (
-          <div>Cargando alertas...</div>
-        ) : (
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
-            {alerts.map((alert) => (
-              <Card key={alert.id}>
+      <div className="container mx-auto px-4 py-6 space-y-6">
+        {/* Selector de Ubicación */}
+        <Card className="border-2 border-blue-200">
+          <CardHeader>
+            <CardTitle className="flex items-center gap-2 text-blue-700">
+              <Navigation className="w-6 h-6" />
+              Selecciona tu Ubicación
+            </CardTitle>
+          </CardHeader>
+          <CardContent>
+            <div className="space-y-4">
+              <Select onValueChange={handleLocationSelect}>
+                <SelectTrigger className="w-full">
+                  <SelectValue placeholder="¿Dónde vives? Selecciona tu zona..." />
+                </SelectTrigger>
+                <SelectContent>
+                  {locations.map((location) => (
+                    <SelectItem key={location.id} value={location.id}>
+                      <div className="flex items-center gap-2">
+                        <Home className="w-4 h-4 text-blue-600" />
+                        <span>{location.name}</span>
+                        <Badge variant="outline" className="text-xs">
+                          {location.type}
+                        </Badge>
+                      </div>
+                    </SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
+              
+              {selectedLocation && (
+                <div className="bg-green-50 border border-green-200 rounded-lg p-4">
+                  <div className="flex items-center gap-2 text-green-800">
+                    <Target className="w-5 h-5" />
+                    <span className="font-semibold">
+                      Ubicación seleccionada: {selectedLocation.name}
+                    </span>
+                  </div>
+                  <p className="text-green-700 text-sm mt-1">
+                    Ahora puedes ver las alertas e información específica de tu zona
+                  </p>
+                </div>
+              )}
+            </div>
+          </CardContent>
+        </Card>
+
+        {/* Contenido Principal */}
+        {selectedLocation && (
+          <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
+            {/* Mapa Visual */}
+            <div className="lg:col-span-2">
+              <Card>
                 <CardHeader>
-                  <CardTitle>{alert.title}</CardTitle>
+                  <CardTitle className="flex items-center gap-2">
+                    <MapPin className="w-5 h-5 text-blue-600" />
+                    Mapa Interactivo - {selectedLocation.name}
+                  </CardTitle>
                 </CardHeader>
                 <CardContent>
-                  <p className="text-sm text-gray-500">{alert.description}</p>
-                  <div className="mt-2">
-                    <Badge className={getAlertTypeColor(alert.type)}>
-                      {alert.type}
-                    </Badge>
-                    <div className="flex items-center gap-2 mt-1">
-                      <Circle className={`w-3 h-3 ${getAlertPriorityColor(alert.priority)}`} />
-                      Prioridad: {alert.priority}
+                  <div className="bg-gradient-to-br from-blue-50 to-green-50 rounded-lg p-6 min-h-[400px] border-2 border-dashed border-blue-200">
+                    <div className="grid grid-cols-3 gap-4 h-full">
+                      {locations.map((location) => (
+                        <div
+                          key={location.id}
+                          className={`rounded-lg p-4 cursor-pointer transition-all hover:scale-105 border-2 ${
+                            selectedLocation?.id === location.id 
+                              ? 'border-blue-500 bg-blue-100 shadow-lg' 
+                              : 'border-gray-300 bg-white hover:border-blue-300'
+                          }`}
+                          onClick={() => handleLocationSelect(location.id)}
+                        >
+                          <div className="text-center">
+                            <div className="w-8 h-8 mx-auto mb-2 bg-blue-600 rounded-full flex items-center justify-center">
+                              <Building2 className="w-4 h-4 text-white" />
+                            </div>
+                            <h4 className="font-medium text-sm">{location.name}</h4>
+                            <div className="flex justify-center gap-1 mt-2">
+                              {location.alerts > 0 && (
+                                <Badge className="bg-red-100 text-red-800 text-xs">{location.alerts}</Badge>
+                              )}
+                              <Badge className="bg-blue-100 text-blue-800 text-xs">{location.events}</Badge>
+                            </div>
+                          </div>
+                        </div>
+                      ))}
                     </div>
                   </div>
-                  <p className="text-xs text-gray-400 mt-2">
-                    Creado: {new Date(alert.created_at).toLocaleDateString()}
-                  </p>
+
+                  {/* Alertas */}
+                  <div className="mt-6">
+                    <h3 className="text-lg font-semibold mb-4 flex items-center gap-2">
+                      <AlertTriangle className="w-5 h-5 text-orange-600" />
+                      Alertas en {selectedLocation.name}
+                    </h3>
+                    
+                    {isLoading ? (
+                      <div className="text-center py-8">
+                        <div className="animate-spin w-8 h-8 border-4 border-blue-600 border-t-transparent rounded-full mx-auto mb-4"></div>
+                        <p className="text-gray-600">Cargando alertas...</p>
+                      </div>
+                    ) : locationAlerts.length === 0 ? (
+                      <div className="text-center py-8">
+                        <div className="w-16 h-16 bg-green-100 rounded-full flex items-center justify-center mx-auto mb-4">
+                          <Trophy className="w-8 h-8 text-green-600" />
+                        </div>
+                        <h4 className="text-lg font-semibold text-green-800 mb-2">¡Zona Tranquila!</h4>
+                        <p className="text-green-600">No hay alertas activas en tu zona.</p>
+                      </div>
+                    ) : (
+                      <div className="space-y-4">
+                        {locationAlerts.slice(0, 3).map((alert) => (
+                          <div key={alert.id} className="border rounded-lg p-4 hover:shadow-md transition-shadow">
+                            <div className="flex items-start justify-between">
+                              <div className="flex items-start gap-3 flex-1">
+                                <div className="p-2 bg-gray-100 rounded-lg">
+                                  {getAlertIcon(alert.type)}
+                                </div>
+                                <div className="flex-1">
+                                  <h4 className="font-semibold text-gray-900">{alert.title}</h4>
+                                  <p className="text-sm text-gray-600 mt-1">{alert.description}</p>
+                                </div>
+                              </div>
+                              <Badge className={`${getAlertColor(alert.priority)} text-xs`}>
+                                {alert.priority}
+                              </Badge>
+                            </div>
+                          </div>
+                        ))}
+                      </div>
+                    )}
+                  </div>
                 </CardContent>
               </Card>
-            ))}
+            </div>
+
+            {/* Panel de Candidato */}
+            <div className="space-y-4">
+              {showCandidateInfo && (
+                <Card className="border-2 border-purple-200 shadow-lg">
+                  <CardHeader className="bg-gradient-to-r from-purple-500 to-blue-500 text-white rounded-t-lg">
+                    <CardTitle className="text-center">Tu Candidata</CardTitle>
+                  </CardHeader>
+                  <CardContent className="p-6">
+                    <div className="text-center space-y-4">
+                      <div className="w-24 h-24 mx-auto rounded-full overflow-hidden border-4 border-purple-200">
+                        <img 
+                          src={candidateInfo.photo} 
+                          alt={candidateInfo.name}
+                          className="w-full h-full object-cover"
+                        />
+                      </div>
+                      
+                      <div>
+                        <h3 className="text-xl font-bold text-purple-800">{candidateInfo.name}</h3>
+                        <p className="text-purple-600 font-semibold">{candidateInfo.position}</p>
+                        <p className="text-lg text-purple-700 mt-2 font-medium">"{candidateInfo.slogan}"</p>
+                      </div>
+
+                      <div className="space-y-2">
+                        <h4 className="font-semibold text-gray-800">Nuestras Propuestas:</h4>
+                        <div className="space-y-1">
+                          {candidateInfo.proposals.map((proposal, index) => (
+                            <p key={index} className="text-sm text-gray-700 text-left">{proposal}</p>
+                          ))}
+                        </div>
+                      </div>
+
+                      {/* Llamadas a Acción */}
+                      <div className="space-y-3 pt-4 border-t">
+                        <Button 
+                          className="w-full bg-green-600 hover:bg-green-700"
+                          onClick={() => window.open(`https://wa.me/${candidateInfo.whatsapp.replace(/\s/g, '')}`, '_blank')}
+                        >
+                          <Phone className="w-4 h-4 mr-2" />
+                          Contactar por WhatsApp
+                        </Button>
+                        
+                        <Button 
+                          variant="outline" 
+                          className="w-full border-blue-600 text-blue-600 hover:bg-blue-50"
+                        >
+                          <MessageCircle className="w-4 h-4 mr-2" />
+                          Enviar Mensaje
+                        </Button>
+                        
+                        <Button 
+                          variant="outline" 
+                          className="w-full border-purple-600 text-purple-600 hover:bg-purple-50"
+                        >
+                          <Share2 className="w-4 h-4 mr-2" />
+                          Compartir con Amigos
+                        </Button>
+                      </div>
+                    </div>
+                  </CardContent>
+                </Card>
+              )}
+
+              {/* Información Comunitaria */}
+              <Card>
+                <CardHeader>
+                  <CardTitle className="flex items-center gap-2 text-blue-700">
+                    <Users className="w-5 h-5" />
+                    Tu Comunidad - {selectedLocation.name}
+                  </CardTitle>
+                </CardHeader>
+                <CardContent>
+                  <div className="space-y-3">
+                    <div className="flex justify-between">
+                      <span className="text-sm text-gray-600">Población:</span>
+                      <Badge variant="outline">{selectedLocation.population.toLocaleString()}</Badge>
+                    </div>
+                    <div className="flex justify-between">
+                      <span className="text-sm text-gray-600">Alertas activas:</span>
+                      <Badge className={selectedLocation.alerts > 2 ? "bg-red-100 text-red-800" : "bg-green-100 text-green-800"}>
+                        {selectedLocation.alerts}
+                      </Badge>
+                    </div>
+                    <div className="flex justify-between">
+                      <span className="text-sm text-gray-600">Eventos este mes:</span>
+                      <Badge className="bg-purple-100 text-purple-800">{selectedLocation.events}</Badge>
+                    </div>
+                  </div>
+                  
+                  <div className="mt-4 pt-4 border-t">
+                    <Button className="w-full bg-blue-600 hover:bg-blue-700">
+                      <Heart className="w-4 h-4 mr-2" />
+                      Únete a la Comunidad
+                    </Button>
+                  </div>
+                </CardContent>
+              </Card>
+            </div>
           </div>
+        )}
+
+        {/* Footer motivacional */}
+        {selectedLocation && (
+          <Card className="bg-gradient-to-r from-blue-50 to-purple-50 border-blue-200">
+            <CardContent className="p-6">
+              <div className="text-center">
+                <h3 className="text-lg font-semibold text-blue-800 mb-2">
+                  ¡Tu participación es clave para el cambio!
+                </h3>
+                <p className="text-blue-700 mb-4">
+                  Mantente informado sobre todo lo que pasa en tu comunidad y sé parte de la transformación.
+                </p>
+                <div className="flex justify-center gap-4">
+                  <Button className="bg-blue-600 hover:bg-blue-700">
+                    <Vote className="w-4 h-4 mr-2" />
+                    Registrarme para Votar
+                  </Button>
+                  <Button variant="outline" className="border-purple-600 text-purple-600">
+                    <Calendar className="w-4 h-4 mr-2" />
+                    Ver Próximos Eventos
+                  </Button>
+                </div>
+              </div>
+            </CardContent>
+          </Card>
         )}
       </div>
     </div>
