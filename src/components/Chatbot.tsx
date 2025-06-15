@@ -5,6 +5,7 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Badge } from "@/components/ui/badge";
 import { ScrollArea } from "@/components/ui/scroll-area";
+import { useAuth } from "../contexts/AuthContext";
 import { 
   MessageSquare, 
   Send, 
@@ -13,7 +14,12 @@ import {
   Loader2,
   Minimize2,
   Maximize2,
-  X
+  X,
+  Crown,
+  Building2,
+  Users,
+  UserCheck,
+  Star
 } from "lucide-react";
 
 interface Message {
@@ -31,26 +37,97 @@ interface ChatbotProps {
 }
 
 const Chatbot = ({ isMinimized = false, onToggleMinimize, onClose }: ChatbotProps) => {
-  const [messages, setMessages] = useState<Message[]>([
-    {
-      id: '1',
-      content: '¡Hola! Soy tu asistente de campaña de MI CAMPAÑA 2025. Estoy aquí para ayudarte con información sobre nuestras propuestas, transparencia y honestidad. ¿En qué puedo ayudarte?',
-      sender: 'bot',
-      timestamp: new Date()
-    }
-  ]);
+  const { user } = useAuth();
+  const [messages, setMessages] = useState<Message[]>([]);
   const [inputMessage, setInputMessage] = useState('');
   const [isLoading, setIsLoading] = useState(false);
   const [apiKey, setApiKey] = useState(localStorage.getItem('gemini-api-key') || '');
   const messagesEndRef = useRef<HTMLDivElement>(null);
 
-  const quickReplies = [
-    "Propuestas de campaña",
-    "Cómo puedo ayudar",
-    "Eventos próximos",
-    "Información del candidato",
-    "Denuncias y reportes"
-  ];
+  // Mensajes de bienvenida personalizados por rol
+  const getWelcomeMessage = () => {
+    const baseMessage = '¡Hola! Soy tu asistente inteligente de MI CAMPAÑA 2025.';
+    
+    switch (user?.role) {
+      case 'desarrollador':
+        return `${baseMessage} Como desarrollador, puedo ayudarte con aspectos técnicos del sistema, configuraciones N8N, análisis de datos y optimización del ecosistema de campaña.`;
+      case 'master':
+        return `${baseMessage} Como Master de Campaña, tengo acceso completo a estadísticas estratégicas, análisis de rendimiento territorial, coordinación de candidatos y métricas de engagement. ¿En qué estrategia te puedo asesorar?`;
+      case 'candidato':
+        return `${baseMessage} Como candidato, puedo ayudarte con estrategias de comunicación, análisis de tu territorio, coordinación con líderes, preparación de eventos y seguimiento de objetivos de campaña.`;
+      case 'lider':
+        return `${baseMessage} Como líder territorial, puedo asistirte con gestión de votantes, organización de actividades locales, reportes de progreso y coordinación con tu candidato.`;
+      case 'votante':
+        return `${baseMessage} Como votante activo, puedo ayudarte con tus tareas de campaña, eventos próximos, formas de participar más activamente y conectarte con tu comunidad.`;
+      default:
+        return `${baseMessage} Estoy aquí para ayudarte con información sobre nuestras propuestas, transparencia y honestidad. ¿En qué puedo ayudarte?`;
+    }
+  };
+
+  // Quick replies personalizados por rol
+  const getQuickReplies = () => {
+    const baseReplies = ["Propuestas de campaña", "Información del candidato"];
+    
+    switch (user?.role) {
+      case 'desarrollador':
+        return [...baseReplies, "Estado del sistema", "Configurar N8N", "Analytics técnicos"];
+      case 'master':
+        return [...baseReplies, "Estrategia general", "Métricas de candidatos", "ROI de campaña", "Análisis territorial"];
+      case 'candidato':
+        return [...baseReplies, "Mi equipo territorial", "Próximos eventos", "Estrategia local", "Reportes de progreso"];
+      case 'lider':
+        return [...baseReplies, "Gestionar votantes", "Organizar evento", "Reportar actividades", "Contactar candidato"];
+      case 'votante':
+        return [...baseReplies, "Mis tareas", "Eventos próximos", "Cómo ayudar más", "Mi progreso"];
+      default:
+        return [...baseReplies, "Cómo puedo ayudar", "Eventos próximos", "Denuncias y reportes"];
+    }
+  };
+
+  const getRoleIcon = () => {
+    switch (user?.role) {
+      case 'desarrollador': return Star;
+      case 'master': return Crown;
+      case 'candidato': return Building2;
+      case 'lider': return Users;
+      case 'votante': return UserCheck;
+      default: return Bot;
+    }
+  };
+
+  const getRoleColor = () => {
+    switch (user?.role) {
+      case 'desarrollador': return 'from-yellow-600 to-yellow-700';
+      case 'master': return 'from-purple-600 to-purple-700';
+      case 'candidato': return 'from-blue-600 to-blue-700';
+      case 'lider': return 'from-green-600 to-green-700';
+      case 'votante': return 'from-gray-600 to-gray-700';
+      default: return 'from-blue-600 to-blue-700';
+    }
+  };
+
+  const getRoleTitle = () => {
+    switch (user?.role) {
+      case 'desarrollador': return 'Asistente Técnico';
+      case 'master': return 'Asistente Estratégico Master';
+      case 'candidato': return 'Asistente de Candidato';
+      case 'lider': return 'Asistente Territorial';
+      case 'votante': return 'Asistente Personal';
+      default: return 'Asistente MI CAMPAÑA';
+    }
+  };
+
+  useEffect(() => {
+    if (messages.length === 0) {
+      const welcomeMessage: Message = {
+        id: '1',
+        content: getWelcomeMessage(),
+        sender: 'bot',
+        timestamp: new Date()
+      };
+      setMessages([welcomeMessage]);
+    }
+  }, [user?.role]);
 
   const scrollToBottom = () => {
     messagesEndRef.current?.scrollIntoView({ behavior: "smooth" });
@@ -71,22 +148,34 @@ const Chatbot = ({ isMinimized = false, onToggleMinimize, onClose }: ChatbotProp
     }
 
     try {
-      const prompt = `Eres un asistente de campaña política de "MI CAMPAÑA 2025" comprometido con la transparencia y honestidad.
+      const roleContext = {
+        desarrollador: "Eres un asistente técnico especializado en sistemas de campaña, N8N, análisis de datos y optimización técnica.",
+        master: "Eres un asistente estratégico de alta gerencia, especializado en análisis territorial, coordinación de candidatos, métricas de campaña y ROI político.",
+        candidato: "Eres un asistente de candidato, especializado en estrategia local, comunicación política, gestión de equipo territorial y eventos de campaña.",
+        lider: "Eres un asistente territorial, especializado en gestión de votantes, organización comunitaria, reportes locales y coordinación con candidatos.",
+        votante: "Eres un asistente personal de campaña, especializado en motivar participación, explicar tareas, conectar con la comunidad y gamificación."
+      };
+
+      const prompt = `${roleContext[user?.role as keyof typeof roleContext] || roleContext.votante}
       
       Contexto de la campaña:
+      - Usuario actual: ${user?.name} (${user?.role})
       - Lema: "MI CAMPAÑA 2025 - Transparencia y Honestidad"
-      - Enfoque en transparencia y lucha contra la corrupción
-      - Trabajo territorial con líderes comunitarios
-      - Registro y seguimiento de votantes
-      - Sistema de alertas y reportes ciudadanos
-      - Red de ayudantes territoriales
+      - Sistema integrado con N8N para automatización
+      - Enfoque en datos en tiempo real y métricas estratégicas
+      - Ecosistema completo: Master > Candidatos > Líderes > Votantes
       
-      Responde de manera motivadora, política y comprometida. Mantén un tono profesional pero cercano.
-      Si te preguntan sobre propuestas específicas, menciona temas como educación, salud, infraestructura, empleo y transparencia.
+      Información adicional por rol:
+      - Desarrollador: Acceso total al sistema, configuración N8N, análisis técnico
+      - Master: Visión estratégica completa, métricas de todos los candidatos, ROI
+      - Candidato: Gestión de territorio específico, equipo de líderes, eventos locales
+      - Líder: Base de datos de votantes, actividades territoriales, reportes
+      - Votante: Tareas personales, eventos próximos, progreso individual
       
+      Responde como el asistente especializado para este rol específico.
       Pregunta del usuario: ${userMessage}
       
-      Responde máximo en 150 palabras:`;
+      Responde máximo en 150 palabras con un enfoque profesional pero motivador:`;
 
       const response = await fetch(`https://generativelanguage.googleapis.com/v1beta/models/gemini-2.0-flash:generateContent?key=${apiKey}`, {
         method: 'POST',
@@ -173,11 +262,13 @@ const Chatbot = ({ isMinimized = false, onToggleMinimize, onClose }: ChatbotProp
     handleSendMessage(reply);
   };
 
+  const RoleIcon = getRoleIcon();
+
   if (isMinimized) {
     return (
-      <Card className="fixed bottom-4 right-4 w-16 h-16 cursor-pointer shadow-2xl hover:shadow-3xl transition-all duration-300 transform hover:scale-105" onClick={onToggleMinimize}>
-        <CardContent className="p-0 h-full flex items-center justify-center bg-gradient-to-r from-blue-600 to-blue-700 rounded-lg">
-          <MessageSquare className="w-8 h-8 text-white" />
+      <Card className={`fixed bottom-4 right-4 w-16 h-16 cursor-pointer shadow-2xl hover:shadow-3xl transition-all duration-300 transform hover:scale-105`} onClick={onToggleMinimize}>
+        <CardContent className={`p-0 h-full flex items-center justify-center bg-gradient-to-r ${getRoleColor()} rounded-lg`}>
+          <RoleIcon className="w-8 h-8 text-white" />
         </CardContent>
       </Card>
     );
@@ -185,11 +276,14 @@ const Chatbot = ({ isMinimized = false, onToggleMinimize, onClose }: ChatbotProp
 
   return (
     <Card className="fixed bottom-4 right-4 w-96 h-[500px] shadow-2xl border-blue-200 bg-white z-50">
-      <CardHeader className="bg-gradient-to-r from-blue-700 to-blue-800 text-white rounded-t-lg p-4">
+      <CardHeader className={`bg-gradient-to-r ${getRoleColor()} text-white rounded-t-lg p-4`}>
         <div className="flex items-center justify-between">
           <div className="flex items-center space-x-2">
-            <Bot className="w-6 h-6" />
-            <CardTitle className="text-lg">Asistente MI CAMPAÑA</CardTitle>
+            <RoleIcon className="w-6 h-6" />
+            <div>
+              <CardTitle className="text-lg">{getRoleTitle()}</CardTitle>
+              <p className="text-xs opacity-90">{user?.name}</p>
+            </div>
           </div>
           <div className="flex space-x-1">
             <Button 
@@ -231,7 +325,7 @@ const Chatbot = ({ isMinimized = false, onToggleMinimize, onClose }: ChatbotProp
               <Button
                 size="sm"
                 onClick={() => saveApiKey(apiKey)}
-                className="bg-blue-600 hover:bg-blue-700"
+                className={`bg-gradient-to-r ${getRoleColor()}`}
               >
                 Guardar
               </Button>
@@ -252,12 +346,12 @@ const Chatbot = ({ isMinimized = false, onToggleMinimize, onClose }: ChatbotProp
                 <div
                   className={`max-w-[80%] p-3 rounded-lg ${
                     message.sender === 'user'
-                      ? 'bg-blue-600 text-white'
-                      : 'bg-gray-100 text-blue-800'
+                      ? `bg-gradient-to-r ${getRoleColor()} text-white`
+                      : 'bg-gray-100 text-gray-800'
                   } shadow-sm`}
                 >
                   <div className="flex items-start space-x-2">
-                    {message.sender === 'bot' && <Bot className="w-4 h-4 mt-1 text-blue-600" />}
+                    {message.sender === 'bot' && <RoleIcon className="w-4 h-4 mt-1 text-gray-600" />}
                     {message.sender === 'user' && <User className="w-4 h-4 mt-1 text-white" />}
                     <p className="text-sm">{message.content}</p>
                   </div>
@@ -272,9 +366,9 @@ const Chatbot = ({ isMinimized = false, onToggleMinimize, onClose }: ChatbotProp
               <div className="flex justify-start">
                 <div className="bg-gray-100 p-3 rounded-lg shadow-sm">
                   <div className="flex items-center space-x-2">
-                    <Bot className="w-4 h-4 text-blue-600" />
-                    <Loader2 className="w-4 h-4 animate-spin text-blue-600" />
-                    <span className="text-sm text-blue-600">Escribiendo...</span>
+                    <RoleIcon className="w-4 h-4 text-gray-600" />
+                    <Loader2 className="w-4 h-4 animate-spin text-gray-600" />
+                    <span className="text-sm text-gray-600">Analizando...</span>
                   </div>
                 </div>
               </div>
@@ -285,13 +379,13 @@ const Chatbot = ({ isMinimized = false, onToggleMinimize, onClose }: ChatbotProp
 
         <div className="p-4 border-t border-gray-200">
           <div className="flex flex-wrap gap-2 mb-3">
-            {quickReplies.map((reply, index) => (
+            {getQuickReplies().map((reply, index) => (
               <Button
                 key={index}
                 variant="outline"
                 size="sm"
                 onClick={() => handleQuickReply(reply)}
-                className="text-xs border-blue-300 text-blue-700 hover:bg-blue-100"
+                className={`text-xs border-blue-300 text-blue-700 hover:bg-gradient-to-r hover:${getRoleColor()} hover:text-white`}
               >
                 {reply}
               </Button>
@@ -309,7 +403,7 @@ const Chatbot = ({ isMinimized = false, onToggleMinimize, onClose }: ChatbotProp
             <Button
               onClick={() => handleSendMessage()}
               disabled={isLoading || !inputMessage.trim()}
-              className="bg-blue-600 hover:bg-blue-700"
+              className={`bg-gradient-to-r ${getRoleColor()}`}
             >
               <Send className="w-4 h-4" />
             </Button>

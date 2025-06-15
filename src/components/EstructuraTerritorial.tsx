@@ -8,6 +8,7 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { useAuth } from "../contexts/AuthContext";
 import { useDataSegregation } from "../hooks/useDataSegregation";
+import { useToast } from "@/hooks/use-toast";
 import { 
   Users, 
   MapPin, 
@@ -18,7 +19,10 @@ import {
   Crown,
   Star,
   Navigation,
-  UserCheck
+  UserCheck,
+  MessageSquare,
+  Zap,
+  TrendingUp
 } from "lucide-react";
 
 interface EstructuraTerritorialProps {
@@ -33,10 +37,70 @@ interface Profile {
   created_at: string;
 }
 
+interface RealTimeStats {
+  totalProfiles: number;
+  candidatos: number;
+  lideres: number;
+  votantes: number;
+  territorios: number;
+  mensajesHoy: number;
+  alertasActivas: number;
+  eventosProximos: number;
+}
+
 const EstructuraTerritorial: React.FC<EstructuraTerritorialProps> = ({ busqueda, filtro }) => {
   const { user } = useAuth();
   const { getPermissions } = useDataSegregation();
+  const { toast } = useToast();
   const permissions = getPermissions();
+
+  // Query para estadísticas en tiempo real
+  const { data: realTimeStats, isLoading: statsLoading } = useQuery({
+    queryKey: ['real-time-stats', user?.id],
+    queryFn: async (): Promise<RealTimeStats> => {
+      if (!user) return {
+        totalProfiles: 0, candidatos: 0, lideres: 0, votantes: 0,
+        territorios: 0, mensajesHoy: 0, alertasActivas: 0, eventosProximos: 0
+      };
+
+      console.log('🔍 Obteniendo estadísticas en tiempo real...');
+
+      // Obtener conteos reales de la base de datos
+      const [
+        { count: totalProfiles },
+        { count: candidatos },
+        { count: lideres },
+        { count: votantes },
+        { count: territorios },
+        { count: mensajesHoy },
+        { count: alertasActivas },
+        { count: eventosProximos }
+      ] = await Promise.all([
+        supabase.from('profiles').select('*', { count: 'exact', head: true }),
+        supabase.from('profiles').select('*', { count: 'exact', head: true }).eq('role', 'candidato'),
+        supabase.from('profiles').select('*', { count: 'exact', head: true }).eq('role', 'lider'),
+        supabase.from('profiles').select('*', { count: 'exact', head: true }).eq('role', 'votante'),
+        supabase.from('territories').select('*', { count: 'exact', head: true }),
+        supabase.from('messages').select('*', { count: 'exact', head: true }).gte('created_at', new Date().toISOString().split('T')[0]),
+        supabase.from('alerts').select('*', { count: 'exact', head: true }).eq('status', 'active'),
+        supabase.from('events').select('*', { count: 'exact', head: true }).gte('start_date', new Date().toISOString())
+      ]);
+
+      return {
+        totalProfiles: totalProfiles || 0,
+        candidatos: candidatos || 0,
+        lideres: lideres || 0,
+        votantes: votantes || 0,
+        territorios: territorios || 0,
+        mensajesHoy: mensajesHoy || 0,
+        alertasActivas: alertasActivas || 0,
+        eventosProximos: eventosProximos || 0
+      };
+    },
+    enabled: !!user,
+    refetchInterval: 30000, // Actualizar cada 30 segundos
+    refetchOnWindowFocus: true,
+  });
 
   const { data: profiles = [], isLoading, error } = useQuery({
     queryKey: ['team-structure', user?.id],
@@ -51,16 +115,12 @@ const EstructuraTerritorial: React.FC<EstructuraTerritorialProps> = ({ busqueda,
 
       // Aplicar filtros según el rol del usuario
       if (user.role === 'lider') {
-        // Los líderes solo ven votantes
         query = query.eq('role', 'votante');
       } else if (user.role === 'candidato') {
-        // Los candidatos ven líderes y votantes
         query = query.in('role', ['lider', 'votante']);
       } else if (user.role === 'master') {
-        // Master ve candidatos, líderes y votantes
         query = query.in('role', ['candidato', 'lider', 'votante']);
       }
-      // Desarrollador ve todos (sin filtro adicional)
 
       const { data, error } = await query.order('created_at', { ascending: false });
       
@@ -75,6 +135,41 @@ const EstructuraTerritorial: React.FC<EstructuraTerritorialProps> = ({ busqueda,
     enabled: !!user,
     refetchOnWindowFocus: false,
   });
+
+  // Función para activar N8N workflows
+  const triggerN8NWorkflow = async (workflowType: string) => {
+    try {
+      const { data: workflows } = await supabase
+        .from('n8n_workflows')
+        .select('*')
+        .contains('trigger_role', [user?.role])
+        .eq('active', true);
+
+      for (const workflow of workflows || []) {
+        if (workflow.webhook_url) {
+          await fetch(workflow.webhook_url, {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({
+              trigger_type: workflowType,
+              user_id: user?.id,
+              user_role: user?.role,
+              user_name: user?.name,
+              timestamp: new Date().toISOString(),
+              stats: realTimeStats
+            })
+          });
+        }
+      }
+
+      toast({
+        title: "Workflow N8N Activado",
+        description: `Se han sincronizado los datos con el ecosistema N8N`,
+      });
+    } catch (error) {
+      console.error('Error activando N8N:', error);
+    }
+  };
 
   const getRoleIcon = (role: string) => {
     switch (role) {
@@ -110,12 +205,12 @@ const EstructuraTerritorial: React.FC<EstructuraTerritorialProps> = ({ busqueda,
     return matchesSearch && matchesFilter;
   });
 
-  if (isLoading) {
+  if (isLoading || statsLoading) {
     return (
       <Card>
         <CardContent className="p-6 text-center">
           <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-slate-600 mx-auto mb-4"></div>
-          <p className="text-slate-600">Cargando estructura del equipo...</p>
+          <p className="text-slate-600">Cargando datos en tiempo real...</p>
         </CardContent>
       </Card>
     );
@@ -137,50 +232,139 @@ const EstructuraTerritorial: React.FC<EstructuraTerritorialProps> = ({ busqueda,
     );
   }
 
+  const stats = realTimeStats || {
+    totalProfiles: 0, candidatos: 0, lideres: 0, votantes: 0,
+    territorios: 0, mensajesHoy: 0, alertasActivas: 0, eventosProximos: 0
+  };
+
   return (
     <div className="space-y-6">
-      {/* Estadísticas */}
+      {/* Estadísticas en Tiempo Real */}
       <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
-        <Card className="text-center">
+        <Card className="text-center border-l-4 border-l-slate-600">
           <CardContent className="p-4">
-            <div className="text-2xl font-bold text-slate-700">
-              {filteredProfiles.length}
+            <div className="text-2xl font-bold text-slate-700 flex items-center justify-center gap-2">
+              <TrendingUp className="w-5 h-5" />
+              {stats.totalProfiles}
             </div>
-            <div className="text-sm text-slate-600">Total</div>
+            <div className="text-sm text-slate-600">Total Equipo</div>
           </CardContent>
         </Card>
-        <Card className="text-center">
+        <Card className="text-center border-l-4 border-l-green-600">
           <CardContent className="p-4">
             <div className="text-2xl font-bold text-green-700">
-              {filteredProfiles.filter(p => p.role === 'lider').length}
+              {stats.lideres}
             </div>
-            <div className="text-sm text-green-600">Líderes</div>
+            <div className="text-sm text-green-600">Líderes Activos</div>
           </CardContent>
         </Card>
-        <Card className="text-center">
+        <Card className="text-center border-l-4 border-l-blue-600">
           <CardContent className="p-4">
             <div className="text-2xl font-bold text-blue-700">
-              {filteredProfiles.filter(p => p.role === 'candidato').length}
+              {stats.candidatos}
             </div>
             <div className="text-sm text-blue-600">Candidatos</div>
           </CardContent>
         </Card>
-        <Card className="text-center">
+        <Card className="text-center border-l-4 border-l-gray-600">
           <CardContent className="p-4">
             <div className="text-2xl font-bold text-gray-700">
-              {filteredProfiles.filter(p => p.role === 'votante').length}
+              {stats.votantes}
             </div>
             <div className="text-sm text-gray-600">Votantes</div>
           </CardContent>
         </Card>
       </div>
 
-      {/* Lista de miembros */}
+      {/* Métricas Operacionales */}
+      <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
+        <Card className="text-center border-l-4 border-l-orange-600">
+          <CardContent className="p-4">
+            <div className="text-2xl font-bold text-orange-700">
+              {stats.territorios}
+            </div>
+            <div className="text-sm text-orange-600">Territorios</div>
+          </CardContent>
+        </Card>
+        <Card className="text-center border-l-4 border-l-purple-600">
+          <CardContent className="p-4">
+            <div className="text-2xl font-bold text-purple-700">
+              {stats.mensajesHoy}
+            </div>
+            <div className="text-sm text-purple-600">Mensajes Hoy</div>
+          </CardContent>
+        </Card>
+        <Card className="text-center border-l-4 border-l-red-600">
+          <CardContent className="p-4">
+            <div className="text-2xl font-bold text-red-700">
+              {stats.alertasActivas}
+            </div>
+            <div className="text-sm text-red-600">Alertas Activas</div>
+          </CardContent>
+        </Card>
+        <Card className="text-center border-l-4 border-l-indigo-600">
+          <CardContent className="p-4">
+            <div className="text-2xl font-bold text-indigo-700">
+              {stats.eventosProximos}
+            </div>
+            <div className="text-sm text-indigo-600">Eventos Próximos</div>
+          </CardContent>
+        </Card>
+      </div>
+
+      {/* Controles N8N del Ecosistema */}
+      {(user?.role === 'master' || user?.role === 'desarrollador') && (
+        <Card>
+          <CardHeader>
+            <CardTitle className="flex items-center gap-2">
+              <Zap className="w-5 h-5 text-yellow-600" />
+              Control del Ecosistema N8N
+            </CardTitle>
+          </CardHeader>
+          <CardContent>
+            <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
+              <Button 
+                onClick={() => triggerN8NWorkflow('sync_stats')}
+                className="bg-blue-600 hover:bg-blue-700"
+              >
+                <TrendingUp className="w-4 h-4 mr-2" />
+                Sincronizar Stats
+              </Button>
+              <Button 
+                onClick={() => triggerN8NWorkflow('mass_messaging')}
+                className="bg-green-600 hover:bg-green-700"
+              >
+                <MessageSquare className="w-4 h-4 mr-2" />
+                Mensajería Masiva
+              </Button>
+              <Button 
+                onClick={() => triggerN8NWorkflow('voter_engagement')}
+                className="bg-purple-600 hover:bg-purple-700"
+              >
+                <Users className="w-4 h-4 mr-2" />
+                Engagement Votantes
+              </Button>
+              <Button 
+                onClick={() => triggerN8NWorkflow('campaign_analytics')}
+                className="bg-orange-600 hover:bg-orange-700"
+              >
+                <Building2 className="w-4 h-4 mr-2" />
+                Analytics Campaña
+              </Button>
+            </div>
+          </CardContent>
+        </Card>
+      )}
+
+      {/* Lista de miembros con datos reales */}
       <Card>
         <CardHeader>
           <CardTitle className="flex items-center gap-2">
             <Users className="w-5 h-5" />
             Miembros del Equipo ({filteredProfiles.length})
+            <Badge variant="outline" className="ml-2">
+              Tiempo Real
+            </Badge>
           </CardTitle>
         </CardHeader>
         <CardContent>
@@ -199,7 +383,7 @@ const EstructuraTerritorial: React.FC<EstructuraTerritorialProps> = ({ busqueda,
               {filteredProfiles.map((profile) => {
                 const RoleIcon = getRoleIcon(profile.role);
                 return (
-                  <Card key={profile.id} className="hover:shadow-lg transition-shadow">
+                  <Card key={profile.id} className="hover:shadow-lg transition-shadow border-l-4 border-l-blue-500">
                     <CardContent className="p-4">
                       <div className="flex items-center gap-3 mb-3">
                         <div className="w-10 h-10 rounded-full bg-slate-100 flex items-center justify-center">
@@ -223,11 +407,21 @@ const EstructuraTerritorial: React.FC<EstructuraTerritorialProps> = ({ busqueda,
                       </div>
 
                       <div className="flex gap-2 mt-4">
-                        <Button variant="outline" size="sm" className="flex-1">
+                        <Button 
+                          variant="outline" 
+                          size="sm" 
+                          className="flex-1"
+                          onClick={() => triggerN8NWorkflow(`contact_${profile.role}`)}
+                        >
                           <Phone className="w-4 h-4 mr-1" />
                           Contactar
                         </Button>
-                        <Button variant="outline" size="sm" className="flex-1">
+                        <Button 
+                          variant="outline" 
+                          size="sm" 
+                          className="flex-1"
+                          onClick={() => triggerN8NWorkflow(`message_${profile.role}`)}
+                        >
                           <Mail className="w-4 h-4 mr-1" />
                           Mensaje
                         </Button>
