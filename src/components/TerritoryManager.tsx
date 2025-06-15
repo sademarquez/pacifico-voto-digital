@@ -57,7 +57,7 @@ const TerritoryManager = () => {
   // Query para obtener territorios filtrados
   const { data: territories = [], isLoading } = useQuery({
     queryKey: ['territories', user?.id],
-    queryFn: async () => {
+    queryFn: async (): Promise<Territory[]> => {
       if (!supabase || !user) return [];
       
       const filter = getTerritoryFilter();
@@ -96,7 +96,7 @@ const TerritoryManager = () => {
         console.error('Error fetching territories:', error);
         return [];
       }
-      return (data as unknown as Territory[]) || [];
+      return (data as Territory[]) || [];
     },
     enabled: !!supabase && !!user
   });
