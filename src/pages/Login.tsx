@@ -7,9 +7,7 @@ import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Alert, AlertDescription } from '@/components/ui/alert';
-import { DebugAuthPanel } from '@/components/DebugAuthPanel';
-import { Vote, Eye, EyeOff, LogIn, AlertTriangle, CheckCircle } from 'lucide-react';
-import { supabase } from '@/integrations/supabase/client';
+import { Vote, Eye, EyeOff, LogIn } from 'lucide-react';
 
 const Login = () => {
   const [email, setEmail] = useState('');
@@ -17,7 +15,6 @@ const Login = () => {
   const [showPassword, setShowPassword] = useState(false);
   const [error, setError] = useState('');
   const [isLoading, setIsLoading] = useState(false);
-  const [debugInfo, setDebugInfo] = useState<any>(null);
   const { login, isAuthenticated } = useAuth();
   const navigate = useNavigate();
 
@@ -27,95 +24,15 @@ const Login = () => {
     return null;
   }
 
-  const testConnection = async () => {
-    try {
-      console.log('🧪 Testing Supabase connection...');
-      const start = Date.now();
-      const { data, error } = await supabase.from('profiles').select('count').limit(1);
-      const duration = Date.now() - start;
-      
-      setDebugInfo({
-        connection: error ? 'ERROR' : 'OK',
-        error: error?.message || null,
-        timestamp: new Date().toISOString(),
-        duration: `${duration}ms`,
-        type: 'connection'
-      });
-      
-      if (error) {
-        console.error('❌ Connection test failed:', error);
-        setError(`Error de conexión: ${error.message}`);
-      } else {
-        console.log('✅ Connection test passed');
-        setError('Conexión exitosa a la base de datos');
-      }
-    } catch (error) {
-      console.error('💥 Critical connection error:', error);
-      setError(`Error crítico de conexión: ${error}`);
-    }
-  };
-
-  const testDirectAuth = async () => {
-    console.log('🧪 Testing direct Supabase auth (read-only test)...');
-    setIsLoading(true);
-    
-    try {
-      // Test SOLO la conectividad de auth sin hacer login real
-      const { data: { session }, error } = await supabase.auth.getSession();
-      
-      console.log('📊 Auth connectivity test:', {
-        hasCurrentSession: !!session,
-        authError: error ? {
-          message: error.message,
-          status: error.status,
-          name: error.name
-        } : null
-      });
-
-      if (error) {
-        setError(`Test de auth falló: ${error.message}`);
-        setDebugInfo({
-          connection: 'AUTH_ERROR',
-          error: error.message,
-          timestamp: new Date().toISOString(),
-          type: 'auth_test'
-        });
-      } else {
-        setError('✅ Test de conectividad de auth exitoso');
-        setDebugInfo({
-          connection: 'AUTH_OK',
-          error: null,
-          timestamp: new Date().toISOString(),
-          type: 'auth_test',
-          hasSession: !!session
-        });
-      }
-    } catch (error) {
-      console.error('💥 Auth connectivity test error:', error);
-      setError(`Error en test de auth: ${error}`);
-      setDebugInfo({
-        connection: 'CRITICAL_ERROR',
-        error: String(error),
-        timestamp: new Date().toISOString(),
-        type: 'auth_test'
-      });
-    } finally {
-      setIsLoading(false);
-    }
-  };
-
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     setError('');
     setIsLoading(true);
 
-    console.log('🚀 Iniciando proceso de login para:', email);
-
     try {
       const result = await login(email, password);
       
       if (result.success) {
-        console.log('✅ Login exitoso, esperando redirección...');
         setError('✅ Login exitoso, redirigiendo...');
         
         // Esperar un momento para que el estado se actualice
@@ -123,7 +40,6 @@ const Login = () => {
           navigate('/dashboard');
         }, 500);
       } else {
-        console.error('❌ Login falló:', result.error);
         setError(result.error || 'Error desconocido en el login');
       }
     } catch (error) {
@@ -138,7 +54,6 @@ const Login = () => {
     setEmail(testEmail);
     setPassword(testPassword);
     setError('');
-    setDebugInfo(null);
   };
 
   const testCredentials = [
@@ -157,52 +72,10 @@ const Login = () => {
               <Vote className="w-8 h-8 text-white" />
             </div>
             <CardTitle className="text-2xl font-bold text-gray-900">Mi Campaña</CardTitle>
-            <p className="text-gray-600">Sistema Electoral - Mejorado v5</p>
+            <p className="text-gray-600">Sistema Electoral 2025</p>
           </CardHeader>
           
           <CardContent>
-            {/* Botones de diagnóstico */}
-            <div className="mb-4 space-y-2">
-              <div className="grid grid-cols-2 gap-2">
-                <Button 
-                  type="button" 
-                  variant="outline" 
-                  size="sm"
-                  onClick={testConnection}
-                  disabled={isLoading}
-                >
-                  🧪 Test DB
-                </Button>
-                <Button 
-                  type="button" 
-                  variant="outline" 
-                  size="sm"
-                  onClick={testDirectAuth}
-                  disabled={isLoading}
-                >
-                  🔐 Test Auth
-                </Button>
-              </div>
-              
-              {debugInfo && (
-                <Alert variant={debugInfo.connection.includes('OK') ? 'default' : 'destructive'}>
-                  <div className="flex items-center gap-2">
-                    {debugInfo.connection.includes('OK') ? 
-                      <CheckCircle className="h-4 w-4" /> : 
-                      <AlertTriangle className="h-4 w-4" />
-                    }
-                  </div>
-                  <AlertDescription className="text-xs">
-                    <strong>Estado:</strong> {debugInfo.connection}<br/>
-                    {debugInfo.duration && <><strong>Duración:</strong> {debugInfo.duration}<br/></>}
-                    {debugInfo.hasSession !== undefined && <><strong>Sesión Activa:</strong> {debugInfo.hasSession ? 'Sí' : 'No'}<br/></>}
-                    {debugInfo.error && <><strong>Error:</strong> {debugInfo.error}<br/></>}
-                    <strong>Timestamp:</strong> {new Date(debugInfo.timestamp).toLocaleTimeString()}
-                  </AlertDescription>
-                </Alert>
-              )}
-            </div>
-
             <form onSubmit={handleSubmit} className="space-y-4">
               <div className="space-y-2">
                 <Label htmlFor="email">Email</Label>
@@ -249,28 +122,31 @@ const Login = () => {
                 </Alert>
               )}
 
-              {/* Credenciales de prueba */}
-              <div className="grid grid-cols-2 gap-2 text-xs">
-                {testCredentials.map((cred, index) => (
-                  <Button
-                    key={index}
-                    type="button"
-                    variant="outline"
-                    size="sm"
-                    onClick={() => quickLogin(cred.email, cred.password)}
-                    disabled={isLoading}
-                    className="text-xs p-2"
-                  >
-                    {cred.role}
-                  </Button>
-                ))}
+              {/* Credenciales de prueba - mantenidas para facilidad de testing */}
+              <div className="border-t pt-4">
+                <p className="text-sm text-gray-600 mb-2 text-center">Credenciales de prueba:</p>
+                <div className="grid grid-cols-2 gap-2 text-xs">
+                  {testCredentials.map((cred, index) => (
+                    <Button
+                      key={index}
+                      type="button"
+                      variant="outline"
+                      size="sm"
+                      onClick={() => quickLogin(cred.email, cred.password)}
+                      disabled={isLoading}
+                      className="text-xs p-2"
+                    >
+                      {cred.role}
+                    </Button>
+                  ))}
+                </div>
               </div>
 
               <Button type="submit" className="w-full" disabled={isLoading}>
                 {isLoading ? (
                   <div className="flex items-center gap-2">
                     <div className="w-4 h-4 border-2 border-white/30 border-t-white rounded-full animate-spin" />
-                    Procesando...
+                    Iniciando sesión...
                   </div>
                 ) : (
                   <div className="flex items-center gap-2">
@@ -283,8 +159,6 @@ const Login = () => {
           </CardContent>
         </Card>
       </div>
-      
-      <DebugAuthPanel />
     </div>
   );
 };
