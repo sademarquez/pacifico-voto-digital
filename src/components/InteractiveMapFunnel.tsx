@@ -57,6 +57,14 @@ interface UserLocation {
   accuracy: number;
 }
 
+interface VoterProfile {
+  age_range?: string;
+  political_interest?: string;
+  engagement_level?: string;
+  location?: string;
+  contact_readiness?: string;
+}
+
 const InteractiveMapFunnel = () => {
   const [currentLevel, setCurrentLevel] = useState<MapLevel | null>(null);
   const [zoomLevel, setZoomLevel] = useState<'ciudad' | 'localidad' | 'barrio'>('ciudad');
@@ -202,6 +210,14 @@ const InteractiveMapFunnel = () => {
   }, [userLocation, currentLevel]);
 
   const captureInteraction = async (type: string, data: any = {}) => {
+    const voterProfile: VoterProfile = {
+      age_range: '25-54',
+      political_interest: 'high',
+      engagement_level: leadData.engagementScore > 50 ? 'high' : 'medium',
+      location: currentLevel?.name,
+      contact_readiness: leadData.engagementScore > 70 ? 'high' : 'medium'
+    };
+
     const newInteraction = {
       type,
       timestamp: new Date().toISOString(),
@@ -209,6 +225,7 @@ const InteractiveMapFunnel = () => {
         currentLevel: currentLevel?.name,
         zoomLevel,
         userLocation: userLocation ? 'granted' : 'denied',
+        voterProfile,
         ...data
       }
     };

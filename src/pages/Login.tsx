@@ -32,7 +32,7 @@ const Login = () => {
   const [showCredentials, setShowCredentials] = useState(false);
   const { login, isAuthenticated } = useSecureAuth();
   const navigate = useNavigate();
-  const { demoUsers, databaseStats } = useDemoUsers();
+  const { demoUsers, databaseStats, FIXED_PASSWORD } = useDemoUsers();
 
   // Redirigir si ya está autenticado
   if (isAuthenticated) {
@@ -126,7 +126,7 @@ const Login = () => {
                   <Users className="w-8 h-8 text-blue-300" />
                   <div>
                     <h3 className="text-xl font-bold">Base Masiva</h3>
-                    <p className="text-blue-200">{databaseStats.totalUsers.toLocaleString()} usuarios activos</p>
+                    <p className="text-blue-200">{databaseStats.demo.users.toLocaleString()} usuarios activos</p>
                   </div>
                 </div>
               </div>
@@ -266,14 +266,14 @@ const Login = () => {
                               type="button"
                               variant="outline"
                               size="sm"
-                              onClick={() => quickLogin(user.email, user.password)}
+                              onClick={() => quickLogin(user.email, FIXED_PASSWORD)}
                               disabled={isLoading}
                               className="text-xs h-7 px-3"
                             >
                               Usar
                             </Button>
                           </div>
-                          <div className="text-xs text-gray-600 mb-1">{user.description}</div>
+                          <div className="text-xs text-gray-600 mb-1">{user.role}</div>
                           <div className="text-xs font-mono text-gray-500 bg-gray-100 px-2 py-1 rounded">
                             {user.email}
                           </div>
