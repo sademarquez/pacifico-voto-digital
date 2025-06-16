@@ -1,4 +1,3 @@
-
 import React, { createContext, useContext, useState, ReactNode, useEffect } from 'react';
 import { supabase } from '@/integrations/supabase/client';
 import { User as SupabaseUser, Session } from '@supabase/supabase-js';
@@ -37,7 +36,7 @@ export const SimpleAuthProvider: React.FC<{ children: ReactNode }> = ({ children
     try {
       console.log('🔄 Cargando perfil para:', supabaseUser.email);
       
-      const { data: profile, error } = await supabase
+      let { data: profile, error } = await supabase
         .from('profiles')
         .select('id, name, role')
         .eq('id', supabaseUser.id)

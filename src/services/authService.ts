@@ -11,10 +11,10 @@ export const authService = {
   // Crear usuarios demo
   async createDemoUsers() {
     const users = [
-      { email: 'daniel@demo.com', name: 'Daniel', role: 'desarrollador' },
-      { email: 'luis@demo.com', name: 'Luis', role: 'desarrollador' },
-      { email: 'sebastian@demo.com', name: 'Sebastian', role: 'desarrollador' },
-      { email: 'llm@demo.com', name: 'LLM Assistant', role: 'desarrollador' }
+      { email: 'daniel@demo.com', name: 'Daniel', role: 'desarrollador' as const },
+      { email: 'luis@demo.com', name: 'Luis', role: 'desarrollador' as const },
+      { email: 'sebastian@demo.com', name: 'Sebastian', role: 'desarrollador' as const },
+      { email: 'llm@demo.com', name: 'LLM Assistant', role: 'desarrollador' as const }
     ];
 
     const results = [];
@@ -42,7 +42,7 @@ export const authService = {
         if (authData.user) {
           const { error: profileError } = await supabase
             .from('profiles')
-            .upsert({
+            .insert({
               id: authData.user.id,
               name: user.name,
               role: user.role,
