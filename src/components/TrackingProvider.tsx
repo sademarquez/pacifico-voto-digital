@@ -133,4 +133,4 @@ const TrackingProvider = ({ children }: { children: React.ReactNode }) => {
   return <>{children}</>;
 };
 
-export default Tra ckingProvider;
+export default TrackingProvider;
