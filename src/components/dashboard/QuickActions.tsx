@@ -24,6 +24,7 @@ import { useSecureAuth } from "../../contexts/SecureAuthContext";
 import { useToast } from "@/hooks/use-toast";
 
 type ActionType = 'alert' | 'task' | 'event' | 'message';
+type Priority = 'low' | 'medium' | 'high' | 'urgent';
 
 const QuickActions = () => {
   const { user } = useSecureAuth();
@@ -34,14 +35,14 @@ const QuickActions = () => {
   const [quickAlert, setQuickAlert] = useState({
     title: '',
     description: '',
-    priority: 'medium',
+    priority: 'medium' as Priority,
     type: 'information'
   });
 
   const [quickTask, setQuickTask] = useState({
     title: '',
     description: '',
-    priority: 'medium',
+    priority: 'medium' as Priority,
     due_date: ''
   });
 
@@ -65,7 +66,8 @@ const QuickActions = () => {
           description: alertData.description,
           type: alertData.type,
           priority: alertData.priority,
-          created_by: user.id
+          created_by: user.id,
+          status: 'active'
         })
         .select()
         .single();
@@ -262,7 +264,7 @@ const QuickActions = () => {
                 <Label>Prioridad</Label>
                 <Select 
                   value={quickAlert.priority} 
-                  onValueChange={(value) => setQuickAlert({...quickAlert, priority: value})}
+                  onValueChange={(value: Priority) => setQuickAlert({...quickAlert, priority: value})}
                 >
                   <SelectTrigger>
                     <SelectValue />

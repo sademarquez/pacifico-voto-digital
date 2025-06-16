@@ -8,167 +8,106 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Badge } from "@/components/ui/badge";
-import { UserPlus, Users, Shield, Crown, User, Eye, EyeOff, Loader2, Target, Users2 } from "lucide-react";
-import { useAuth } from "../contexts/AuthContext";
-import { useDataSegregation } from "../hooks/useDataSegregation";
+import { User, Plus, Shield, Mail, Calendar } from "lucide-react";
+import { useSecureAuth } from "../contexts/SecureAuthContext";
 import { useToast } from "@/hooks/use-toast";
 
-interface Profile {
-  id: string;
-  name: string | null;
-  role: 'desarrollador' | 'master' | 'candidato' | 'lider' | 'votante' | 'visitante';
-  created_by: string | null;
-  created_at: string;
-}
-
 const UserManagement = () => {
-  const { user: currentUser } = useAuth();
+  const { user } = useSecureAuth();
   const { toast } = useToast();
   const queryClient = useQueryClient();
-  const [showPassword, setShowPassword] = useState(false);
-  const {
-    canCreateCandidatos,
-    canCreateLideres,
-    canCreateVotantes,
-    canManageUsers
-  } = useDataSegregation();
 
   const [newUser, setNewUser] = useState({
     email: '',
+    password: '',
     name: '',
-    role: '' as 'master' | 'candidato' | 'lider' | 'votante' | ''
+    role: 'votante'
   });
-  
-  const defaultPassword = "micampaña2025";
 
-  // Fetch users from Supabase
-  const { data: users = [], isLoading: isLoadingUsers } = useQuery<Profile[]>({
-    queryKey: ['users'],
+  // Query para obtener usuarios
+  const { data: users = [], isLoading } = useQuery({
+    queryKey: ['users', user?.id],
     queryFn: async () => {
-      console.log('🔍 Fetching users for role:', currentUser?.role);
+      if (!supabase || !user) return [];
       
-      const { data, error } = await supabase.from('profiles').select('*').order('created_at', { ascending: false });
+      const { data, error } = await supabase
+        .from('profiles')
+        .select('*')
+        .order('created_at', { ascending: false });
+
       if (error) {
-        console.error("Error fetching users:", error);
-        toast({ title: "Error", description: "No se pudieron cargar los usuarios.", variant: "destructive" });
+        console.error('Error fetching users:', error);
         return [];
       }
-      
-      console.log('📋 Users loaded:', data.length);
-      return data as Profile[];
+      return data || [];
     },
-    enabled: canManageUsers,
+    enabled: !!supabase && !!user
   });
 
+  // Mutación para crear usuario
   const createUserMutation = useMutation({
-    mutationFn: async ({ email, name, role }: typeof newUser) => {
-      if (!currentUser || !role) throw new Error("Cliente no disponible o rol no seleccionado.");
+    mutationFn: async (userData: typeof newUser) => {
+      if (!supabase || !user) {
+        throw new Error('Datos incompletos');
+      }
 
-      console.log('👤 Creating user:', { email, role, createdBy: currentUser.role });
-
-      // 1. Create the user in Supabase Auth
-      const { data: signUpData, error: signUpError } = await supabase.auth.signUp({
-        email,
-        password: defaultPassword,
-        options: {
-          data: {
-            name: name,
-          }
-        }
+      // Crear usuario en auth
+      const { data: authData, error: authError } = await supabase.auth.admin.createUser({
+        email: userData.email,
+        password: userData.password,
+        email_confirm: true
       });
 
-      if (signUpError) {
-        console.error('❌ Sign up error:', signUpError);
-        throw signUpError;
-      }
-      if (!signUpData.user) throw new Error("No se pudo crear el usuario.");
+      if (authError) throw authError;
 
-      // 2. Update the profile with the correct role and created_by
-      const { error: updateError } = await supabase
-        .from('profiles')
-        .update({ role, created_by: currentUser.id })
-        .eq('id', signUpData.user.id);
+      // Actualizar perfil
+      if (authData.user) {
+        const { error: profileError } = await supabase
+          .from('profiles')
+          .update({
+            name: userData.name,
+            role: userData.role,
+            created_by: user.id
+          })
+          .eq('id', authData.user.id);
 
-      if (updateError) {
-        console.error("❌ Failed to update role:", updateError);
-        throw new Error(`El usuario fue creado pero no se pudo asignar el rol. Error: ${updateError.message}`);
+        if (profileError) throw profileError;
       }
-      
-      console.log('✅ User created successfully:', signUpData.user.email);
-      return signUpData.user;
+
+      return authData;
     },
-    onSuccess: (createdUser) => {
+    onSuccess: () => {
       toast({
-        title: "Usuario creado exitosamente",
-        description: `${createdUser.email} ha sido creado con contraseña: ${defaultPassword}`,
+        title: "Usuario creado",
+        description: "El usuario ha sido registrado exitosamente.",
       });
       queryClient.invalidateQueries({ queryKey: ['users'] });
-      setNewUser({ email: '', name: '', role: '' });
+      setNewUser({
+        email: '',
+        password: '',
+        name: '',
+        role: 'votante'
+      });
     },
     onError: (error: any) => {
-       toast({
-        title: "Error al crear usuario",
-        description: error.message || "Ocurrió un error desconocido.",
+      toast({
+        title: "Error",
+        description: error.message || "No se pudo crear el usuario.",
         variant: "destructive",
       });
     }
   });
-  
-  const getAvailableRoles = () => {
-    if (!currentUser) return [];
-    
-    const roles = [];
-    
-    console.log('🔐 Checking permissions for role:', currentUser.role);
-    
-    // Desarrollador puede crear Masters
-    if (currentUser.role === 'desarrollador') {
-      roles.push({ value: 'master', label: 'Master', icon: Crown, description: 'Gestiona candidatos y campañas completas' });
-    }
-    
-    // Master puede crear Candidatos
-    if (canCreateCandidatos) {
-      roles.push({ value: 'candidato', label: 'Candidato', icon: Target, description: 'Gestiona líderes territoriales' });
-    }
-    
-    // Candidato puede crear Líderes
-    if (canCreateLideres) {
-      roles.push({ value: 'lider', label: 'Líder Territorial', icon: Users2, description: 'Coordina votantes en territorios' });
-    }
-    
-    // Líder puede crear Votantes
-    if (canCreateVotantes) {
-      roles.push({ value: 'votante', label: 'Votante', icon: User, description: 'Usuario base del sistema' });
-    }
-    
-    console.log('📝 Available roles:', roles.map(r => r.value));
-    return roles;
-  };
 
   const handleCreateUser = () => {
-    if (!newUser.email || !newUser.name || !newUser.role) {
+    if (!newUser.email || !newUser.password || !newUser.name) {
       toast({
         title: "Error",
-        description: "Por favor completa todos los campos",
+        description: "Por favor completa todos los campos obligatorios",
         variant: "destructive"
       });
       return;
     }
-    
-    console.log('🚀 Creating user:', newUser);
     createUserMutation.mutate(newUser);
-  };
-
-  const getRoleIcon = (role: string) => {
-    switch (role) {
-      case 'desarrollador': return Shield;
-      case 'master': return Crown;
-      case 'candidato': return Target;
-      case 'lider': return Users2;
-      case 'votante': return User;
-      case 'visitante': return User;
-      default: return User;
-    }
   };
 
   const getRoleColor = (role: string) => {
@@ -176,197 +115,151 @@ const UserManagement = () => {
       case 'desarrollador': return 'bg-purple-100 text-purple-800';
       case 'master': return 'bg-red-100 text-red-800';
       case 'candidato': return 'bg-blue-100 text-blue-800';
-      case 'lider': return 'bg-orange-100 text-orange-800';
-      case 'votante': return 'bg-green-100 text-green-800';
+      case 'lider': return 'bg-green-100 text-green-800';
+      case 'votante': return 'bg-yellow-100 text-yellow-800';
       case 'visitante': return 'bg-gray-100 text-gray-800';
       default: return 'bg-gray-100 text-gray-800';
     }
   };
 
-  const getRoleDisplayName = (role: string) => {
+  const getRoleLabel = (role: string) => {
     switch (role) {
       case 'desarrollador': return 'Desarrollador';
       case 'master': return 'Master';
       case 'candidato': return 'Candidato';
-      case 'lider': return 'Líder Territorial';
+      case 'lider': return 'Líder';
       case 'votante': return 'Votante';
       case 'visitante': return 'Visitante';
       default: return role;
     }
   };
 
-  if (!canManageUsers) {
-    return (
-      <div className="text-center p-8">
-        <h2 className="text-xl font-semibold text-gray-600">Acceso Restringido</h2>
-        <p className="text-gray-500">No tienes permisos para gestionar usuarios.</p>
-        <div className="mt-4 p-4 bg-blue-50 rounded-lg">
-          <p className="text-sm text-blue-700">
-            Rol actual: <strong>{currentUser?.role}</strong>
-          </p>
-          <p className="text-sm text-blue-600 mt-1">
-            Para gestionar usuarios necesitas el rol de: Master, Candidato o Líder
-          </p>
-        </div>
-      </div>
-    );
-  }
-
-  const availableRoles = getAvailableRoles();
-
   return (
     <div className="space-y-6">
-      {/* Debug info */}
-      <div className="bg-yellow-50 border border-yellow-200 rounded-lg p-4">
-        <h3 className="font-medium text-yellow-800">Debug Info</h3>
-        <p className="text-sm text-yellow-700">
-          Usuario: {currentUser?.name} ({currentUser?.role})
-        </p>
-        <p className="text-sm text-yellow-700">
-          Permisos: Candidatos={canCreateCandidatos.toString()}, Líderes={canCreateLideres.toString()}, Votantes={canCreateVotantes.toString()}
-        </p>
-        <p className="text-sm text-yellow-700">
-          Roles disponibles: {availableRoles.map(r => r.label).join(', ')}
-        </p>
-      </div>
-
-      {availableRoles.length > 0 && (
-        <Card>
-          <CardHeader>
-            <CardTitle className="flex items-center gap-2">
-              <UserPlus className="w-5 h-5" />
-              Crear Nuevo Usuario
-            </CardTitle>
-            <p className="text-sm text-gray-600">
-              Como {getRoleDisplayName(currentUser?.role || '')}, puedes crear los siguientes tipos de usuarios:
-            </p>
-          </CardHeader>
-          <CardContent className="space-y-4">
-            <div className="grid md:grid-cols-2 gap-4">
-              <div className="space-y-2">
-                <Label htmlFor="name">Nombre Completo</Label>
-                <Input
-                  id="name"
-                  value={newUser.name}
-                  onChange={(e) => setNewUser({...newUser, name: e.target.value})}
-                  placeholder="Ingrese el nombre completo"
-                  disabled={createUserMutation.isPending}
-                />
-              </div>
-              <div className="space-y-2">
-                <Label htmlFor="email">Email</Label>
-                <Input
-                  id="email"
-                  type="email"
-                  value={newUser.email}
-                  onChange={(e) => setNewUser({...newUser, email: e.target.value})}
-                  placeholder="usuario@email.com"
-                  disabled={createUserMutation.isPending}
-                />
-              </div>
-            </div>
-            
-            <div className="grid md:grid-cols-2 gap-4">
-              <div className="space-y-2">
-                <Label htmlFor="role">Rol</Label>
-                <Select 
-                  value={newUser.role} 
-                  onValueChange={(value) => setNewUser({...newUser, role: value as any})}
-                  disabled={createUserMutation.isPending}
-                >
-                  <SelectTrigger>
-                    <SelectValue placeholder="Selecciona un rol" />
-                  </SelectTrigger>
-                  <SelectContent>
-                    {availableRoles.map((role) => {
-                      const Icon = role.icon;
-                      return (
-                        <SelectItem key={role.value} value={role.value}>
-                          <div className="flex items-center gap-2">
-                            <Icon className="w-4 h-4" />
-                            <div>
-                              <div>{role.label}</div>
-                              <div className="text-xs text-gray-500">{role.description}</div>
-                            </div>
-                          </div>
-                        </SelectItem>
-                      );
-                    })}
-                  </SelectContent>
-                </Select>
-              </div>
-              
-              <div className="space-y-2">
-                <Label>Contraseña por defecto</Label>
-                <div className="flex items-center gap-2">
-                  <Input
-                    type={showPassword ? "text" : "password"}
-                    value={defaultPassword}
-                    readOnly
-                    className="bg-gray-50"
-                  />
-                  <Button
-                    type="button"
-                    variant="ghost"
-                    size="icon"
-                    onClick={() => setShowPassword(!showPassword)}
-                  >
-                    {showPassword ? <EyeOff className="w-4 h-4" /> : <Eye className="w-4 h-4" />}
-                  </Button>
-                </div>
-              </div>
-            </div>
-
-            <Button onClick={handleCreateUser} className="w-full" disabled={createUserMutation.isPending}>
-              {createUserMutation.isPending ? (
-                <Loader2 className="w-4 h-4 mr-2 animate-spin" />
-              ) : (
-                <UserPlus className="w-4 h-4 mr-2" />
-              )}
-              {createUserMutation.isPending ? "Creando usuario..." : "Crear Usuario"}
-            </Button>
-          </CardContent>
-        </Card>
-      )}
-
-      {/* Users List */}
-      <Card>
-        <CardHeader>
-          <CardTitle className="flex items-center gap-2">
-            <Users className="w-5 h-5" />
-            Usuarios en el Sistema ({users.length})
+      {/* Formulario para crear nuevo usuario */}
+      <Card className="border-gray-200 shadow-sm">
+        <CardHeader className="bg-blue-50">
+          <CardTitle className="flex items-center gap-2 text-blue-800">
+            <Plus className="w-5 h-5" />
+            Nuevo Usuario del Sistema
           </CardTitle>
         </CardHeader>
-        <CardContent>
-          {isLoadingUsers ? (
-            <div className="flex justify-center items-center h-24">
-              <Loader2 className="w-6 h-6 animate-spin text-blue-600" />
+        <CardContent className="space-y-4 pt-6">
+          <div className="grid md:grid-cols-2 gap-4">
+            <div className="space-y-2">
+              <Label htmlFor="name" className="text-gray-700 font-medium">Nombre Completo *</Label>
+              <Input
+                id="name"
+                value={newUser.name}
+                onChange={(e) => setNewUser({...newUser, name: e.target.value})}
+                placeholder="Ej: Juan Pérez García"
+                className="border-gray-300 focus:border-blue-500"
+              />
+            </div>
+            <div className="space-y-2">
+              <Label htmlFor="email" className="text-gray-700 font-medium">Email *</Label>
+              <Input
+                id="email"
+                type="email"
+                value={newUser.email}
+                onChange={(e) => setNewUser({...newUser, email: e.target.value})}
+                placeholder="Ej: juan@micampana.com"
+                className="border-gray-300 focus:border-blue-500"
+              />
+            </div>
+          </div>
+
+          <div className="grid md:grid-cols-2 gap-4">
+            <div className="space-y-2">
+              <Label htmlFor="password" className="text-gray-700 font-medium">Contraseña *</Label>
+              <Input
+                id="password"
+                type="password"
+                value={newUser.password}
+                onChange={(e) => setNewUser({...newUser, password: e.target.value})}
+                placeholder="Mínimo 8 caracteres"
+                className="border-gray-300 focus:border-blue-500"
+              />
+            </div>
+            <div className="space-y-2">
+              <Label className="text-gray-700 font-medium">Rol del Usuario</Label>
+              <Select 
+                value={newUser.role} 
+                onValueChange={(value) => setNewUser({...newUser, role: value})}
+              >
+                <SelectTrigger className="border-gray-300 focus:border-blue-500">
+                  <SelectValue />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="visitante">Visitante</SelectItem>
+                  <SelectItem value="votante">Votante</SelectItem>
+                  <SelectItem value="lider">Líder</SelectItem>
+                  <SelectItem value="candidato">Candidato</SelectItem>
+                  <SelectItem value="master">Master</SelectItem>
+                  <SelectItem value="desarrollador">Desarrollador</SelectItem>
+                </SelectContent>
+              </Select>
+            </div>
+          </div>
+
+          <Button 
+            onClick={handleCreateUser} 
+            disabled={createUserMutation.isPending}
+            className="w-full bg-blue-600 hover:bg-blue-700 text-white"
+          >
+            {createUserMutation.isPending ? "Creando..." : "Crear Usuario"}
+          </Button>
+        </CardContent>
+      </Card>
+
+      {/* Lista de usuarios */}
+      <Card className="border-gray-200 shadow-sm">
+        <CardHeader className="bg-gray-50">
+          <CardTitle className="flex items-center gap-2 text-gray-800">
+            <User className="w-5 h-5" />
+            Usuarios del Sistema ({users.length})
+          </CardTitle>
+        </CardHeader>
+        <CardContent className="pt-6">
+          {isLoading ? (
+            <div className="text-center py-8 text-gray-500">Cargando usuarios...</div>
+          ) : users.length === 0 ? (
+            <div className="text-center py-8 text-gray-500">
+              No hay usuarios registrados
             </div>
           ) : (
-            <div className="space-y-3">
-              {users.map((user) => {
-                const Icon = getRoleIcon(user.role);
-                return (
-                  <div key={user.id} className="flex items-center justify-between p-4 border rounded-lg hover:bg-gray-50">
-                    <div className="flex items-center gap-3">
-                      <div className="w-12 h-12 rounded-full bg-slate-100 flex items-center justify-center">
-                        <Icon className="w-6 h-6 text-slate-600" />
+            <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-3">
+              {users.map((userItem) => (
+                <Card key={userItem.id} className="border border-gray-200 hover:shadow-md transition-shadow">
+                  <CardContent className="p-4">
+                    <div className="flex items-start justify-between mb-3">
+                      <div className="flex items-center gap-3">
+                        <div className="w-10 h-10 bg-blue-100 rounded-full flex items-center justify-center">
+                          <User className="w-5 h-5 text-blue-600" />
+                        </div>
+                        <div>
+                          <h3 className="font-semibold text-gray-800">{userItem.name}</h3>
+                          <p className="text-sm text-gray-500">ID: {userItem.id.slice(0, 8)}...</p>
+                        </div>
                       </div>
-                      <div>
-                        <h3 className="font-medium text-lg">{user.name || 'Nombre no disponible'}</h3>
-                        <p className="text-sm text-gray-500">
-                          {user.id.substring(0,8)}... • Creado: {new Date(user.created_at).toLocaleDateString()}
-                        </p>
-                      </div>
-                    </div>
-                    <div className="flex items-center gap-2">
-                      <Badge className={getRoleColor(user.role)}>
-                        {getRoleDisplayName(user.role)}
+                      <Badge className={getRoleColor(userItem.role)}>
+                        {getRoleLabel(userItem.role)}
                       </Badge>
                     </div>
-                  </div>
-                );
-              })}
+                    
+                    <div className="space-y-2 text-sm text-gray-600">
+                      <div className="flex items-center gap-2">
+                        <Shield className="w-4 h-4" />
+                        <span>Rol: {getRoleLabel(userItem.role)}</span>
+                      </div>
+                      <div className="flex items-center gap-2">
+                        <Calendar className="w-4 h-4" />
+                        <span>Creado: {new Date(userItem.created_at).toLocaleDateString()}</span>
+                      </div>
+                    </div>
+                  </CardContent>
+                </Card>
+              ))}
             </div>
           )}
         </CardContent>
