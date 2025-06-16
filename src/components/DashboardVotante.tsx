@@ -1,9 +1,8 @@
-
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { Progress } from "@/components/ui/progress";
-import { useAuth } from "../contexts/AuthContext";
+import { useSecureAuth } from "../contexts/SecureAuthContext";
 import { Link } from "react-router-dom";
 import { 
   CheckCircle, 
@@ -21,9 +20,9 @@ import {
 } from "lucide-react";
 
 const DashboardVotante = () => {
-  const { user } = useAuth();
+  const { user } = useSecureAuth();
 
-  // Datos simulados para el compromiso del votante
+  // datos simulados y resto de la lógica
   const miProgreso = {
     tareasCompletadas: 8,
     totalTareas: 12,
@@ -70,7 +69,7 @@ const DashboardVotante = () => {
         </div>
       </div>
 
-      {/* Estadísticas de Progreso */}
+      {/* estadísticas de progreso y resto del componente */}
       <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
         <Card className="border-l-4 border-l-green-500">
           <CardContent className="p-4">
