@@ -16,7 +16,9 @@ import Configuracion from "./pages/Configuracion";
 import Informes from "./pages/Informes";
 import Liderazgo from "./pages/Liderazgo";
 import RedAyudantes from "./pages/RedAyudantes";
-import UserHeader from "./components/UserHeader";
+import TasksPage from "./pages/TasksPage";
+import EventsPage from "./pages/EventsPage";
+import QuickActionsPage from "./pages/QuickActionsPage";
 import { SecureAuthProvider } from "./contexts/SecureAuthContext";
 import TrackingProvider from './components/TrackingProvider';
 import ChatbotManager from './components/ChatbotManager';
@@ -40,6 +42,9 @@ function App() {
               <Route path="/informes" element={<Informes />} />
               <Route path="/liderazgo" element={<Liderazgo />} />
               <Route path="/red-ayudantes" element={<RedAyudantes />} />
+              <Route path="/tareas" element={<TasksPage />} />
+              <Route path="/eventos" element={<EventsPage />} />
+              <Route path="/acciones-rapidas" element={<QuickActionsPage />} />
             </Routes>
             <ChatbotManager />
             <Toaster />
