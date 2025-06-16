@@ -2,7 +2,7 @@
 import { useQuery } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { useAuth } from "../contexts/AuthContext";
+import { useSecureAuth } from "../contexts/SecureAuthContext";
 import { useDataSegregation } from "../hooks/useDataSegregation";
 import { 
   Users, 
@@ -16,7 +16,7 @@ import {
 } from "lucide-react";
 
 const RoleBasedStats = () => {
-  const { user } = useAuth();
+  const { user } = useSecureAuth();
   const { getPermissions } = useDataSegregation();
 
   const permissions = getPermissions();
