@@ -1,4 +1,3 @@
-
 import React, { useState, useEffect, useCallback } from 'react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
@@ -90,7 +89,7 @@ const SellerChatIntegration = () => {
       const geminiStatus = await geminiService.testConnection();
       
       // Simular verificación de otros servicios
-      const sellerChatStatus = await simul ateSellerChatConnection();
+      const sellerChatStatus = await simulateSellerChatConnection();
       const whatsappStatus = await simulateWhatsAppConnection();
       const n8nStatus = await simulateN8NConnection();
       
@@ -330,7 +329,6 @@ const SellerChatIntegration = () => {
 
   return (
     <div className="space-y-6">
-      {/* Header de Estado Mejorado */}
       <Card className="border-l-4 border-l-green-500">
         <CardHeader>
           <CardTitle className="flex items-center justify-between">
@@ -364,7 +362,6 @@ const SellerChatIntegration = () => {
         </CardHeader>
         
         <CardContent>
-          {/* Estado de Conexiones */}
           <div className="grid grid-cols-2 md:grid-cols-4 gap-3 mb-4">
             <div className="flex items-center gap-2 p-2 bg-gray-50 rounded">
               {getConnectionIcon(connectionStatus.sellerChat)}
@@ -387,7 +384,6 @@ const SellerChatIntegration = () => {
       </Card>
 
       <div className="grid lg:grid-cols-3 gap-6">
-        {/* Panel de Chat Principal */}
         <div className="lg:col-span-2">
           <Card className="h-[600px] flex flex-col">
             <CardHeader>
@@ -405,7 +401,6 @@ const SellerChatIntegration = () => {
             </CardHeader>
             
             <CardContent className="flex-1 flex flex-col">
-              {/* Área de Mensajes */}
               <div className="flex-1 overflow-y-auto space-y-3 mb-4 p-4 bg-gray-50 rounded-lg">
                 {messages.length === 0 ? (
                   <div className="text-center text-gray-500 py-8">
@@ -461,7 +456,6 @@ const SellerChatIntegration = () => {
                 )}
               </div>
 
-              {/* Input de WhatsApp */}
               <div className="mb-3">
                 <Input
                   placeholder="Número WhatsApp (ej: +57 300 123 4567)"
@@ -471,7 +465,6 @@ const SellerChatIntegration = () => {
                 />
               </div>
 
-              {/* Input de Mensaje */}
               <div className="flex gap-2">
                 <Textarea
                   value={newMessage}
@@ -497,9 +490,7 @@ const SellerChatIntegration = () => {
           </Card>
         </div>
 
-        {/* Panel de Control Lateral */}
         <div className="space-y-6">
-          {/* Respuestas Rápidas */}
           <Card>
             <CardHeader>
               <CardTitle className="text-base">Respuestas Rápidas</CardTitle>
@@ -540,7 +531,6 @@ const SellerChatIntegration = () => {
             </CardContent>
           </Card>
 
-          {/* Métricas en Tiempo Real */}
           <Card>
             <CardHeader>
               <CardTitle className="text-base">Métricas del Ecosistema</CardTitle>
@@ -569,7 +559,6 @@ const SellerChatIntegration = () => {
             </CardContent>
           </Card>
 
-          {/* Estado de Integraciones */}
           <Card>
             <CardHeader>
               <CardTitle className="text-base flex items-center gap-2">
