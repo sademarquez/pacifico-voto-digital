@@ -1,4 +1,3 @@
-
 import { useState, useEffect } from "react";
 import { useQuery } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
@@ -7,9 +6,33 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
-import { Circle as CircleIcon, MapPin, AlertTriangle, Users, Navigation, Eye, Heart, ArrowRight } from 'lucide-react';
+import { Input } from "@/components/ui/input";
+import { Label } from "@/components/ui/label";
+import { Textarea } from "@/components/ui/textarea";
+import { 
+  Circle as CircleIcon, 
+  MapPin, 
+  AlertTriangle, 
+  Users, 
+  Navigation, 
+  Eye, 
+  Heart, 
+  ArrowRight,
+  CheckCircle,
+  Phone,
+  Mail,
+  Home,
+  Briefcase,
+  GraduationCap,
+  Shield,
+  Zap,
+  Building,
+  UserPlus,
+  MessageCircle,
+  Star,
+  X
+} from 'lucide-react';
 import { useAuth } from "@/contexts/AuthContext";
-import VisitorSession from "@/components/VisitorSession";
 import { useNavigate } from "react-router-dom";
 
 interface Alert {
@@ -35,9 +58,19 @@ const MapaAlertas = () => {
   const [zoomLevel, setZoomLevel] = useState(12);
   const [selectedTerritory, setSelectedTerritory] = useState("");
   const [selectedAlert, setSelectedAlert] = useState<Alert | null>(null);
-  const [radiusFilter, setRadiusFilter] = useState(2000); // 2km por defecto
+  const [radiusFilter, setRadiusFilter] = useState(2000);
+  const [showFunnel, setShowFunnel] = useState(false);
+  const [currentStep, setCurrentStep] = useState(1);
+  const [userSector, setUserSector] = useState('');
+  const [formData, setFormData] = useState({
+    name: '',
+    phone: '',
+    email: '',
+    address: '',
+    interests: [] as string[],
+    priority: ''
+  });
 
-  // Datos enriquecidos para visitantes con enfoque en candidato
   const candidateAlerts: Alert[] = [
     {
       id: '1',
@@ -111,7 +144,6 @@ const MapaAlertas = () => {
     }
   ];
 
-  // Obtener geolocalización del usuario
   useEffect(() => {
     if (navigator.geolocation) {
       navigator.geolocation.getCurrentPosition(
@@ -122,15 +154,29 @@ const MapaAlertas = () => {
           };
           setUserLocation(location);
           setMapCenter(location);
-          setZoomLevel(14); // Zoom más cercano cuando tenemos ubicación real
+          setZoomLevel(14);
+          determineSector(location);
         },
         (error) => {
           console.log('Geolocation error:', error);
-          // Mantener ubicación por defecto
+          setUserLocation({ lat: 4.60971, lng: -74.08175 });
+          setUserSector('Centro');
         }
       );
     }
   }, []);
+
+  const determineSector = (location: {lat: number, lng: number}) => {
+    if (location.lat > 4.65) {
+      setUserSector('Norte (Chapinero/Usaquén)');
+    } else if (location.lat > 4.60) {
+      setUserSector('Centro (La Candelaria/Teusaquillo)');
+    } else if (location.lat > 4.55) {
+      setUserSector('Sur (Kennedy/Bosa)');
+    } else {
+      setUserSector('Periferia (Suba/Engativá)');
+    }
+  };
 
   const { data: alerts = candidateAlerts, isLoading } = useQuery({
     queryKey: ['alerts-map'],
@@ -173,7 +219,6 @@ const MapaAlertas = () => {
     refetchOnWindowFocus: false,
   });
 
-  // Filtrar alertas por proximidad si tenemos ubicación del usuario
   const filteredAlerts = userLocation 
     ? alerts.filter(alert => {
         if (!alert.territory?.coordinates) return false;
@@ -187,9 +232,8 @@ const MapaAlertas = () => {
       })
     : alerts;
 
-  // Calcular distancia entre dos puntos
   const calculateDistance = (lat1: number, lng1: number, lat2: number, lng2: number) => {
-    const R = 6371e3; // Earth's radius in meters
+    const R = 6371e3;
     const φ1 = lat1 * Math.PI/180;
     const φ2 = lat2 * Math.PI/180;
     const Δφ = (lat2-lat1) * Math.PI/180;
@@ -200,7 +244,7 @@ const MapaAlertas = () => {
               Math.sin(Δλ/2) * Math.sin(Δλ/2);
     const c = 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1-a));
 
-    return R * c; // Distance in meters
+    return R * c;
   };
 
   const territories = [
@@ -240,6 +284,97 @@ const MapaAlertas = () => {
     }
   };
 
+  const propuestas = [
+    {
+      icon: Home,
+      title: 'Vivienda Digna',
+      subtitle: 'Proyectos habitacionales accesibles',
+      description: 'Facilitaremos el acceso a vivienda propia con subsidios y financiación especial para familias trabajadoras.',
+      benefits: ['Subsidios hasta 50%', 'Créditos 0% interés', 'Lotes urbanizados']
+    },
+    {
+      icon: Briefcase,
+      title: 'Empleo y Economía',
+      subtitle: 'Oportunidades laborales locales',
+      description: 'Crearemos 5,000 empleos directos promoviendo el emprendimiento y atrayendo empresas a nuestra región.',
+      benefits: ['Incubadoras empresariales', 'Capacitación gratuita', 'Microcréditos']
+    },
+    {
+      icon: GraduationCap,
+      title: 'Educación de Calidad',
+      subtitle: 'Futuro brillante para nuestros hijos',
+      description: 'Modernizaremos colegios, aumentaremos becas universitarias y crearemos centros tecnológicos.',
+      benefits: ['Tecnología en aulas', 'Becas 100%', 'Idiomas gratis']
+    },
+    {
+      icon: Shield,
+      title: 'Seguridad Ciudadana',
+      subtitle: 'Calles seguras para todos',
+      description: 'Implementaremos un sistema integral de seguridad con cámaras, alarmas comunitarias y más policía.',
+      benefits: ['Cámaras HD 24/7', 'App de alertas', 'Policía comunitaria']
+    },
+    {
+      icon: Zap,
+      title: 'Servicios Públicos',
+      subtitle: 'Infraestructura moderna y eficiente',
+      description: 'Garantizaremos agua potable, energía estable e internet de alta velocidad para todos los sectores.',
+      benefits: ['Agua 24 horas', 'Energía confiable', 'Internet fibra óptica']
+    },
+    {
+      icon: Building,
+      title: 'Desarrollo Urbano',
+      subtitle: 'Espacios dignos para vivir',
+      description: 'Construiremos parques, mejoraremos vías, y crearemos centros comerciales y deportivos.',
+      benefits: ['Parques ecológicos', 'Vías pavimentadas', 'Centros deportivos']
+    }
+  ];
+
+  const testimonios = [
+    {
+      name: 'María González',
+      sector: 'Chapinero',
+      role: 'Madre de familia',
+      testimonial: 'Por fin alguien que entiende nuestras necesidades. Sus propuestas de educación transformarán el futuro de mis hijos.',
+      avatar: '👩‍💼'
+    },
+    {
+      name: 'Carlos Ruiz',
+      sector: 'Kennedy',
+      role: 'Comerciante',
+      testimonial: 'Como pequeño empresario, veo esperanza en sus planes de empleo. Necesitamos más oportunidades aquí.',
+      avatar: '👨‍💼'
+    },
+    {
+      name: 'Ana Morales',
+      sector: 'Suba',
+      role: 'Docente',
+      testimonial: 'Sus propuestas educativas son realistas y necesarias. Finalmente un candidato que prioriza la educación.',
+      avatar: '👩‍🏫'
+    }
+  ];
+
+  const handleStepForward = () => {
+    if (currentStep < 4) {
+      setCurrentStep(currentStep + 1);
+    }
+  };
+
+  const handleInterestToggle = (interest: string) => {
+    setFormData(prev => ({
+      ...prev,
+      interests: prev.interests.includes(interest)
+        ? prev.interests.filter(i => i !== interest)
+        : [...prev.interests, interest]
+    }));
+  };
+
+  const handleSubmit = () => {
+    console.log('Form data:', formData);
+    console.log('User location:', userLocation);
+    console.log('User sector:', userSector);
+    setCurrentStep(4);
+  };
+
   const mapStyles = {
     height: '500px',
     width: '100%'
@@ -261,9 +396,253 @@ const MapaAlertas = () => {
     ]
   };
 
+  const FunnelModal = () => (
+    <div className="fixed inset-0 bg-black/50 backdrop-blur-sm z-50 flex items-center justify-center p-4">
+      <div className="bg-gradient-to-br from-blue-900 via-purple-900 to-indigo-900 rounded-3xl max-w-4xl w-full max-h-[90vh] overflow-y-auto relative">
+        <Button
+          onClick={() => setShowFunnel(false)}
+          variant="outline"
+          size="sm"
+          className="absolute top-4 right-4 z-10 border-white/30 text-white hover:bg-white/10"
+        >
+          <X className="w-4 h-4" />
+        </Button>
+
+        <div className="p-8">
+          {currentStep === 1 && (
+            <div className="space-y-8">
+              <div className="text-center">
+                <div className="w-24 h-24 bg-gradient-to-r from-yellow-400 to-orange-500 rounded-full flex items-center justify-center mx-auto mb-6 shadow-2xl">
+                  <Users className="w-12 h-12 text-white" />
+                </div>
+                <h2 className="text-4xl font-bold text-white mb-4">Juan Carlos Mendoza</h2>
+                <p className="text-xl text-blue-100 mb-6 leading-relaxed">
+                  Nacido y criado en nuestra comunidad. Ingeniero, padre de familia, y líder comunitario 
+                  con 15 años trabajando por el desarrollo de nuestros barrios.
+                </p>
+              </div>
+
+              <div>
+                <h3 className="text-2xl font-bold text-white text-center mb-6">
+                  Nuestras Propuestas para Transformar tu Comunidad
+                </h3>
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                  {propuestas.slice(0, 4).map((propuesta, index) => (
+                    <Card key={index} className="bg-white/10 backdrop-blur border-white/20 hover:bg-white/20 transition-all duration-300">
+                      <CardHeader className="pb-3">
+                        <div className="flex items-center gap-3">
+                          <div className="w-10 h-10 bg-gradient-to-r from-yellow-400 to-orange-500 rounded-lg flex items-center justify-center">
+                            <propuesta.icon className="w-5 h-5 text-white" />
+                          </div>
+                          <div>
+                            <h4 className="text-white font-bold text-sm">{propuesta.title}</h4>
+                            <p className="text-blue-200 text-xs">{propuesta.subtitle}</p>
+                          </div>
+                        </div>
+                      </CardHeader>
+                      <CardContent className="pt-0">
+                        <p className="text-blue-100 text-sm mb-3">{propuesta.description}</p>
+                        <div className="space-y-1">
+                          {propuesta.benefits.slice(0, 2).map((benefit, idx) => (
+                            <div key={idx} className="flex items-center gap-2">
+                              <CheckCircle className="w-3 h-3 text-green-400" />
+                              <span className="text-blue-100 text-xs">{benefit}</span>
+                            </div>
+                          ))}
+                        </div>
+                      </CardContent>
+                    </Card>
+                  ))}
+                </div>
+              </div>
+
+              <div className="text-center">
+                <Button 
+                  onClick={handleStepForward}
+                  size="lg"
+                  className="bg-gradient-to-r from-yellow-500 to-orange-600 hover:from-yellow-600 hover:to-orange-700 text-white font-bold py-3 px-6 rounded-xl shadow-2xl"
+                >
+                  Ver Testimonios
+                  <ArrowRight className="w-5 h-5 ml-2" />
+                </Button>
+              </div>
+            </div>
+          )}
+
+          {currentStep === 2 && (
+            <div className="space-y-6">
+              <div className="text-center">
+                <h2 className="text-3xl font-bold text-white mb-4">Lo que Dicen Nuestros Vecinos</h2>
+                <p className="text-xl text-blue-200">Testimonios reales de personas como tú</p>
+              </div>
+
+              <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+                {testimonios.map((testimonio, index) => (
+                  <Card key={index} className="bg-white/10 backdrop-blur border-white/20">
+                    <CardContent className="p-4">
+                      <div className="text-center mb-3">
+                        <div className="text-2xl mb-2">{testimonio.avatar}</div>
+                        <h4 className="text-white font-bold text-sm">{testimonio.name}</h4>
+                        <p className="text-blue-200 text-xs">{testimonio.role} - {testimonio.sector}</p>
+                      </div>
+                      <blockquote className="text-blue-100 italic text-center text-sm">
+                        "{testimonio.testimonial}"
+                      </blockquote>
+                      <div className="flex justify-center mt-3">
+                        {[...Array(5)].map((_, i) => (
+                          <Star key={i} className="w-3 h-3 text-yellow-400 fill-current" />
+                        ))}
+                      </div>
+                    </CardContent>
+                  </Card>
+                ))}
+              </div>
+
+              <div className="text-center space-y-4">
+                <Button 
+                  onClick={handleStepForward}
+                  size="lg"
+                  className="bg-gradient-to-r from-yellow-500 to-orange-600 hover:from-yellow-600 hover:to-orange-700 text-white font-bold py-3 px-6 rounded-xl shadow-2xl"
+                >
+                  Quiero Formar Parte
+                  <UserPlus className="w-5 h-5 ml-2" />
+                </Button>
+              </div>
+            </div>
+          )}
+
+          {currentStep === 3 && (
+            <div className="max-w-2xl mx-auto">
+              <Card className="bg-white/10 backdrop-blur border-white/20">
+                <CardHeader>
+                  <CardTitle className="text-2xl text-white text-center">
+                    <UserPlus className="w-8 h-8 mx-auto mb-2" />
+                    Regístrate en Nuestra Comunidad
+                  </CardTitle>
+                </CardHeader>
+                <CardContent className="space-y-4">
+                  <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                    <div>
+                      <Label htmlFor="name" className="text-white">Nombre Completo</Label>
+                      <Input
+                        id="name"
+                        value={formData.name}
+                        onChange={(e) => setFormData({...formData, name: e.target.value})}
+                        placeholder="Tu nombre completo"
+                        className="bg-white/20 border-white/30 text-white placeholder-blue-200"
+                      />
+                    </div>
+                    <div>
+                      <Label htmlFor="phone" className="text-white">Teléfono</Label>
+                      <Input
+                        id="phone"
+                        value={formData.phone}
+                        onChange={(e) => setFormData({...formData, phone: e.target.value})}
+                        placeholder="Tu número de teléfono"
+                        className="bg-white/20 border-white/30 text-white placeholder-blue-200"
+                      />
+                    </div>
+                  </div>
+
+                  <div>
+                    <Label htmlFor="email" className="text-white">Email</Label>
+                    <Input
+                      id="email"
+                      type="email"
+                      value={formData.email}
+                      onChange={(e) => setFormData({...formData, email: e.target.value})}
+                      placeholder="correo@ejemplo.com"
+                      className="bg-white/20 border-white/30 text-white placeholder-blue-200"
+                    />
+                  </div>
+
+                  <div>
+                    <Label className="text-white mb-3 block">¿Qué temas te interesan más?</Label>
+                    <div className="grid grid-cols-2 gap-2">
+                      {['Vivienda', 'Empleo', 'Educación', 'Seguridad', 'Servicios', 'Desarrollo'].map((interest) => (
+                        <Button
+                          key={interest}
+                          type="button"
+                          variant={formData.interests.includes(interest) ? "default" : "outline"}
+                          onClick={() => handleInterestToggle(interest)}
+                          className={`text-xs ${formData.interests.includes(interest) 
+                            ? 'bg-gradient-to-r from-yellow-500 to-orange-600 text-white' 
+                            : 'border-white/30 text-white hover:bg-white/10'
+                          }`}
+                        >
+                          {interest}
+                        </Button>
+                      ))}
+                    </div>
+                  </div>
+
+                  <div>
+                    <Label htmlFor="priority" className="text-white">¿Cuál es tu mayor prioridad para la comunidad?</Label>
+                    <Textarea
+                      id="priority"
+                      value={formData.priority}
+                      onChange={(e) => setFormData({...formData, priority: e.target.value})}
+                      placeholder="Cuéntanos qué es lo más importante para ti..."
+                      className="bg-white/20 border-white/30 text-white placeholder-blue-200"
+                    />
+                  </div>
+
+                  <Button 
+                    onClick={handleSubmit}
+                    className="w-full bg-gradient-to-r from-green-500 to-blue-600 hover:from-green-600 hover:to-blue-700 text-white font-bold py-3 rounded-xl"
+                  >
+                    <Heart className="w-5 h-5 mr-2" />
+                    Confirmar Registro
+                  </Button>
+                </CardContent>
+              </Card>
+            </div>
+          )}
+
+          {currentStep === 4 && (
+            <div className="text-center space-y-6">
+              <div className="text-6xl mb-4">🎉</div>
+              <h2 className="text-3xl font-bold text-white mb-4">¡Gracias por Unirte!</h2>
+              <p className="text-xl text-blue-200 mb-6">
+                Ahora eres parte de nuestra comunidad. Te mantendremos informado sobre nuestras propuestas.
+              </p>
+              <Button 
+                onClick={() => {
+                  setShowFunnel(false);
+                  setCurrentStep(1);
+                }}
+                className="bg-gradient-to-r from-blue-500 to-purple-600 hover:from-blue-600 hover:to-purple-700 text-white font-bold py-3 px-6 rounded-xl"
+              >
+                Explorar Mapa
+                <MapPin className="w-5 h-5 ml-2" />
+              </Button>
+            </div>
+          )}
+
+          {currentStep < 4 && (
+            <div className="flex justify-center mt-6">
+              <div className="bg-white/20 backdrop-blur rounded-full px-4 py-2 flex items-center gap-2">
+                {[1, 2, 3].map((step) => (
+                  <div
+                    key={step}
+                    className={`w-2 h-2 rounded-full ${
+                      step <= currentStep ? 'bg-yellow-400' : 'bg-white/30'
+                    }`}
+                  />
+                ))}
+                <span className="text-white text-xs ml-2">
+                  Paso {currentStep} de 3
+                </span>
+              </div>
+            </div>
+          )}
+        </div>
+      </div>
+    </div>
+  );
+
   return (
     <div className="min-h-screen bg-gradient-to-br from-blue-50 to-purple-50">
-      {/* Header mejorado */}
       <div className="bg-gradient-to-r from-blue-600 to-purple-600 shadow-xl">
         <div className="container mx-auto px-4 py-6">
           <div className="flex items-center justify-between">
@@ -276,45 +655,29 @@ const MapaAlertas = () => {
                 Descubre las propuestas y proyectos de tu candidato en tu zona
               </p>
             </div>
-            {(!isAuthenticated || user?.role === 'visitante') && (
+            <div className="flex gap-3">
               <Button 
-                onClick={() => navigate('/candidato-funnel')}
+                onClick={() => setShowFunnel(true)}
                 className="bg-gradient-to-r from-yellow-500 to-orange-600 hover:from-yellow-600 hover:to-orange-700 text-white font-bold shadow-lg"
               >
                 <Heart className="w-4 h-4 mr-2" />
-                Conocer Propuestas
+                Conocer Candidato
               </Button>
-            )}
+              {!isAuthenticated && (
+                <Button 
+                  onClick={() => navigate('/login')}
+                  variant="outline"
+                  className="border-white/30 text-white hover:bg-white/10"
+                >
+                  Acceso Equipo
+                </Button>
+              )}
+            </div>
           </div>
         </div>
       </div>
 
       <div className="container mx-auto p-4 space-y-6">
-        {/* Sesión de Visitante mejorada */}
-        {(!isAuthenticated || user?.role === 'visitante') && (
-          <div className="bg-gradient-to-r from-green-500 to-blue-500 rounded-2xl p-6 text-white shadow-2xl">
-            <div className="flex items-center justify-between">
-              <div>
-                <h2 className="text-2xl font-bold mb-2">
-                  🗳️ ¡Tu Voto Transforma tu Comunidad!
-                </h2>
-                <p className="text-lg opacity-90">
-                  Explora las propuestas específicas para tu sector y conoce cómo puedes ser parte del cambio.
-                </p>
-              </div>
-              <Button 
-                onClick={() => navigate('/candidato-funnel')}
-                size="lg"
-                className="bg-white text-blue-600 hover:bg-gray-100 font-bold shadow-lg"
-              >
-                Ver Propuestas
-                <ArrowRight className="w-5 h-5 ml-2" />
-              </Button>
-            </div>
-          </div>
-        )}
-
-        {/* Controles del Mapa */}
         <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
           <Card className="shadow-lg border-0 bg-white/80 backdrop-blur">
             <CardHeader className="pb-3">
@@ -379,7 +742,6 @@ const MapaAlertas = () => {
           </Card>
         </div>
 
-        {/* Mapa Interactivo Mejorado */}
         <Card className="shadow-2xl border-0 overflow-hidden">
           <CardHeader className="bg-gradient-to-r from-blue-500 to-purple-500 text-white">
             <CardTitle className="flex items-center gap-2 text-xl">
@@ -398,7 +760,6 @@ const MapaAlertas = () => {
                 zoom={zoomLevel}
                 options={mapOptions}
               >
-                {/* Marcadores de alertas */}
                 {filteredAlerts.map((alert) => (
                   <Marker
                     key={alert.id}
@@ -408,7 +769,7 @@ const MapaAlertas = () => {
                     }}
                     title={alert.title}
                     icon={{
-                      path: google.maps.SymbolPath.CIRCLE,
+                      path: window.google?.maps?.SymbolPath?.CIRCLE || 0,
                       scale: 12,
                       fillColor: getMarkerColor(alert.type),
                       fillOpacity: 0.8,
@@ -419,13 +780,12 @@ const MapaAlertas = () => {
                   />
                 ))}
 
-                {/* Círculo de ubicación del usuario */}
                 {userLocation && (
                   <>
                     <Marker
                       position={userLocation}
                       icon={{
-                        path: google.maps.SymbolPath.CIRCLE,
+                        path: window.google?.maps?.SymbolPath?.CIRCLE || 0,
                         scale: 8,
                         fillColor: '#4f46e5',
                         fillOpacity: 1,
@@ -448,7 +808,6 @@ const MapaAlertas = () => {
                   </>
                 )}
 
-                {/* InfoWindow para alertas seleccionadas */}
                 {selectedAlert && (
                   <InfoWindow
                     position={{
@@ -479,18 +838,26 @@ const MapaAlertas = () => {
           </CardContent>
         </Card>
 
-        {/* Lista de Propuestas Mejorada */}
         <Card className="shadow-xl border-0">
           <CardHeader className="bg-gradient-to-r from-green-500 to-blue-500 text-white">
-            <CardTitle className="text-xl">
-              🎯 Propuestas Activas en tu Área
-            </CardTitle>
-            <p className="text-green-100">
-              {userLocation 
-                ? `Mostrando ${filteredAlerts.length} propuestas en un radio de ${radiusFilter/1000}km`
-                : `Mostrando todas las ${alerts.length} propuestas disponibles`
-              }
-            </p>
+            <div className="flex items-center justify-between">
+              <div>
+                <CardTitle className="text-xl">🎯 Propuestas Activas en tu Área</CardTitle>
+                <p className="text-green-100">
+                  {userLocation 
+                    ? `Mostrando ${filteredAlerts.length} propuestas en un radio de ${radiusFilter/1000}km`
+                    : `Mostrando todas las ${alerts.length} propuestas disponibles`
+                  }
+                </p>
+              </div>
+              <Button 
+                onClick={() => setShowFunnel(true)}
+                className="bg-white/20 hover:bg-white/30 text-white border-white/30"
+              >
+                <UserPlus className="w-4 h-4 mr-2" />
+                Unirme
+              </Button>
+            </div>
           </CardHeader>
           <CardContent className="p-6">
             {isLoading ? (
@@ -538,38 +905,35 @@ const MapaAlertas = () => {
           </CardContent>
         </Card>
 
-        {/* CTA Final para visitantes */}
-        {(!isAuthenticated || user?.role === 'visitante') && (
-          <Card className="bg-gradient-to-r from-yellow-400 via-orange-500 to-red-500 text-white shadow-2xl border-0">
-            <CardContent className="p-8 text-center">
-              <h2 className="text-3xl font-bold mb-4">
-                🚀 ¿Te Gustaron Nuestras Propuestas?
-              </h2>
-              <p className="text-xl mb-6 opacity-90">
-                Únete a miles de vecinos que ya apoyan nuestro proyecto de transformación comunitaria
-              </p>
-              <div className="flex flex-col sm:flex-row gap-4 justify-center">
-                <Button 
-                  onClick={() => navigate('/candidato-funnel')}
-                  size="lg"
-                  className="bg-white text-orange-600 hover:bg-gray-100 font-bold shadow-lg"
-                >
-                  <Heart className="w-5 h-5 mr-2" />
-                  Registrarme como Partidario
-                </Button>
-                <Button 
-                  variant="outline"
-                  size="lg"
-                  className="border-2 border-white text-white hover:bg-white/10 font-bold"
-                >
-                  <Eye className="w-5 h-5 mr-2" />
-                  Seguir Explorando
-                </Button>
-              </div>
-            </CardContent>
-          </Card>
-        )}
+        <Card className="bg-gradient-to-r from-yellow-400 via-orange-500 to-red-500 text-white shadow-2xl border-0">
+          <CardContent className="p-8 text-center">
+            <h2 className="text-3xl font-bold mb-4">🚀 ¿Te Gustaron Nuestras Propuestas?</h2>
+            <p className="text-xl mb-6 opacity-90">
+              Únete a miles de vecinos que ya apoyan nuestro proyecto de transformación comunitaria
+            </p>
+            <div className="flex flex-col sm:flex-row gap-4 justify-center">
+              <Button 
+                onClick={() => setShowFunnel(true)}
+                size="lg"
+                className="bg-white text-orange-600 hover:bg-gray-100 font-bold shadow-lg"
+              >
+                <Heart className="w-5 h-5 mr-2" />
+                Registrarme como Partidario
+              </Button>
+              <Button 
+                variant="outline"
+                size="lg"
+                className="border-2 border-white text-white hover:bg-white/10 font-bold"
+              >
+                <Eye className="w-5 h-5 mr-2" />
+                Seguir Explorando
+              </Button>
+            </div>
+          </CardContent>
+        </Card>
       </div>
+
+      {showFunnel && <FunnelModal />}
     </div>
   );
 };
