@@ -1,3 +1,4 @@
+
 import { useState, useEffect } from "react";
 import { useQuery } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
@@ -49,6 +50,22 @@ interface Alert {
     coordinates: { lat: number; lng: number };
   } | null;
 }
+
+// Move calculateDistance function to the top
+const calculateDistance = (lat1: number, lng1: number, lat2: number, lng2: number) => {
+  const R = 6371e3;
+  const φ1 = lat1 * Math.PI/180;
+  const φ2 = lat2 * Math.PI/180;
+  const Δφ = (lat2-lat1) * Math.PI/180;
+  const Δλ = (lng2-lng1) * Math.PI/180;
+
+  const a = Math.sin(Δφ/2) * Math.sin(Δφ/2) +
+            Math.cos(φ1) * Math.cos(φ2) *
+            Math.sin(Δλ/2) * Math.sin(Δλ/2);
+  const c = 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1-a));
+
+  return R * c;
+};
 
 const MapaAlertas = () => {
   const { user, isAuthenticated } = useAuth();
@@ -219,6 +236,7 @@ const MapaAlertas = () => {
     refetchOnWindowFocus: false,
   });
 
+  // Now filteredAlerts can use calculateDistance since it's defined above
   const filteredAlerts = userLocation 
     ? alerts.filter(alert => {
         if (!alert.territory?.coordinates) return false;
@@ -231,21 +249,6 @@ const MapaAlertas = () => {
         return distance <= radiusFilter;
       })
     : alerts;
-
-  const calculateDistance = (lat1: number, lng1: number, lat2: number, lng2: number) => {
-    const R = 6371e3;
-    const φ1 = lat1 * Math.PI/180;
-    const φ2 = lat2 * Math.PI/180;
-    const Δφ = (lat2-lat1) * Math.PI/180;
-    const Δλ = (lng2-lng1) * Math.PI/180;
-
-    const a = Math.sin(Δφ/2) * Math.sin(Δφ/2) +
-              Math.cos(φ1) * Math.cos(φ2) *
-              Math.sin(Δλ/2) * Math.sin(Δλ/2);
-    const c = 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1-a));
-
-    return R * c;
-  };
 
   const territories = [
     { id: "chapinero", name: "Chapinero" },
@@ -769,7 +772,7 @@ const MapaAlertas = () => {
                     }}
                     title={alert.title}
                     icon={{
-                      path: window.google?.maps?.SymbolPath?.CIRCLE || 0,
+                      path: typeof window !== 'undefined' && window.google?.maps?.SymbolPath?.CIRCLE || 0,
                       scale: 12,
                       fillColor: getMarkerColor(alert.type),
                       fillOpacity: 0.8,
@@ -785,7 +788,7 @@ const MapaAlertas = () => {
                     <Marker
                       position={userLocation}
                       icon={{
-                        path: window.google?.maps?.SymbolPath?.CIRCLE || 0,
+                        path: typeof window !== 'undefined' && window.google?.maps?.SymbolPath?.CIRCLE || 0,
                         scale: 8,
                         fillColor: '#4f46e5',
                         fillOpacity: 1,
