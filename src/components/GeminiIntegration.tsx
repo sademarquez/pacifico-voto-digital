@@ -7,9 +7,10 @@ import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Badge } from '@/components/ui/badge';
-import { Sparkles, Settings, MessageSquare, BarChart3, Users, Brain } from 'lucide-react';
+import { Sparkles, Settings, MessageSquare, BarChart3, Users, Brain, CheckCircle, AlertCircle } from 'lucide-react';
 import { useSimpleAuth } from '@/contexts/SimpleAuthContext';
 import { useToast } from '@/hooks/use-toast';
+import { premiumGeminiService } from '@/services/premiumGeminiService';
 
 interface GeminiConfig {
   id: string;
@@ -24,29 +25,76 @@ interface ChatMessage {
   role: 'user' | 'assistant';
   content: string;
   timestamp: Date;
+  analysis?: {
+    sentiment: string;
+    confidence: number;
+  };
 }
 
 const GeminiIntegration = () => {
   const { user } = useSimpleAuth();
   const queryClient = useQueryClient();
   const { toast } = useToast();
-  const [apiKey, setApiKey] = useState('');
   const [showConfig, setShowConfig] = useState(false);
   const [chatMessages, setChatMessages] = useState<ChatMessage[]>([]);
   const [currentMessage, setCurrentMessage] = useState('');
   const [isProcessing, setIsProcessing] = useState(false);
+  const [connectionStatus, setConnectionStatus] = useState<'testing' | 'connected' | 'error' | 'idle'>('idle');
 
-  // Fetch Gemini configuration with proper error handling
-  const { data: geminiConfig, isLoading } = useQuery({
+  // Fetch configuración real de Gemini
+  const { data: geminiConfig, isLoading, refetch } = useQuery({
     queryKey: ['gemini-config', user?.id],
     queryFn: async (): Promise<GeminiConfig | null> => {
       if (!user?.id) return null;
 
       try {
-        // For now, return mock configuration
-        const mockConfig: GeminiConfig = {
-          id: '1',
-          api_key_encrypted: 'AIzaSy...',
+        const { data, error } = await supabase
+          .from('gemini_configs')
+          .select('*')
+          .eq('user_id', user.id)
+          .single();
+
+        if (error && error.code !== 'PGRST116') {
+          console.error('Error fetching Gemini config:', error);
+          return null;
+        }
+
+        return data;
+      } catch (error) {
+        console.error('Error fetching Gemini config:', error);
+        return null;
+      }
+    },
+    enabled: !!user?.id
+  });
+
+  // Test de conexión real
+  const testConnectionMutation = useMutation({
+    mutationFn: async () => {
+      setConnectionStatus('testing');
+      const result = await premiumGeminiService.testConnection();
+      setConnectionStatus(result.success ? 'connected' : 'error');
+      return result;
+    },
+    onSuccess: (result) => {
+      toast({
+        title: result.success ? 'Conexión exitosa' : 'Error de conexión',
+        description: result.message,
+        variant: result.success ? 'default' : 'destructive'
+      });
+    }
+  });
+
+  // Configurar Gemini con API premium
+  const configureGeminiMutation = useMutation({
+    mutationFn: async () => {
+      if (!user?.id) throw new Error('Usuario no autenticado');
+
+      const { data, error } = await supabase
+        .from('gemini_configs')
+        .upsert({
+          user_id: user.id,
+          api_key_encrypted: 'AIzaSyDaq-_E5FQtTF0mfJsohXvT2OHMgldjq14', // Tu API premium
           model_preference: 'gemini-2.0-flash',
           custom_prompts: {
             electoral_analysis: 'Eres un experto analista electoral especializado en campañas políticas democráticas.',
@@ -59,68 +107,59 @@ const GeminiIntegration = () => {
             max_tokens_per_request: 2048
           },
           is_active: true
-        };
-        
-        return mockConfig;
-      } catch (error) {
-        console.error('Error fetching Gemini config:', error);
-        return null;
-      }
-    },
-    enabled: !!user?.id
-  });
+        }, {
+          onConflict: 'user_id'
+        })
+        .select()
+        .single();
 
-  // Save Gemini configuration
-  const saveConfigMutation = useMutation({
-    mutationFn: async () => {
-      if (!user?.id || !apiKey) throw new Error('Datos incompletos');
-
-      // Simulate saving configuration
-      console.log('Saving Gemini config:', {
-        user_id: user.id,
-        api_key_encrypted: apiKey,
-        model_preference: 'gemini-2.0-flash'
-      });
-
-      return { id: Date.now().toString(), is_active: true };
+      if (error) throw error;
+      return data;
     },
     onSuccess: () => {
       toast({
-        title: 'Configuración guardada',
-        description: 'Gemini AI ha sido configurado exitosamente.',
+        title: 'Gemini Premium configurado',
+        description: 'La integración con Gemini 2.0 Flash está activa',
       });
       setShowConfig(false);
-      setApiKey('');
       queryClient.invalidateQueries({ queryKey: ['gemini-config'] });
     },
     onError: (error: any) => {
       toast({
-        title: 'Error al configurar Gemini',
+        title: 'Error de configuración',
         description: error.message,
         variant: 'destructive',
       });
     }
   });
 
-  // Process message with Gemini (simulado por ahora)
+  // Procesar mensaje con Gemini real
   const processMessageMutation = useMutation({
     mutationFn: async (message: string) => {
-      // Simulación de respuesta de Gemini
-      await new Promise(resolve => setTimeout(resolve, 2000));
+      const electoralPrompt = `Como asistente electoral experto, responde a: "${message}"
       
-      const responses = [
-        `Basado en tu consulta sobre "${message}", puedo ayudarte con análisis electoral detallado. Como experto en campañas políticas, te sugiero enfocar en la segmentación de votantes y análisis de tendencias.`,
-        `Excelente pregunta sobre "${message}". Para optimizar tu campaña electoral, es fundamental usar datos demográficos y patrones de votación históricos. Te ayudo a desarrollar estrategias específicas.`,
-        `Analicemos "${message}" desde una perspectiva electoral profesional. Los insights basados en datos son clave para tomar decisiones estratégicas efectivas en campañas modernas.`
-      ];
+      Contexto: MI CAMPAÑA 2025 - Sistema electoral inteligente
+      Usuario: ${user?.name}
+      Rol: Análisis y estrategia electoral
       
-      return responses[Math.floor(Math.random() * responses.length)];
+      Proporciona una respuesta útil, práctica y específica para campañas electorales.`;
+
+      const response = await premiumGeminiService.makeRequest(electoralPrompt);
+      
+      // Analizar sentimiento del mensaje del usuario
+      const analysis = await premiumGeminiService.analyzeElectoralSentiment(message);
+      
+      return { response, analysis };
     },
-    onSuccess: (response) => {
+    onSuccess: ({ response, analysis }) => {
       setChatMessages(prev => [...prev, {
         role: 'assistant',
         content: response,
-        timestamp: new Date()
+        timestamp: new Date(),
+        analysis: {
+          sentiment: analysis.sentiment,
+          confidence: analysis.confidence
+        }
       }]);
       setIsProcessing(false);
     },
@@ -149,57 +188,63 @@ const GeminiIntegration = () => {
     setCurrentMessage('');
   };
 
-  const testConnection = async () => {
-    try {
-      toast({
-        title: 'Prueba de conexión',
-        description: 'Gemini AI está listo para usar con tus datos electorales.',
-      });
-    } catch (error) {
-      toast({
-        title: 'Error de prueba',
-        description: 'No se pudo probar la conexión',
-        variant: 'destructive',
-      });
-    }
-  };
-
+  // Mensaje de bienvenida premium
   useEffect(() => {
     if (geminiConfig?.is_active && chatMessages.length === 0) {
-      // Mensaje de bienvenida
       setChatMessages([{
         role: 'assistant',
-        content: `¡Hola ${user?.name}! 👋 
+        content: `🚀 **¡Gemini Premium activado para ${user?.name}!**
 
-Soy tu asistente electoral con Gemini 2.0 Flash. Estoy aquí para ayudarte con:
+Tu asistente electoral con **Gemini 2.0 Flash Premium** está listo:
 
-📊 **Análisis Electoral:** Evaluación de datos y tendencias
-🎯 **Estrategia de Campaña:** Optimización de recursos y targeting
-👥 **Participación Ciudadana:** Estrategias de engagement
-📈 **Insights de Datos:** Análisis predictivo y métricas
+**🎯 Capacidades Premium:**
+• **Análisis Electoral Avanzado** - Insights predictivos
+• **Estrategias IA Personalizadas** - Tácticas optimizadas  
+• **Sentiment Analysis** - Evaluación automática de mensajes
+• **Optimización de Contenido** - Mensajes de alto impacto
 
-¿En qué puedo ayudarte hoy?`,
+**⚡ Ventajas Premium:**
+• Mayor velocidad de respuesta
+• Análisis más profundos
+• Sin límites restrictivos
+• Modelos más avanzados
+
+¿En qué aspecto de tu campaña te puedo ayudar hoy?`,
         timestamp: new Date()
       }]);
     }
-  }, [geminiConfig, user]);
+  }, [geminiConfig, user, chatMessages.length]);
 
   return (
     <div className="space-y-6">
       <div className="flex justify-between items-center">
         <div>
-          <h2 className="text-2xl font-bold text-gray-800">Asistente Gemini AI</h2>
-          <p className="text-gray-600">Inteligencia artificial especializada en análisis electoral</p>
+          <h2 className="text-2xl font-bold text-gray-800">Gemini AI Premium</h2>
+          <p className="text-gray-600">Inteligencia artificial avanzada para análisis electoral</p>
         </div>
         <div className="flex gap-2">
-          <Button onClick={testConnection} variant="outline">
-            <Sparkles className="w-4 h-4 mr-2" />
-            Probar Conexión
+          <Button 
+            onClick={() => testConnectionMutation.mutate()} 
+            variant="outline"
+            disabled={testConnectionMutation.isPending}
+          >
+            {connectionStatus === 'testing' ? (
+              <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-blue-600 mr-2"></div>
+            ) : connectionStatus === 'connected' ? (
+              <CheckCircle className="w-4 h-4 mr-2 text-green-600" />
+            ) : connectionStatus === 'error' ? (
+              <AlertCircle className="w-4 h-4 mr-2 text-red-600" />
+            ) : (
+              <Sparkles className="w-4 h-4 mr-2" />
+            )}
+            {testConnectionMutation.isPending ? 'Probando...' : 'Test Premium'}
           </Button>
-          <Button onClick={() => setShowConfig(true)}>
-            <Settings className="w-4 h-4 mr-2" />
-            Configurar
-          </Button>
+          {!geminiConfig?.is_active && (
+            <Button onClick={() => configureGeminiMutation.mutate()}>
+              <Settings className="w-4 h-4 mr-2" />
+              Activar Premium
+            </Button>
+          )}
         </div>
       </div>
 
@@ -209,19 +254,23 @@ Soy tu asistente electoral con Gemini 2.0 Flash. Estoy aquí para ayudarte con:
           <CardContent className="p-6 text-center">
             <Brain className="w-16 h-16 mx-auto mb-4 text-amber-600" />
             <h3 className="text-lg font-semibold text-amber-800 mb-2">
-              Gemini AI no configurado
+              Gemini Premium disponible
             </h3>
             <p className="text-amber-700 mb-4">
-              Configura tu API key de Google Gemini para activar el asistente de IA.
+              API Premium lista para activar. Funcionalidades avanzadas incluidas.
             </p>
-            <Button onClick={() => setShowConfig(true)} className="bg-amber-600 hover:bg-amber-700">
-              Configurar Gemini AI
+            <Button 
+              onClick={() => configureGeminiMutation.mutate()}
+              className="bg-amber-600 hover:bg-amber-700"
+              disabled={configureGeminiMutation.isPending}
+            >
+              {configureGeminiMutation.isPending ? 'Activando...' : 'Activar Gemini Premium'}
             </Button>
           </CardContent>
         </Card>
       )}
 
-      {/* Chat interface */}
+      {/* Chat interface premium */}
       {geminiConfig?.is_active && (
         <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
           {/* Chat principal */}
@@ -230,9 +279,9 @@ Soy tu asistente electoral con Gemini 2.0 Flash. Estoy aquí para ayudarte con:
               <CardHeader className="pb-3">
                 <div className="flex items-center gap-2">
                   <MessageSquare className="w-5 h-5 text-blue-600" />
-                  <CardTitle className="text-lg">Chat Electoral</CardTitle>
-                  <Badge className="bg-green-100 text-green-800 ml-auto">
-                    Gemini 2.0 Flash Activo
+                  <CardTitle className="text-lg">Chat Electoral Premium</CardTitle>
+                  <Badge className="bg-gradient-to-r from-blue-500 to-purple-600 text-white ml-auto">
+                    Gemini 2.0 Flash Premium ⚡
                   </Badge>
                 </div>
               </CardHeader>
@@ -246,6 +295,11 @@ Soy tu asistente electoral con Gemini 2.0 Flash. Estoy aquí para ayudarte con:
                           : 'bg-gray-100 text-gray-800'
                       }`}>
                         <p className="text-sm whitespace-pre-wrap">{message.content}</p>
+                        {message.analysis && (
+                          <div className="text-xs mt-2 opacity-75">
+                            📊 Sentiment: {message.analysis.sentiment} ({Math.round(message.analysis.confidence * 100)}%)
+                          </div>
+                        )}
                         <p className="text-xs opacity-70 mt-1">
                           {message.timestamp.toLocaleTimeString()}
                         </p>
@@ -257,7 +311,7 @@ Soy tu asistente electoral con Gemini 2.0 Flash. Estoy aquí para ayudarte con:
                       <div className="bg-gray-100 px-4 py-2 rounded-lg">
                         <div className="flex items-center space-x-2">
                           <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-blue-600"></div>
-                          <span className="text-sm text-gray-600">Gemini está pensando...</span>
+                          <span className="text-sm text-gray-600">Gemini Premium procesando...</span>
                         </div>
                       </div>
                     </div>
@@ -265,7 +319,7 @@ Soy tu asistente electoral con Gemini 2.0 Flash. Estoy aquí para ayudarte con:
                 </div>
                 <div className="flex gap-2">
                   <Input
-                    placeholder="Pregunta sobre análisis electoral, estrategias, datos..."
+                    placeholder="Pregunta sobre estrategias electorales, análisis de datos..."
                     value={currentMessage}
                     onChange={(e) => setCurrentMessage(e.target.value)}
                     onKeyPress={(e) => e.key === 'Enter' && handleSendMessage()}
@@ -279,102 +333,67 @@ Soy tu asistente electoral con Gemini 2.0 Flash. Estoy aquí para ayudarte con:
             </Card>
           </div>
 
-          {/* Panel de información */}
+          {/* Panel de información premium */}
           <div className="space-y-4">
             <Card>
               <CardHeader className="pb-3">
                 <CardTitle className="text-lg flex items-center gap-2">
                   <BarChart3 className="w-5 h-5" />
-                  Capacidades
+                  Capacidades Premium
                 </CardTitle>
               </CardHeader>
               <CardContent className="space-y-3">
                 <div className="flex items-center gap-2">
                   <Users className="w-4 h-4 text-blue-600" />
-                  <span className="text-sm">Análisis de votantes</span>
+                  <span className="text-sm">Análisis predictivo avanzado</span>
                 </div>
                 <div className="flex items-center gap-2">
                   <BarChart3 className="w-4 h-4 text-green-600" />
-                  <span className="text-sm">Métricas electorales</span>
+                  <span className="text-sm">Métricas electorales en tiempo real</span>
                 </div>
                 <div className="flex items-center gap-2">
                   <MessageSquare className="w-4 h-4 text-purple-600" />
-                  <span className="text-sm">Estrategias de comunicación</span>
+                  <span className="text-sm">Optimización de mensajes IA</span>
                 </div>
                 <div className="flex items-center gap-2">
                   <Sparkles className="w-4 h-4 text-amber-600" />
-                  <span className="text-sm">Insights predictivos</span>
+                  <span className="text-sm">Insights estratégicos premium</span>
                 </div>
               </CardContent>
             </Card>
 
             <Card>
               <CardHeader className="pb-3">
-                <CardTitle className="text-lg">Uso del Modelo</CardTitle>
+                <CardTitle className="text-lg">Estado Premium</CardTitle>
               </CardHeader>
               <CardContent>
                 <div className="space-y-2 text-sm">
                   <div className="flex justify-between">
                     <span className="text-gray-500">Modelo:</span>
-                    <span className="font-medium">{geminiConfig?.model_preference || 'gemini-2.0-flash'}</span>
+                    <span className="font-medium">Gemini 2.0 Flash</span>
                   </div>
                   <div className="flex justify-between">
-                    <span className="text-gray-500">Límite diario:</span>
-                    <span className="font-medium">{geminiConfig?.usage_limits?.daily_requests || 1000}</span>
+                    <span className="text-gray-500">Plan:</span>
+                    <Badge className="bg-gradient-to-r from-purple-500 to-blue-500 text-white">
+                      Premium
+                    </Badge>
                   </div>
                   <div className="flex justify-between">
                     <span className="text-gray-500">Estado:</span>
-                    <Badge className="bg-green-100 text-green-800">Activo</Badge>
+                    <Badge className={`${
+                      connectionStatus === 'connected' ? 'bg-green-100 text-green-800' :
+                      connectionStatus === 'error' ? 'bg-red-100 text-red-800' :
+                      'bg-gray-100 text-gray-800'
+                    }`}>
+                      {connectionStatus === 'connected' ? 'Conectado' :
+                       connectionStatus === 'error' ? 'Error' : 'Listo'}
+                    </Badge>
                   </div>
                 </div>
               </CardContent>
             </Card>
           </div>
         </div>
-      )}
-
-      {/* Modal de configuración */}
-      {showConfig && (
-        <Card>
-          <CardHeader>
-            <CardTitle>Configurar Gemini AI</CardTitle>
-          </CardHeader>
-          <CardContent className="space-y-4">
-            <div>
-              <Label htmlFor="api-key">Google Gemini API Key</Label>
-              <Input
-                id="api-key"
-                type="password"
-                placeholder="AIzaSy..."
-                value={apiKey}
-                onChange={(e) => setApiKey(e.target.value)}
-              />
-              <p className="text-xs text-gray-500 mt-1">
-                Obtén tu API key desde <a href="https://makersuite.google.com/app/apikey" target="_blank" rel="noopener noreferrer" className="text-blue-600 hover:underline">Google AI Studio</a>
-              </p>
-            </div>
-
-            <div className="bg-blue-50 p-4 rounded-lg">
-              <h4 className="font-medium text-blue-900 mb-2">Funcionalidades incluidas:</h4>
-              <ul className="text-sm text-blue-800 space-y-1">
-                <li>• Análisis electoral inteligente</li>
-                <li>• Generación de estrategias de campaña</li>
-                <li>• Insights predictivos basados en datos</li>
-                <li>• Optimización de recursos electorales</li>
-                <li>• Asistente 24/7 especializado</li>
-              </ul>
-            </div>
-
-            <div className="flex justify-end gap-2">
-              <Button variant="outline" onClick={() => setShowConfig(false)}>
-                Cancelar
-              </Button>
-              <Button onClick={() => saveConfigMutation.mutate()} disabled={saveConfigMutation.isPending || !apiKey}>
-                {saveConfigMutation.isPending ? "Guardando..." : "Activar Gemini AI"}
-              </Button>
-            </div>
-          </CardContent>
-        </Card>
       )}
     </div>
   );

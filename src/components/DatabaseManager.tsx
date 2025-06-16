@@ -9,7 +9,7 @@ import { Label } from '@/components/ui/label';
 import { Textarea } from '@/components/ui/textarea';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Badge } from '@/components/ui/badge';
-import { Database, Upload, Download, Settings, Plus, RefreshCw } from 'lucide-react';
+import { Database, Upload, Settings, Plus, RefreshCw } from 'lucide-react';
 import { useSimpleAuth } from '@/contexts/SimpleAuthContext';
 import { useToast } from '@/hooks/use-toast';
 
@@ -22,13 +22,6 @@ interface UserDatabase {
   total_records: number;
   last_sync: string;
   created_at: string;
-}
-
-interface ImportConfig {
-  database_id: string;
-  import_type: 'csv' | 'excel' | 'database' | 'api';
-  file?: File;
-  mapping_config: any;
 }
 
 const DatabaseManager = () => {
@@ -47,44 +40,26 @@ const DatabaseManager = () => {
     username: '',
     password: ''
   });
-  const [importConfig, setImportConfig] = useState<ImportConfig>({
-    database_id: '',
-    import_type: 'csv',
-    mapping_config: {}
-  });
 
-  // Fetch user databases with proper error handling
+  // Fetch bases de datos reales del usuario
   const { data: databases = [], isLoading, refetch } = useQuery({
     queryKey: ['user-databases', user?.id],
     queryFn: async (): Promise<UserDatabase[]> => {
       if (!user?.id) return [];
 
       try {
-        // Direct query to get databases - simulating the structure for now
-        const mockDatabases: UserDatabase[] = [
-          {
-            id: '1',
-            name: 'Base de Datos Principal',
-            description: 'Base de datos principal del sistema electoral',
-            connection_config: { type: 'postgresql', host: 'localhost' },
-            status: 'connected',
-            total_records: 15420,
-            last_sync: new Date().toISOString(),
-            created_at: new Date().toISOString()
-          },
-          {
-            id: '2', 
-            name: 'DB Votantes Externos',
-            description: 'Importación de votantes desde sistema externo',
-            connection_config: { type: 'mysql', host: 'external.db' },
-            status: 'configured',
-            total_records: 8932,
-            last_sync: new Date(Date.now() - 86400000).toISOString(),
-            created_at: new Date(Date.now() - 604800000).toISOString()
-          }
-        ];
-        
-        return mockDatabases;
+        const { data, error } = await supabase
+          .from('user_databases')
+          .select('*')
+          .eq('user_id', user.id)
+          .order('created_at', { ascending: false });
+
+        if (error) {
+          console.error('Error fetching databases:', error);
+          return [];
+        }
+
+        return data || [];
       } catch (error) {
         console.error('Error fetching databases:', error);
         return [];
@@ -93,7 +68,7 @@ const DatabaseManager = () => {
     enabled: !!user?.id
   });
 
-  // Create database mutation
+  // Crear base de datos
   const createDatabaseMutation = useMutation({
     mutationFn: async () => {
       if (!user?.id) throw new Error('Usuario no autenticado');
@@ -107,15 +82,21 @@ const DatabaseManager = () => {
         password: newDb.password
       };
 
-      // For now, just simulate the creation
-      console.log('Creating database config:', {
-        user_id: user.id,
-        name: newDb.name,
-        description: newDb.description,
-        connection_config: connectionConfig
-      });
+      const { data, error } = await supabase
+        .from('user_databases')
+        .insert({
+          user_id: user.id,
+          name: newDb.name,
+          description: newDb.description,
+          connection_config: connectionConfig,
+          status: 'configured',
+          total_records: 0
+        })
+        .select()
+        .single();
 
-      return { id: Date.now().toString(), name: newDb.name };
+      if (error) throw error;
+      return data;
     },
     onSuccess: () => {
       toast({
@@ -144,42 +125,6 @@ const DatabaseManager = () => {
     }
   });
 
-  // Import data mutation
-  const importDataMutation = useMutation({
-    mutationFn: async () => {
-      if (!user?.id || !importConfig.database_id) throw new Error('Configuración incompleta');
-
-      // Simulate import process
-      console.log('Starting import:', {
-        user_id: user.id,
-        database_id: importConfig.database_id,
-        import_type: importConfig.import_type,
-        file_name: importConfig.file?.name
-      });
-
-      return { id: Date.now().toString(), status: 'pending' };
-    },
-    onSuccess: () => {
-      toast({
-        title: 'Importación iniciada',
-        description: 'El proceso de importación ha comenzado.',
-      });
-      setShowImport(false);
-      setImportConfig({
-        database_id: '',
-        import_type: 'csv',
-        mapping_config: {}
-      });
-    },
-    onError: (error: any) => {
-      toast({
-        title: 'Error en importación',
-        description: error.message,
-        variant: 'destructive',
-      });
-    }
-  });
-
   const handleCreateDatabase = () => {
     if (!newDb.name || !newDb.host || !newDb.database) {
       toast({
@@ -190,18 +135,6 @@ const DatabaseManager = () => {
       return;
     }
     createDatabaseMutation.mutate();
-  };
-
-  const handleImportData = () => {
-    if (!importConfig.database_id) {
-      toast({
-        title: 'Selecciona una base de datos',
-        description: 'Debes seleccionar la base de datos destino.',
-        variant: 'destructive',
-      });
-      return;
-    }
-    importDataMutation.mutate();
   };
 
   const getStatusBadge = (status: string) => {
@@ -376,66 +309,6 @@ const DatabaseManager = () => {
               </Button>
               <Button onClick={handleCreateDatabase} disabled={createDatabaseMutation.isPending}>
                 {createDatabaseMutation.isPending ? "Guardando..." : "Guardar Configuración"}
-              </Button>
-            </div>
-          </CardContent>
-        </Card>
-      )}
-
-      {/* Modal importar datos */}
-      {showImport && (
-        <Card>
-          <CardHeader>
-            <CardTitle>Importar Datos</CardTitle>
-          </CardHeader>
-          <CardContent className="space-y-4">
-            <div>
-              <Label htmlFor="target-db">Base de Datos Destino</Label>
-              <Select value={importConfig.database_id} onValueChange={(value) => setImportConfig({ ...importConfig, database_id: value })}>
-                <SelectTrigger>
-                  <SelectValue placeholder="Selecciona una base de datos" />
-                </SelectTrigger>
-                <SelectContent>
-                  {databases.map((db: UserDatabase) => (
-                    <SelectItem key={db.id} value={db.id}>{db.name}</SelectItem>
-                  ))}
-                </SelectContent>
-              </Select>
-            </div>
-
-            <div>
-              <Label htmlFor="import-type">Tipo de Importación</Label>
-              <Select value={importConfig.import_type} onValueChange={(value: any) => setImportConfig({ ...importConfig, import_type: value })}>
-                <SelectTrigger>
-                  <SelectValue />
-                </SelectTrigger>
-                <SelectContent>
-                  <SelectItem value="csv">Archivo CSV</SelectItem>
-                  <SelectItem value="excel">Archivo Excel</SelectItem>
-                  <SelectItem value="database">Base de Datos</SelectItem>
-                  <SelectItem value="api">API Externa</SelectItem>
-                </SelectContent>
-              </Select>
-            </div>
-
-            {importConfig.import_type === 'csv' || importConfig.import_type === 'excel' ? (
-              <div>
-                <Label htmlFor="file">Archivo</Label>
-                <Input
-                  id="file"
-                  type="file"
-                  accept={importConfig.import_type === 'csv' ? '.csv' : '.xlsx,.xls'}
-                  onChange={(e) => setImportConfig({ ...importConfig, file: e.target.files?.[0] })}
-                />
-              </div>
-            ) : null}
-
-            <div className="flex justify-end gap-2">
-              <Button variant="outline" onClick={() => setShowImport(false)}>
-                Cancelar
-              </Button>
-              <Button onClick={handleImportData} disabled={importDataMutation.isPending}>
-                {importDataMutation.isPending ? "Procesando..." : "Iniciar Importación"}
               </Button>
             </div>
           </CardContent>
