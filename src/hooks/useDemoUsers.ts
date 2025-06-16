@@ -1,141 +1,230 @@
-
 /*
  * Copyright © 2025 sademarquezDLL. Todos los derechos reservados.
  */
 
-import { useAuth } from '@/contexts/AuthContext';
-
-interface DemoUser {
-  email: string;
-  password: string;
+interface User {
+  id: string;
   name: string;
-  role: string;
-  description: string;
-  territory?: string;
-  isDemo: boolean;
+  email: string;
+  role: 'admin' | 'manager' | 'agent';
+  status: 'active' | 'inactive' | 'pending';
+  alerts_enabled: boolean;
+  notifications_enabled: boolean;
+  profile_image: string;
+  team_id?: string;
+  location?: string;
+  last_login?: string;
+  created_at?: string;
 }
 
-interface ProductionConfig {
-  databaseMode: 'demo' | 'production';
-  maxUsers: number;
-  features: string[];
+interface Config {
+  alerts_enabled: boolean;
+  notifications_enabled: boolean;
+  location?: string;
+}
+
+interface Stats {
+  users: number;
+  voters: number;
+  interactions: number;
+  campaigns: number;
+  alerts: number;
 }
 
 export const useDemoUsers = () => {
-  const FIXED_PASSWORD = "MasterSecure2025!";
-  
-  // Configuración separada entre DEMO y PRODUCCIÓN
-  const productionConfig: ProductionConfig = {
-    databaseMode: 'production',
-    maxUsers: 1000000, // 1M usuarios reales
-    features: ['gemini_ai', 'automated_campaigns', 'real_leads', 'whatsapp_integration']
-  };
-
-  const demoConfig: ProductionConfig = {
-    databaseMode: 'demo',
-    maxUsers: 101025,
-    features: ['demo_data', 'test_environment', 'limited_features']
-  };
-
-  // Usuarios DEMO claramente marcados
-  const demoUsers: DemoUser[] = [
+  const demoUsers: User[] = [
     {
-      email: 'admin@micampana.com',
-      password: 'AdminSecure2025!',
-      name: 'Administrador DEMO',
-      role: 'desarrollador',
-      description: 'Control total del sistema DEMO - Acceso completo',
-      isDemo: true
+      id: '1',
+      name: 'Samantha Smith',
+      email: 'samantha.smith@example.com',
+      role: 'admin',
+      status: 'active',
+      alerts_enabled: true,
+      notifications_enabled: true,
+      profile_image: '/avatars/avatar-1.png',
+      location: 'Bogotá, Colombia',
+      last_login: '2024-03-15T14:30:00Z',
+      created_at: '2023-01-20T09:15:00Z'
     },
     {
-      email: 'master@micampana.com',
-      password: 'MasterSecure2025!',
-      name: 'Carlos Master Rodriguez DEMO',
-      role: 'master',
-      description: 'Gestión completa de campaña DEMO - Base con 100k usuarios simulados',
-      isDemo: true
+      id: '2',
+      name: 'Ricardo Gomez',
+      email: 'ricardo.gomez@example.com',
+      role: 'manager',
+      status: 'active',
+      alerts_enabled: true,
+      notifications_enabled: false,
+      profile_image: '/avatars/avatar-2.png',
+      team_id: 'team-alpha',
+      location: 'Medellín, Colombia',
+      last_login: '2024-03-14T18:45:00Z',
+      created_at: '2023-02-10T11:00:00Z'
     },
     {
-      email: 'maria.gonzalez@micampana.com',
-      password: 'CandidatoSecure2025!',
-      name: 'María González DEMO',
-      role: 'candidato',
-      description: 'Candidata a Alcalde DEMO - Bogotá (15,420 votos simulados)',
-      territory: 'Bogotá',
-      isDemo: true
+      id: '3',
+      name: 'Isabella Rodriguez',
+      email: 'isabella.rodriguez@example.com',
+      role: 'agent',
+      status: 'pending',
+      alerts_enabled: false,
+      notifications_enabled: false,
+      profile_image: '/avatars/avatar-3.png',
+      team_id: 'team-beta',
+      location: 'Cali, Colombia',
+      created_at: '2023-03-01T16:20:00Z'
     },
     {
-      email: 'juan.martinez@micampana.com',
-      password: 'CandidatoSecure2025!',
-      name: 'Juan Martínez DEMO',
-      role: 'candidato',
-      description: 'Candidato a Concejal DEMO - Chapinero (8,932 votos simulados)',
-      territory: 'Chapinero',
-      isDemo: true
+      id: '4',
+      name: 'Alejandro Vargas',
+      email: 'alejandro.vargas@example.com',
+      role: 'agent',
+      status: 'inactive',
+      alerts_enabled: false,
+      notifications_enabled: false,
+      profile_image: '/avatars/avatar-4.png',
+      team_id: 'team-alpha',
+      location: 'Barranquilla, Colombia',
+      last_login: '2024-03-01T10:00:00Z',
+      created_at: '2023-04-05T08:00:00Z'
     },
     {
-      email: 'ana.rodriguez@micampana.com',
-      password: 'CandidatoSecure2025!',
-      name: 'Ana Rodríguez DEMO',
-      role: 'candidato',
-      description: 'Candidata a Concejal DEMO - Suba (12,156 votos simulados)',
-      territory: 'Suba',
-      isDemo: true
+      id: '5',
+      name: 'Sofia Castro',
+      email: 'sofia.castro@example.com',
+      role: 'agent',
+      status: 'active',
+      alerts_enabled: true,
+      notifications_enabled: true,
+      profile_image: '/avatars/avatar-5.png',
+      team_id: 'team-beta',
+      location: 'Cartagena, Colombia',
+      last_login: '2024-03-15T09:00:00Z',
+      created_at: '2023-05-12T12:30:00Z'
     },
     {
-      email: 'lider1@micampana.com',
-      password: 'LiderSecure2025!',
-      name: 'Líder Territorial DEMO',
-      role: 'lider',
-      description: 'Líder de base DEMO - Gestión territorial simulada',
-      isDemo: true
+      id: '6',
+      name: 'Daniel Hernandez',
+      email: 'daniel.hernandez@example.com',
+      role: 'agent',
+      status: 'active',
+      alerts_enabled: true,
+      notifications_enabled: false,
+      profile_image: '/avatars/avatar-6.png',
+      team_id: 'team-alpha',
+      location: 'Pereira, Colombia',
+      last_login: '2024-03-15T16:00:00Z',
+      created_at: '2023-06-18T14:45:00Z'
     },
     {
-      email: 'votante@demo.com',
-      password: 'VotanteSecure2025!',
-      name: 'Votante DEMO',
-      role: 'votante',
-      description: 'Usuario votante DEMO - Parte de base simulada',
-      isDemo: true
+      id: '7',
+      name: 'Valentina Lopez',
+      email: 'valentina.lopez@example.com',
+      role: 'agent',
+      status: 'pending',
+      alerts_enabled: false,
+      notifications_enabled: false,
+      profile_image: '/avatars/avatar-7.png',
+      team_id: 'team-beta',
+      location: 'Manizales, Colombia',
+      created_at: '2023-07-22T10:20:00Z'
+    },
+    {
+      id: '8',
+      name: 'Gabriel Perez',
+      email: 'gabriel.perez@example.com',
+      role: 'agent',
+      status: 'inactive',
+      alerts_enabled: false,
+      notifications_enabled: false,
+      profile_image: '/avatars/avatar-8.png',
+      team_id: 'team-alpha',
+      location: 'Bucaramanga, Colombia',
+      last_login: '2024-02-29T11:30:00Z',
+      created_at: '2023-08-28T17:00:00Z'
+    },
+    {
+      id: '9',
+      name: 'Camila Torres',
+      email: 'camila.torres@example.com',
+      role: 'agent',
+      status: 'active',
+      alerts_enabled: true,
+      notifications_enabled: true,
+      profile_image: '/avatars/avatar-9.png',
+      team_id: 'team-beta',
+      location: 'Pasto, Colombia',
+      last_login: '2024-03-14T08:00:00Z',
+      created_at: '2023-09-03T09:40:00Z'
+    },
+    {
+      id: '10',
+      name: 'Samuel Diaz',
+      email: 'samuel.diaz@example.com',
+      role: 'agent',
+      status: 'active',
+      alerts_enabled: true,
+      notifications_enabled: false,
+      profile_image: '/avatars/avatar-10.png',
+      team_id: 'team-alpha',
+      location: 'Cúcuta, Colombia',
+      last_login: '2024-03-15T13:15:00Z',
+      created_at: '2023-10-10T15:55:00Z'
     }
   ];
 
-  // Usuarios PRODUCCIÓN reales (se crearán dinámicamente)
-  const productionUserTemplate = {
-    roles: ['master', 'candidato', 'lider', 'votante', 'visitante'],
-    territories: [
-      'Antioquia', 'Atlántico', 'Bogotá D.C.', 'Bolívar', 'Boyacá', 
-      'Caldas', 'Caquetá', 'Casanare', 'Cauca', 'Cesar', 'Chocó',
-      'Córdoba', 'Cundinamarca', 'Huila', 'La Guajira', 'Magdalena',
-      'Meta', 'Nariño', 'Norte de Santander', 'Putumayo', 'Quindío',
-      'Risaralda', 'San Andrés', 'Santander', 'Sucre', 'Tolima',
-      'Valle del Cauca', 'Vaupés', 'Vichada'
-    ]
+  const productionConfig: Config = {
+    alerts_enabled: true,
+    notifications_enabled: true,
+    location: 'Colombia'
   };
 
-  // Estadísticas separadas
-  const demoStats = {
-    totalUsers: 101025,
-    territories: 8,
-    candidates: 5,
-    leaders: 20,
-    voters: 100000,
-    alerts: 5,
-    votes: 50000,
-    activeInteractions: 0,
-    mode: 'DEMO'
+  const demoConfig: Config = {
+    alerts_enabled: false,
+    notifications_enabled: false,
+    location: 'Demo'
   };
 
-  const productionStats = {
-    totalUsers: 0, // Se incrementará dinámicamente
-    territories: 32, // Todos los departamentos de Colombia
-    candidates: 0,
-    leaders: 0,
-    voters: 0,
-    alerts: 0,
-    votes: 0,
-    activeInteractions: 0,
-    mode: 'PRODUCCION'
+  const productionUserTemplate: Omit<User, 'id' | 'name' | 'email'> = {
+    role: 'agent',
+    status: 'pending',
+    alerts_enabled: false,
+    notifications_enabled: false,
+    profile_image: '/avatars/default.png'
+  };
+
+  const FIXED_PASSWORD = 'Password123!';
+
+  const demoStats: Stats = {
+    users: 10,
+    voters: 500,
+    interactions: 2500,
+    campaigns: 25,
+    alerts: 120
+  };
+
+  const productionStats: Stats = {
+    users: 5,
+    voters: 100,
+    interactions: 300,
+    campaigns: 5,
+    alerts: 30
+  };
+
+  const databaseStats = {
+    demo: {
+      users: demoUsers.length,
+      voters: 2,
+      interactions: 15,
+      campaigns: 3,
+      alerts: 4
+    },
+    production: {
+      users: 0,
+      voters: 0,
+      interactions: 0,
+      campaigns: 0,
+      alerts: 0
+    }
   };
 
   return {
@@ -145,6 +234,7 @@ export const useDemoUsers = () => {
     productionUserTemplate,
     FIXED_PASSWORD,
     demoStats,
-    productionStats
+    productionStats,
+    databaseStats
   };
 };
