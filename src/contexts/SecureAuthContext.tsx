@@ -148,7 +148,7 @@ export const SecureAuthProvider: React.FC<{ children: ReactNode }> = ({ children
         .maybeSingle();
 
       if (error) {
-        logWarning('auth', 'Error cargando perfil,usando datos base', { error: error.message });
+        logWarning('auth', 'Error cargando perfil, usando datos base', { error: error.message });
         
         // Fallback: crear usuario con datos básicos
         const fallbackUser: User = {
@@ -193,8 +193,7 @@ export const SecureAuthProvider: React.FC<{ children: ReactNode }> = ({ children
         const newProfile = {
           id: supabaseUser.id,
           name: supabaseUser.email?.split('@')[0] || 'Usuario',
-          role: 'visitante',
-          email: supabaseUser.email
+          role: 'visitante' as const
         };
 
         const { error: insertError } = await supabase
@@ -211,8 +210,8 @@ export const SecureAuthProvider: React.FC<{ children: ReactNode }> = ({ children
         const userData: User = {
           id: newProfile.id,
           name: newProfile.name,
-          role: newProfile.role as User['role'],
-          email: newProfile.email || '',
+          role: newProfile.role,
+          email: supabaseUser.email || '',
           isDemoUser: true,
           territory: 'DEMO'
         };

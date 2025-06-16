@@ -330,9 +330,9 @@ export const MobileAppAudit = () => {
     await new Promise(resolve => setTimeout(resolve, 2000));
     
     // Actualizar resultados como optimizados
-    const optimizedResults = results.map(result => ({
+    const optimizedResults: AuditResult[] = results.map(result => ({
       ...result,
-      status: result.status === 'broken' ? 'partial' : 'optimized' as const,
+      status: result.status === 'broken' ? 'partial' : 'optimized',
       message: result.status === 'broken' ? `${result.message} (Optimización aplicada)` : `${result.message} (Sistema optimizado)`
     }));
     
