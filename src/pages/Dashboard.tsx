@@ -1,4 +1,3 @@
-
 import { useState, useEffect } from "react";
 import { useSecureAuth } from "../contexts/SecureAuthContext";
 import { useSearchParams } from "react-router-dom";
@@ -20,6 +19,8 @@ import {
   BarChart3
 } from "lucide-react";
 import DashboardVisitante from "../components/DashboardVisitante";
+import ElectoralDashboard from "../components/ElectoralDashboard";
+import AutomatedVisitorWindow from "../components/AutomatedVisitorWindow";
 
 const Dashboard = () => {
   const { user, isLoading } = useSecureAuth();
@@ -77,6 +78,8 @@ const Dashboard = () => {
     if (user.role === 'master' || user.role === 'desarrollador') {
       return [
         ...baseTabs,
+        { id: "electoral", label: "Electoral IA", icon: BarChart3 },
+        { id: "visitor", label: "Ventana Visitantes", icon: Users },
         { id: "territories", label: "Territorios", icon: MapPin },
         { id: "alerts", label: "Alertas", icon: AlertTriangle },
         { id: "users", label: "Usuarios", icon: Users },
@@ -87,6 +90,8 @@ const Dashboard = () => {
     if (user.role === 'candidato') {
       return [
         ...baseTabs,
+        { id: "electoral", label: "Electoral IA", icon: BarChart3 },
+        { id: "visitor", label: "Ventana Visitantes", icon: Users },
         { id: "territories", label: "Territorios", icon: MapPin },
         { id: "alerts", label: "Alertas", icon: AlertTriangle },
         { id: "users", label: "Mi Equipo", icon: Users },
@@ -97,12 +102,20 @@ const Dashboard = () => {
     if (user.role === 'lider') {
       return [
         ...baseTabs,
+        { id: "electoral", label: "Electoral IA", icon: BarChart3 },
         { id: "territories", label: "Mi Territorio", icon: MapPin },
         { id: "alerts", label: "Alertas", icon: AlertTriangle }
       ];
     }
 
-    // Para votantes y visitantes - vista limitada
+    // Para votantes - incluir ventana de visitantes
+    if (user.role === 'votante') {
+      return [
+        ...baseTabs,
+        { id: "visitor", label: "Participar", icon: Users }
+      ];
+    }
+
     return baseTabs;
   };
 
@@ -120,7 +133,7 @@ const Dashboard = () => {
         {/* Navegación por tabs */}
         <Tabs value={activeTab} onValueChange={setActiveTab} className="space-y-6">
           {availableTabs.length > 1 && (
-            <TabsList className="grid w-full grid-cols-2 lg:grid-cols-5 bg-white shadow-sm">
+            <TabsList className="grid w-full grid-cols-3 lg:grid-cols-6 bg-white shadow-sm">
               {availableTabs.map((tab) => {
                 const Icon = tab.icon;
                 return (
@@ -184,6 +197,20 @@ const Dashboard = () => {
               </div>
             )}
           </TabsContent>
+
+          {/* Nuevo tab Electoral IA */}
+          {availableTabs.find(tab => tab.id === 'electoral') && (
+            <TabsContent value="electoral">
+              <ElectoralDashboard />
+            </TabsContent>
+          )}
+
+          {/* Nuevo tab Ventana de Visitantes */}
+          {availableTabs.find(tab => tab.id === 'visitor') && (
+            <TabsContent value="visitor">
+              <AutomatedVisitorWindow />
+            </TabsContent>
+          )}
 
           {availableTabs.find(tab => tab.id === 'territories') && (
             <TabsContent value="territories">

@@ -133,6 +133,442 @@ export type Database = {
           },
         ]
       }
+      automation_rules: {
+        Row: {
+          acciones: Json
+          activa: boolean | null
+          condiciones: Json
+          created_at: string | null
+          created_by: string | null
+          descripcion: string | null
+          ejecutada_veces: number | null
+          id: string
+          nombre: string
+          ultima_ejecucion: string | null
+          updated_at: string | null
+        }
+        Insert: {
+          acciones: Json
+          activa?: boolean | null
+          condiciones: Json
+          created_at?: string | null
+          created_by?: string | null
+          descripcion?: string | null
+          ejecutada_veces?: number | null
+          id?: string
+          nombre: string
+          ultima_ejecucion?: string | null
+          updated_at?: string | null
+        }
+        Update: {
+          acciones?: Json
+          activa?: boolean | null
+          condiciones?: Json
+          created_at?: string | null
+          created_by?: string | null
+          descripcion?: string | null
+          ejecutada_veces?: number | null
+          id?: string
+          nombre?: string
+          ultima_ejecucion?: string | null
+          updated_at?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "automation_rules_created_by_fkey"
+            columns: ["created_by"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      candidates: {
+        Row: {
+          apellido: string
+          biografia: string | null
+          cargo: string
+          created_at: string | null
+          created_by: string | null
+          foto_url: string | null
+          id: string
+          nombre: string
+          partido: string | null
+          propuestas: Json | null
+          redes_sociales: Json | null
+          territorio_id: string | null
+          updated_at: string | null
+        }
+        Insert: {
+          apellido: string
+          biografia?: string | null
+          cargo: string
+          created_at?: string | null
+          created_by?: string | null
+          foto_url?: string | null
+          id?: string
+          nombre: string
+          partido?: string | null
+          propuestas?: Json | null
+          redes_sociales?: Json | null
+          territorio_id?: string | null
+          updated_at?: string | null
+        }
+        Update: {
+          apellido?: string
+          biografia?: string | null
+          cargo?: string
+          created_at?: string | null
+          created_by?: string | null
+          foto_url?: string | null
+          id?: string
+          nombre?: string
+          partido?: string | null
+          propuestas?: Json | null
+          redes_sociales?: Json | null
+          territorio_id?: string | null
+          updated_at?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "candidates_created_by_fkey"
+            columns: ["created_by"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "candidates_territorio_id_fkey"
+            columns: ["territorio_id"]
+            isOneToOne: false
+            referencedRelation: "territories"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      electoral_campaigns: {
+        Row: {
+          audiencia_objetivo: Json | null
+          candidate_id: string | null
+          created_at: string | null
+          created_by: string | null
+          estado: Database["public"]["Enums"]["campaign_status"] | null
+          fecha_fin: string | null
+          fecha_inicio: string | null
+          gasto_actual: number | null
+          id: string
+          mensaje_principal: string | null
+          nombre: string
+          presupuesto: number | null
+          roi: number | null
+          territorio_id: string | null
+          tipo: string
+          updated_at: string | null
+        }
+        Insert: {
+          audiencia_objetivo?: Json | null
+          candidate_id?: string | null
+          created_at?: string | null
+          created_by?: string | null
+          estado?: Database["public"]["Enums"]["campaign_status"] | null
+          fecha_fin?: string | null
+          fecha_inicio?: string | null
+          gasto_actual?: number | null
+          id?: string
+          mensaje_principal?: string | null
+          nombre: string
+          presupuesto?: number | null
+          roi?: number | null
+          territorio_id?: string | null
+          tipo: string
+          updated_at?: string | null
+        }
+        Update: {
+          audiencia_objetivo?: Json | null
+          candidate_id?: string | null
+          created_at?: string | null
+          created_by?: string | null
+          estado?: Database["public"]["Enums"]["campaign_status"] | null
+          fecha_fin?: string | null
+          fecha_inicio?: string | null
+          gasto_actual?: number | null
+          id?: string
+          mensaje_principal?: string | null
+          nombre?: string
+          presupuesto?: number | null
+          roi?: number | null
+          territorio_id?: string | null
+          tipo?: string
+          updated_at?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "electoral_campaigns_candidate_id_fkey"
+            columns: ["candidate_id"]
+            isOneToOne: false
+            referencedRelation: "candidates"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "electoral_campaigns_created_by_fkey"
+            columns: ["created_by"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "electoral_campaigns_territorio_id_fkey"
+            columns: ["territorio_id"]
+            isOneToOne: false
+            referencedRelation: "territories"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      electoral_interactions: {
+        Row: {
+          canal: string
+          candidate_id: string | null
+          costo: number | null
+          created_at: string | null
+          duracion_minutos: number | null
+          efectividad: number | null
+          exitosa: boolean | null
+          id: string
+          mensaje: string | null
+          proxima_accion: string | null
+          respuesta: string | null
+          seguimiento_requerido: boolean | null
+          sentiment_level: Database["public"]["Enums"]["sentiment_level"] | null
+          sentiment_score: number | null
+          tipo_interaccion: Database["public"]["Enums"]["interaction_type"]
+          user_id: string | null
+          voter_id: string | null
+        }
+        Insert: {
+          canal: string
+          candidate_id?: string | null
+          costo?: number | null
+          created_at?: string | null
+          duracion_minutos?: number | null
+          efectividad?: number | null
+          exitosa?: boolean | null
+          id?: string
+          mensaje?: string | null
+          proxima_accion?: string | null
+          respuesta?: string | null
+          seguimiento_requerido?: boolean | null
+          sentiment_level?:
+            | Database["public"]["Enums"]["sentiment_level"]
+            | null
+          sentiment_score?: number | null
+          tipo_interaccion: Database["public"]["Enums"]["interaction_type"]
+          user_id?: string | null
+          voter_id?: string | null
+        }
+        Update: {
+          canal?: string
+          candidate_id?: string | null
+          costo?: number | null
+          created_at?: string | null
+          duracion_minutos?: number | null
+          efectividad?: number | null
+          exitosa?: boolean | null
+          id?: string
+          mensaje?: string | null
+          proxima_accion?: string | null
+          respuesta?: string | null
+          seguimiento_requerido?: boolean | null
+          sentiment_level?:
+            | Database["public"]["Enums"]["sentiment_level"]
+            | null
+          sentiment_score?: number | null
+          tipo_interaccion?: Database["public"]["Enums"]["interaction_type"]
+          user_id?: string | null
+          voter_id?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "electoral_interactions_candidate_id_fkey"
+            columns: ["candidate_id"]
+            isOneToOne: false
+            referencedRelation: "candidates"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "electoral_interactions_user_id_fkey"
+            columns: ["user_id"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "electoral_interactions_voter_id_fkey"
+            columns: ["voter_id"]
+            isOneToOne: false
+            referencedRelation: "electoral_voters"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      electoral_metrics: {
+        Row: {
+          candidate_id: string | null
+          contactos_exitosos: number | null
+          conversiones: number | null
+          costo_total: number | null
+          created_at: string | null
+          fecha: string | null
+          id: string
+          proyeccion_votos: number | null
+          roi: number | null
+          sentiment_promedio: number | null
+          tasa_conversion: number | null
+          territory_id: string | null
+          total_contactos: number | null
+          updated_at: string | null
+        }
+        Insert: {
+          candidate_id?: string | null
+          contactos_exitosos?: number | null
+          conversiones?: number | null
+          costo_total?: number | null
+          created_at?: string | null
+          fecha?: string | null
+          id?: string
+          proyeccion_votos?: number | null
+          roi?: number | null
+          sentiment_promedio?: number | null
+          tasa_conversion?: number | null
+          territory_id?: string | null
+          total_contactos?: number | null
+          updated_at?: string | null
+        }
+        Update: {
+          candidate_id?: string | null
+          contactos_exitosos?: number | null
+          conversiones?: number | null
+          costo_total?: number | null
+          created_at?: string | null
+          fecha?: string | null
+          id?: string
+          proyeccion_votos?: number | null
+          roi?: number | null
+          sentiment_promedio?: number | null
+          tasa_conversion?: number | null
+          territory_id?: string | null
+          total_contactos?: number | null
+          updated_at?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "electoral_metrics_candidate_id_fkey"
+            columns: ["candidate_id"]
+            isOneToOne: false
+            referencedRelation: "candidates"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "electoral_metrics_territory_id_fkey"
+            columns: ["territory_id"]
+            isOneToOne: false
+            referencedRelation: "territories"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      electoral_voters: {
+        Row: {
+          apellido: string
+          barrio: string | null
+          canal_contacto: string | null
+          cedula: string | null
+          ciudad: string | null
+          comuna: string | null
+          created_at: string | null
+          direccion: string | null
+          edad: number | null
+          email: string | null
+          estado_civil: string | null
+          estrato: number | null
+          genero: string | null
+          id: string
+          intencion_voto: string | null
+          nivel_educativo: string | null
+          nombre: string
+          notas: string | null
+          probabilidad_voto: number | null
+          profesion: string | null
+          status: Database["public"]["Enums"]["voter_status"] | null
+          telefono: string | null
+          territorio_asignado: string | null
+          ultima_interaccion: string | null
+          updated_at: string | null
+        }
+        Insert: {
+          apellido: string
+          barrio?: string | null
+          canal_contacto?: string | null
+          cedula?: string | null
+          ciudad?: string | null
+          comuna?: string | null
+          created_at?: string | null
+          direccion?: string | null
+          edad?: number | null
+          email?: string | null
+          estado_civil?: string | null
+          estrato?: number | null
+          genero?: string | null
+          id?: string
+          intencion_voto?: string | null
+          nivel_educativo?: string | null
+          nombre: string
+          notas?: string | null
+          probabilidad_voto?: number | null
+          profesion?: string | null
+          status?: Database["public"]["Enums"]["voter_status"] | null
+          telefono?: string | null
+          territorio_asignado?: string | null
+          ultima_interaccion?: string | null
+          updated_at?: string | null
+        }
+        Update: {
+          apellido?: string
+          barrio?: string | null
+          canal_contacto?: string | null
+          cedula?: string | null
+          ciudad?: string | null
+          comuna?: string | null
+          created_at?: string | null
+          direccion?: string | null
+          edad?: number | null
+          email?: string | null
+          estado_civil?: string | null
+          estrato?: number | null
+          genero?: string | null
+          id?: string
+          intencion_voto?: string | null
+          nivel_educativo?: string | null
+          nombre?: string
+          notas?: string | null
+          probabilidad_voto?: number | null
+          profesion?: string | null
+          status?: Database["public"]["Enums"]["voter_status"] | null
+          telefono?: string | null
+          territorio_asignado?: string | null
+          ultima_interaccion?: string | null
+          updated_at?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "electoral_voters_territorio_asignado_fkey"
+            columns: ["territorio_asignado"]
+            isOneToOne: false
+            referencedRelation: "territories"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       events: {
         Row: {
           actual_attendees: number | null
@@ -1039,12 +1475,20 @@ export type Database = {
         | "political"
         | "emergency"
         | "information"
+      campaign_status: "planificada" | "activa" | "pausada" | "completada"
       event_status:
         | "planned"
         | "confirmed"
         | "in_progress"
         | "completed"
         | "cancelled"
+      interaction_type:
+        | "llamada"
+        | "whatsapp"
+        | "sms"
+        | "email"
+        | "presencial"
+        | "web"
       message_category:
         | "general"
         | "coordination"
@@ -1054,6 +1498,12 @@ export type Database = {
       message_priority: "low" | "medium" | "high" | "urgent"
       message_status: "draft" | "sent" | "delivered" | "read" | "replied"
       report_type: "daily" | "weekly" | "event" | "incident" | "progress"
+      sentiment_level:
+        | "muy_negativo"
+        | "negativo"
+        | "neutral"
+        | "positivo"
+        | "muy_positivo"
       territory_type:
         | "departamento"
         | "municipio"
@@ -1068,6 +1518,7 @@ export type Database = {
         | "lider"
         | "votante"
         | "visitante"
+      voter_status: "activo" | "inactivo" | "contactado" | "convertido"
     }
     CompositeTypes: {
       [_ in never]: never
@@ -1191,12 +1642,21 @@ export const Constants = {
         "emergency",
         "information",
       ],
+      campaign_status: ["planificada", "activa", "pausada", "completada"],
       event_status: [
         "planned",
         "confirmed",
         "in_progress",
         "completed",
         "cancelled",
+      ],
+      interaction_type: [
+        "llamada",
+        "whatsapp",
+        "sms",
+        "email",
+        "presencial",
+        "web",
       ],
       message_category: [
         "general",
@@ -1208,6 +1668,13 @@ export const Constants = {
       message_priority: ["low", "medium", "high", "urgent"],
       message_status: ["draft", "sent", "delivered", "read", "replied"],
       report_type: ["daily", "weekly", "event", "incident", "progress"],
+      sentiment_level: [
+        "muy_negativo",
+        "negativo",
+        "neutral",
+        "positivo",
+        "muy_positivo",
+      ],
       territory_type: [
         "departamento",
         "municipio",
@@ -1224,6 +1691,7 @@ export const Constants = {
         "votante",
         "visitante",
       ],
+      voter_status: ["activo", "inactivo", "contactado", "convertido"],
     },
   },
 } as const
