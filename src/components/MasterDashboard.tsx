@@ -1,4 +1,3 @@
-
 import { useState } from "react";
 import { useQuery } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
@@ -6,7 +5,7 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { useDataSegregation } from "@/hooks/useDataSegregation";
-import { useAuth } from "../contexts/AuthContext";
+import { useSecureAuth } from "../contexts/SecureAuthContext";
 import { 
   Users, 
   MapPin, 
@@ -19,7 +18,7 @@ import {
 } from "lucide-react";
 
 const MasterDashboard = () => {
-  const { user } = useAuth();
+  const { user } = useSecureAuth();
   const { canViewAllData } = useDataSegregation();
   const [selectedPeriod, setSelectedPeriod] = useState('7d');
 
