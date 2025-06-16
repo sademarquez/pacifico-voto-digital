@@ -11,6 +11,7 @@ import {
   BrowserRouter,
   Routes,
   Route,
+  Navigate,
 } from "react-router-dom";
 import { Toaster } from 'react-hot-toast';
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query'
@@ -33,6 +34,7 @@ import { SecureAuthProvider } from "./contexts/SecureAuthContext";
 import TrackingProvider from './components/TrackingProvider';
 import ChatbotManager from './components/ChatbotManager';
 import EnhancedMobileNavigation from './components/EnhancedMobileNavigation';
+import ProtectedRoute from './components/ProtectedRoute';
 import './styles/modernTheme.css';
 
 const queryClient = new QueryClient({
@@ -55,21 +57,66 @@ function App() {
               <EnhancedMobileNavigation />
               
               <Routes>
-                <Route path="/" element={<Login />} />
+                {/* Ruta raíz redirige a login */}
+                <Route path="/" element={<Navigate to="/login" replace />} />
+                
+                {/* Páginas públicas */}
                 <Route path="/login" element={<Login />} />
+                <Route path="/index" element={<Index />} />
                 <Route path="/visitor-funnel" element={<VisitorFunnelPage />} />
                 <Route path="/mobile-audit" element={<MobileAuditPage />} />
-                <Route path="/index" element={<Index />} />
-                <Route path="/dashboard" element={<Dashboard />} />
-                <Route path="/mapa-alertas" element={<MapaAlertas />} />
-                <Route path="/registro" element={<Registro />} />
-                <Route path="/configuracion" element={<Configuracion />} />
-                <Route path="/informes" element={<Informes />} />
-                <Route path="/liderazgo" element={<Liderazgo />} />
-                <Route path="/red-ayudantes" element={<RedAyudantes />} />
-                <Route path="/tareas" element={<TasksPage />} />
-                <Route path="/eventos" element={<EventsPage />} />
-                <Route path="/acciones-rapidas" element={<QuickActionsPage />} />
+                
+                {/* Páginas protegidas */}
+                <Route path="/dashboard" element={
+                  <ProtectedRoute>
+                    <Dashboard />
+                  </ProtectedRoute>
+                } />
+                <Route path="/mapa-alertas" element={
+                  <ProtectedRoute>
+                    <MapaAlertas />
+                  </ProtectedRoute>
+                } />
+                <Route path="/registro" element={
+                  <ProtectedRoute>
+                    <Registro />
+                  </ProtectedRoute>
+                } />
+                <Route path="/configuracion" element={
+                  <ProtectedRoute>
+                    <Configuracion />
+                  </ProtectedRoute>
+                } />
+                <Route path="/informes" element={
+                  <ProtectedRoute>
+                    <Informes />
+                  </ProtectedRoute>
+                } />
+                <Route path="/liderazgo" element={
+                  <ProtectedRoute>
+                    <Liderazgo />
+                  </ProtectedRoute>
+                } />
+                <Route path="/red-ayudantes" element={
+                  <ProtectedRoute>
+                    <RedAyudantes />
+                  </ProtectedRoute>
+                } />
+                <Route path="/tareas" element={
+                  <ProtectedRoute>
+                    <TasksPage />
+                  </ProtectedRoute>
+                } />
+                <Route path="/eventos" element={
+                  <ProtectedRoute>
+                    <EventsPage />
+                  </ProtectedRoute>
+                } />
+                <Route path="/acciones-rapidas" element={
+                  <ProtectedRoute>
+                    <QuickActionsPage />
+                  </ProtectedRoute>
+                } />
               </Routes>
               
               {/* Chatbot optimizado para ventas */}

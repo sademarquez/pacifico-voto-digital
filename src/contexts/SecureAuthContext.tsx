@@ -48,7 +48,6 @@ export const SecureAuthProvider: React.FC<{ children: ReactNode }> = ({ children
     logInfo('auth', 'Error de autenticación limpiado');
   };
 
-  // Configuración mejorada de detección de modo
   const detectDatabaseMode = useCallback(async () => {
     try {
       const isDemoEnvironment = window.location.hostname.includes('lovable') || 
@@ -65,7 +64,6 @@ export const SecureAuthProvider: React.FC<{ children: ReactNode }> = ({ children
 
   const checkSystemHealth = useCallback(async () => {
     try {
-      // Test de conexión básica a Supabase
       const { data, error } = await supabase.from('profiles').select('count').limit(1);
       
       if (error) {
@@ -81,61 +79,6 @@ export const SecureAuthProvider: React.FC<{ children: ReactNode }> = ({ children
     }
   }, [logWarning, logError, logInfo]);
 
-  useEffect(() => {
-    logInfo('auth', 'Inicializando SecureAuthProvider v5.0 - Sistema Electoral con DB Sincronizada');
-    
-    detectDatabaseMode();
-    checkSystemHealth();
-
-    const { data: authListener } = supabase.auth.onAuthStateChange(async (event, session) => {
-      logInfo('auth', `Evento: ${event}`, { 
-        hasSession: !!session,
-        userEmail: session?.user?.email 
-      });
-
-      if (session?.user) {
-        setSession(session);
-        // Defer la carga del perfil para evitar loops
-        setTimeout(async () => {
-          try {
-            await loadUserProfile(session.user);
-          } catch (error) {
-            handleError(error as Error, 'Carga de perfil', { category: 'auth' });
-          }
-        }, 100);
-      } else {
-        setUser(null);
-        setSession(null);
-        logInfo('auth', 'Usuario desconectado');
-      }
-    });
-
-    const initializeAuth = async () => {
-      try {
-        const { data: { session }, error } = await supabase.auth.getSession();
-        
-        if (error) {
-          logError('auth', 'Error obteniendo sesión inicial', error);
-        } else if (session?.user) {
-          setSession(session);
-          await loadUserProfile(session.user);
-          logInfo('auth', 'Sesión inicial restaurada');
-        }
-      } catch (error) {
-        logError('auth', 'Error en inicialización', error as Error);
-      } finally {
-        setIsLoading(false);
-      }
-    };
-
-    initializeAuth();
-
-    return () => {
-      authListener?.subscription.unsubscribe();
-      logInfo('auth', 'SecureAuthProvider limpiado');
-    };
-  }, [detectDatabaseMode, checkSystemHealth, handleError, logInfo, logError]);
-
   const loadUserProfile = async (supabaseUser: SupabaseUser) => {
     try {
       logInfo('auth', 'Cargando perfil de usuario', { userId: supabaseUser.id });
@@ -149,7 +92,6 @@ export const SecureAuthProvider: React.FC<{ children: ReactNode }> = ({ children
       if (error) {
         logWarning('auth', 'Error cargando perfil, usando datos base', { error: error.message });
         
-        // Fallback: crear usuario con datos básicos
         const fallbackUser: User = {
           id: supabaseUser.id,
           name: supabaseUser.email?.split('@')[0] || 'Usuario',
@@ -187,7 +129,6 @@ export const SecureAuthProvider: React.FC<{ children: ReactNode }> = ({ children
           isDemoUser: userData.isDemoUser
         });
       } else {
-        // Crear perfil automáticamente si no existe
         const newProfile = {
           id: supabaseUser.id,
           name: supabaseUser.email?.split('@')[0] || 'Usuario',
@@ -204,7 +145,6 @@ export const SecureAuthProvider: React.FC<{ children: ReactNode }> = ({ children
           logInfo('auth', 'Perfil creado automáticamente');
         }
 
-        // Usar el perfil recién creado
         const userData: User = {
           id: newProfile.id,
           name: newProfile.name,
@@ -224,13 +164,69 @@ export const SecureAuthProvider: React.FC<{ children: ReactNode }> = ({ children
     }
   };
 
+  useEffect(() => {
+    logInfo('auth', 'Inicializando SecureAuthProvider v5.1 - Sistema Corregido');
+    
+    detectDatabaseMode();
+    checkSystemHealth();
+
+    const { data: authListener } = supabase.auth.onAuthStateChange(async (event, session) => {
+      logInfo('auth', `Evento: ${event}`, { 
+        hasSession: !!session,
+        userEmail: session?.user?.email 
+      });
+
+      setIsLoading(true);
+
+      if (session?.user) {
+        setSession(session);
+        try {
+          await loadUserProfile(session.user);
+        } catch (error) {
+          handleError(error as Error, 'Carga de perfil', { category: 'auth' });
+        }
+      } else {
+        setUser(null);
+        setSession(null);
+        logInfo('auth', 'Usuario desconectado');
+      }
+      
+      setIsLoading(false);
+    });
+
+    const initializeAuth = async () => {
+      try {
+        const { data: { session }, error } = await supabase.auth.getSession();
+        
+        if (error) {
+          logError('auth', 'Error obteniendo sesión inicial', error);
+        } else if (session?.user) {
+          setSession(session);
+          await loadUserProfile(session.user);
+          logInfo('auth', 'Sesión inicial restaurada');
+        }
+      } catch (error) {
+        logError('auth', 'Error en inicialización', error as Error);
+      } finally {
+        setIsLoading(false);
+      }
+    };
+
+    initializeAuth();
+
+    return () => {
+      authListener?.subscription.unsubscribe();
+      logInfo('auth', 'SecureAuthProvider limpiado');
+    };
+  }, [detectDatabaseMode, checkSystemHealth, handleError, logInfo, logError]);
+
   const login = async (email: string, password: string): Promise<boolean> => {
     logInfo('auth', 'Intento de login iniciado', { email });
     setAuthError(null);
     setIsLoading(true);
 
     try {
-      // Limpiar cualquier sesión previa
+      // Limpiar sesión previa
       await supabase.auth.signOut();
       
       const { data, error } = await supabase.auth.signInWithPassword({
@@ -253,6 +249,7 @@ export const SecureAuthProvider: React.FC<{ children: ReactNode }> = ({ children
         
         setAuthError(errorMsg);
         logError('auth', 'Error en login', error);
+        setIsLoading(false);
         return false;
       }
 
@@ -261,18 +258,19 @@ export const SecureAuthProvider: React.FC<{ children: ReactNode }> = ({ children
           userId: data.user.id,
           email: data.user.email
         });
+        // No setear isLoading aquí - se hará en onAuthStateChange
         return true;
       }
 
       setAuthError('Login exitoso pero sin datos de usuario');
+      setIsLoading(false);
       return false;
     } catch (error) {
       const errorMsg = 'Error inesperado durante el login';
       setAuthError(errorMsg);
       logError('auth', 'Error crítico en login', error as Error);
-      return false;
-    } finally {
       setIsLoading(false);
+      return false;
     }
   };
 

@@ -17,17 +17,18 @@ const Login = () => {
   const [username, setUsername] = useState("");
   const [password, setPassword] = useState("");
   const [showPassword, setShowPassword] = useState(false);
-  const [isLoading, setIsLoading] = useState(false);
   const [showCredentials, setShowCredentials] = useState(false);
   
-  const { login, authError, clearAuthError, isAuthenticated } = useSecureAuth();
+  const { login, authError, clearAuthError, isAuthenticated, isLoading } = useSecureAuth();
   const { verifiedCredentials, getEmailFromName } = useDemoCredentials();
   const navigate = useNavigate();
   const { toast } = useToast();
 
+  // Redirigir automáticamente cuando se autentica
   useEffect(() => {
     if (isAuthenticated) {
-      navigate("/dashboard");
+      console.log('✅ Usuario autenticado, redirigiendo a dashboard...');
+      navigate("/dashboard", { replace: true });
     }
   }, [isAuthenticated, navigate]);
 
@@ -58,7 +59,6 @@ const Login = () => {
       return;
     }
 
-    setIsLoading(true);
     clearAuthError();
 
     try {
@@ -77,7 +77,6 @@ const Login = () => {
             description: `No se encontró el usuario "${username}". Usa las credenciales demo.`,
             variant: "destructive"
           });
-          setIsLoading(false);
           return;
         }
       }
@@ -95,6 +94,7 @@ const Login = () => {
           title: "¡Login exitoso!",
           description: `Bienvenido ${username}`,
         });
+        // La navegación se manejará automáticamente por el useEffect de isAuthenticated
       }
     } catch (error) {
       console.error('Error durante el login:', error);
@@ -103,8 +103,6 @@ const Login = () => {
         description: "Error inesperado. Revisa las credenciales.",
         variant: "destructive"
       });
-    } finally {
-      setIsLoading(false);
     }
   };
 
@@ -214,6 +212,7 @@ const Login = () => {
                         variant="outline"
                         onClick={() => setShowCredentials(!showCredentials)}
                         className="border-2 border-green-500 text-green-700 hover:bg-green-50"
+                        disabled={isLoading}
                       >
                         {showCredentials ? "Ocultar" : "Ver"} Credenciales Demo
                       </Button>
@@ -223,6 +222,7 @@ const Login = () => {
                         variant="outline"
                         onClick={() => navigate("/mobile-audit")}
                         className="border-2 border-blue-500 text-blue-700 hover:bg-blue-50 flex items-center gap-2"
+                        disabled={isLoading}
                       >
                         <Smartphone className="w-4 h-4" />
                         Auditoría App
@@ -234,12 +234,12 @@ const Login = () => {
                 <div className="mt-4 p-3 bg-blue-50 rounded-lg text-xs text-blue-700 border border-blue-200">
                   <div className="flex items-center gap-2 mb-2">
                     <CheckCircle className="w-4 h-4 text-green-600" />
-                    <strong className="text-blue-900">✅ Sistema Demo Actualizado</strong>
+                    <strong className="text-blue-900">✅ Sistema Demo Corregido</strong>
                   </div>
                   <p>• ✅ Usuarios creados en base de datos</p>
-                  <p>• ✅ Contraseña actualizada: <strong>12345678</strong></p>
-                  <p>• ✅ Login por nombre de usuario habilitado</p>
-                  <p>• ✅ Mapeo automático a emails</p>
+                  <p>• ✅ Contraseña: <strong>12345678</strong></p>
+                  <p>• ✅ Login y navegación automática</p>
+                  <p>• ✅ Redirección al dashboard funcionando</p>
                 </div>
               </CardContent>
             </Card>
@@ -250,9 +250,9 @@ const Login = () => {
                 <CardHeader>
                   <CardTitle className="text-green-800 text-xl flex items-center gap-2">
                     <CheckCircle className="w-6 h-6" />
-                    🔥 Credenciales Demo Actualizadas
+                    🔥 Credenciales Demo Corregidas
                   </CardTitle>
-                  <p className="text-green-600">Usuarios creados en base de datos - ¡Listo para usar!</p>
+                  <p className="text-green-600">Login automático al dashboard - ¡Totalmente funcional!</p>
                 </CardHeader>
                 <CardContent>
                   <div className="space-y-4">
@@ -271,6 +271,7 @@ const Login = () => {
                             size="sm"
                             onClick={() => useCredential(cred)}
                             className="text-green-700 border-green-500 hover:bg-green-100"
+                            disabled={isLoading}
                           >
                             Usar
                           </Button>
@@ -285,13 +286,13 @@ const Login = () => {
                   </div>
                   
                   <div className="mt-6 p-4 bg-gradient-to-r from-green-50 to-blue-50 rounded-lg border-2 border-green-200">
-                    <h3 className="font-bold text-sm text-green-800 mb-3">✅ ¡CREDENCIALES FUNCIONANDO!</h3>
+                    <h3 className="font-bold text-sm text-green-800 mb-3">✅ ¡SISTEMA TOTALMENTE FUNCIONAL!</h3>
                     <div className="text-xs text-gray-700 space-y-2">
-                      <div>1. <strong>Selecciona</strong> una credencial haciendo clic en "Usar"</div>
-                      <div>2. <strong>Verifica</strong> que los campos se llenen automáticamente</div>
-                      <div>3. <strong>Haz clic</strong> en "Iniciar Sesión"</div>
+                      <div>1. <strong>Selecciona</strong> una credencial con "Usar"</div>
+                      <div>2. <strong>Haz clic</strong> en "Iniciar Sesión"</div>
+                      <div>3. <strong>Automáticamente</strong> te redirige al dashboard</div>
                       <div className="mt-3 p-2 bg-green-100 rounded border border-green-300">
-                        <strong className="text-green-800">🚀 NUEVA CONTRASEÑA:</strong> 12345678 (para todos los usuarios)
+                        <strong className="text-green-800">🚀 NAVEGACIÓN AUTOMÁTICA:</strong> Al loguearte vas directo al dashboard
                       </div>
                     </div>
                   </div>
