@@ -124,137 +124,169 @@
   }
 }
 
-/* Gradientes elegantes de marca */
-.gradient-elegant {
-  background: linear-gradient(135deg, 
-    rgb(15 23 42) 0%,     /* slate-900 */
-    rgb(30 58 138) 35%,   /* blue-800 */
-    rgb(59 130 246) 65%,  /* blue-500 */
-    rgb(219 234 254) 100% /* blue-100 */
-  );
+@layer components {
+  /* Gradientes elegantes de marca */
+  .gradient-elegant {
+    background: linear-gradient(135deg, 
+      rgb(15 23 42) 0%,     /* slate-900 */
+      rgb(30 58 138) 35%,   /* blue-800 */
+      rgb(59 130 246) 65%,  /* blue-500 */
+      rgb(219 234 254) 100% /* blue-100 */
+    );
+  }
+
+  .gradient-primary {
+    background: linear-gradient(135deg, 
+      rgb(30 58 138) 0%,    /* blue-800 */
+      rgb(59 130 246) 50%,  /* blue-500 */
+      rgb(147 197 253) 100% /* blue-300 */
+    );
+  }
+
+  .gradient-secondary {
+    background: linear-gradient(135deg, 
+      rgb(248 250 252) 0%,  /* slate-50 */
+      rgb(241 245 249) 50%, /* slate-100 */
+      rgb(226 232 240) 100% /* slate-200 */
+    );
+  }
+
+  .gradient-gold {
+    background: linear-gradient(135deg, 
+      rgb(212 175 55) 0%,   /* gold */
+      rgb(234 179 8) 50%,   /* yellow-500 */
+      rgb(252 211 77) 100%  /* yellow-300 */
+    );
+  }
+
+  /* Componentes de marca elegantes */
+  .card-elegant {
+    @apply bg-white/95 backdrop-blur-lg rounded-2xl border border-slate-200/50;
+    transform: perspective(1000px) rotateX(0deg);
+    transition: all 0.4s cubic-bezier(0.25, 0.8, 0.25, 1);
+  }
+
+  .card-elegant:hover {
+    @apply shadow-hover-elegant;
+    transform: perspective(1000px) rotateX(1deg) translateY(-8px);
+  }
+
+  .btn-primary {
+    @apply text-white font-bold border-0 rounded-xl;
+    @apply shadow-elegant hover:shadow-gold;
+    @apply transition-all duration-300 hover:scale-105;
+    background: linear-gradient(135deg, 
+      rgb(30 58 138) 0%,    /* blue-800 */
+      rgb(59 130 246) 50%,  /* blue-500 */
+      rgb(147 197 253) 100% /* blue-300 */
+    );
+  }
+
+  .btn-secondary {
+    @apply bg-slate-700 hover:bg-slate-800 text-white font-semibold;
+    @apply border-0 rounded-xl shadow-elegant;
+    @apply transition-all duration-300 hover:scale-105;
+  }
+
+  .btn-outline-elegant {
+    @apply border-2 border-slate-300 hover:border-blue-500 text-slate-700;
+    @apply hover:bg-blue-50 rounded-lg;
+    @apply transition-all duration-300;
+  }
+
+  .input-elegant {
+    @apply bg-slate-50/50 border-2 border-slate-200/50;
+    @apply focus:border-blue-500 focus:bg-white;
+    @apply rounded-xl transition-all duration-300;
+    @apply shadow-sm focus:shadow-elegant;
+  }
+
+  .alert-elegant {
+    @apply rounded-xl border-l-4 border-l-red-500;
+    @apply bg-red-50/50 backdrop-blur;
+  }
+
+  /* Efectos de hover elegantes */
+  .hover-lift {
+    @apply transition-all duration-300;
+  }
+
+  .hover-lift:hover {
+    @apply transform -translate-y-2 shadow-hover-elegant;
+  }
+
+  .hover-glow {
+    @apply transition-all duration-300;
+  }
+
+  .hover-glow:hover {
+    @apply shadow-gold;
+    filter: drop-shadow(0 0 8px rgba(212, 175, 55, 0.3));
+  }
+
+  /* Estados de loading elegantes */
+  .loading-elegant {
+    @apply relative overflow-hidden;
+  }
+
+  .loading-elegant::before {
+    content: '';
+    position: absolute;
+    top: 0;
+    left: -100%;
+    width: 100%;
+    height: 100%;
+    background: linear-gradient(90deg, 
+      transparent, 
+      rgba(212, 175, 55, 0.4), 
+      transparent
+    );
+    animation: shimmer 2s infinite;
+  }
+
+  /* Elementos decorativos de marca */
+  .decorative-dots {
+    background-image: radial-gradient(circle, rgba(212, 175, 55, 0.2) 1px, transparent 1px);
+    background-size: 20px 20px;
+  }
+
+  .decorative-lines {
+    background-image: 
+      linear-gradient(45deg, rgba(30, 58, 138, 0.1) 25%, transparent 25%),
+      linear-gradient(-45deg, rgba(30, 58, 138, 0.1) 25%, transparent 25%);
+    background-size: 40px 40px;
+  }
 }
 
-.gradient-primary {
-  background: linear-gradient(135deg, 
-    rgb(30 58 138) 0%,    /* blue-800 */
-    rgb(59 130 246) 50%,  /* blue-500 */
-    rgb(147 197 253) 100% /* blue-300 */
-  );
+@layer utilities {
+  /* Colores de utilidad */
+  .text-gold {
+    color: rgb(212 175 55);
+  }
+
+  .bg-gold {
+    background-color: rgb(212 175 55);
+  }
+
+  .border-gold {
+    border-color: rgb(212 175 55);
+  }
+
+  /* Animaciones elegantes mejoradas */
+  .animate-elegant-fade-in {
+    animation: elegantFadeIn 0.6s cubic-bezier(0.25, 0.8, 0.25, 1);
+  }
+
+  .animate-elegant-scale-in {
+    animation: elegantScaleIn 0.4s cubic-bezier(0.25, 0.8, 0.25, 1);
+  }
+
+  .animate-elegant-slide-up {
+    animation: elegantSlideUp 0.5s cubic-bezier(0.25, 0.8, 0.25, 1);
+  }
 }
 
-.gradient-secondary {
-  background: linear-gradient(135deg, 
-    rgb(248 250 252) 0%,  /* slate-50 */
-    rgb(241 245 249) 50%, /* slate-100 */
-    rgb(226 232 240) 100% /* slate-200 */
-  );
-}
-
-.gradient-gold {
-  background: linear-gradient(135deg, 
-    rgb(212 175 55) 0%,   /* gold */
-    rgb(234 179 8) 50%,   /* yellow-500 */
-    rgb(252 211 77) 100%  /* yellow-300 */
-  );
-}
-
-/* Sombras elegantes con marca */
-.shadow-elegant {
-  box-shadow: 
-    0 4px 6px -1px rgba(30, 58, 138, 0.1),
-    0 2px 4px -2px rgba(30, 58, 138, 0.1),
-    0 10px 15px -3px rgba(0, 0, 0, 0.05);
-}
-
-.shadow-gold {
-  box-shadow: 
-    0 4px 6px -1px rgba(212, 175, 55, 0.2),
-    0 2px 4px -2px rgba(212, 175, 55, 0.15),
-    0 10px 15px -3px rgba(212, 175, 55, 0.1);
-}
-
-.shadow-3d-elegant {
-  box-shadow: 
-    0 4px 6px rgba(30, 58, 138, 0.07),
-    0 10px 20px rgba(30, 58, 138, 0.15),
-    0 2px 6px rgba(212, 175, 55, 0.1);
-}
-
-.shadow-hover-elegant {
-  box-shadow: 
-    0 10px 25px rgba(30, 58, 138, 0.15),
-    0 20px 40px rgba(30, 58, 138, 0.1),
-    0 4px 12px rgba(212, 175, 55, 0.15);
-}
-
-/* Componentes de marca elegantes */
-.card-elegant {
-  @apply bg-white/95 backdrop-blur-lg rounded-2xl border border-slate-200/50;
-  transform: perspective(1000px) rotateX(0deg);
-  transition: all 0.4s cubic-bezier(0.25, 0.8, 0.25, 1);
-}
-
-.card-elegant:hover {
-  @apply shadow-hover-elegant;
-  transform: perspective(1000px) rotateX(1deg) translateY(-8px);
-}
-
-.btn-primary {
-  @apply bg-gradient-primary text-white font-bold border-0 rounded-xl;
-  @apply shadow-elegant hover:shadow-gold;
-  @apply transition-all duration-300 hover:scale-105;
-}
-
-.btn-secondary {
-  @apply bg-slate-700 hover:bg-slate-800 text-white font-semibold;
-  @apply border-0 rounded-xl shadow-elegant;
-  @apply transition-all duration-300 hover:scale-105;
-}
-
-.btn-outline-elegant {
-  @apply border-2 border-slate-300 hover:border-blue-500 text-slate-700;
-  @apply hover:bg-blue-50 rounded-lg;
-  @apply transition-all duration-300;
-}
-
-.input-elegant {
-  @apply bg-slate-50/50 border-2 border-slate-200/50;
-  @apply focus:border-blue-500 focus:bg-white;
-  @apply rounded-xl transition-all duration-300;
-  @apply shadow-sm focus:shadow-elegant;
-}
-
-.alert-elegant {
-  @apply rounded-xl border-l-4 border-l-red-500;
-  @apply bg-red-50/50 backdrop-blur;
-}
-
-/* Colores de utilidad */
-.text-gold {
-  color: rgb(212 175 55);
-}
-
-.bg-gold {
-  background-color: rgb(212 175 55);
-}
-
-.border-gold {
-  border-color: rgb(212 175 55);
-}
-
-/* Animaciones elegantes mejoradas */
-.animate-elegant-fade-in {
-  animation: elegantFadeIn 0.6s cubic-bezier(0.25, 0.8, 0.25, 1);
-}
-
-.animate-elegant-scale-in {
-  animation: elegantScaleIn 0.4s cubic-bezier(0.25, 0.8, 0.25, 1);
-}
-
-.animate-elegant-slide-up {
-  animation: elegantSlideUp 0.5s cubic-bezier(0.25, 0.8, 0.25, 1);
-}
-
+/* Keyframes para animaciones */
 @keyframes elegantFadeIn {
   from {
     opacity: 0;
@@ -288,22 +320,13 @@
   }
 }
 
-/* Efectos de hover elegantes */
-.hover-lift {
-  @apply transition-all duration-300;
-}
-
-.hover-lift:hover {
-  @apply transform -translate-y-2 shadow-hover-elegant;
-}
-
-.hover-glow {
-  @apply transition-all duration-300;
-}
-
-.hover-glow:hover {
-  @apply shadow-gold;
-  filter: drop-shadow(0 0 8px rgba(212, 175, 55, 0.3));
+@keyframes shimmer {
+  0% {
+    left: -100%;
+  }
+  100% {
+    left: 100%;
+  }
 }
 
 /* Mejoras responsivas elegantes */
@@ -314,12 +337,6 @@
   
   .card-elegant {
     @apply rounded-xl;
-  }
-  
-  .shadow-elegant {
-    box-shadow: 
-      0 2px 4px rgba(30, 58, 138, 0.1),
-      0 4px 6px rgba(0, 0, 0, 0.05);
   }
   
   .text-4xl {
@@ -333,47 +350,5 @@
   /* Espaciado adicional para navegación móvil */
   body {
     @apply pb-20;
-  }
-}
-
-/* Elementos decorativos de marca */
-.decorative-dots {
-  background-image: radial-gradient(circle, rgba(212, 175, 55, 0.2) 1px, transparent 1px);
-  background-size: 20px 20px;
-}
-
-.decorative-lines {
-  background-image: 
-    linear-gradient(45deg, rgba(30, 58, 138, 0.1) 25%, transparent 25%),
-    linear-gradient(-45deg, rgba(30, 58, 138, 0.1) 25%, transparent 25%);
-  background-size: 40px 40px;
-}
-
-/* Estados de loading elegantes */
-.loading-elegant {
-  @apply relative overflow-hidden;
-}
-
-.loading-elegant::before {
-  content: '';
-  position: absolute;
-  top: 0;
-  left: -100%;
-  width: 100%;
-  height: 100%;
-  background: linear-gradient(90deg, 
-    transparent, 
-    rgba(212, 175, 55, 0.4), 
-    transparent
-  );
-  animation: shimmer 2s infinite;
-}
-
-@keyframes shimmer {
-  0% {
-    left: -100%;
-  }
-  100% {
-    left: 100%;
   }
 }
