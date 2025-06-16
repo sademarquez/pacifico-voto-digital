@@ -8,7 +8,7 @@ interface User {
   email: string;
   name: string;
   role: 'desarrollador' | 'master' | 'candidato' | 'lider' | 'votante' | 'visitante';
-  isDemoUser?: boolean;
+  phone?: string;
   territory?: string;
 }
 
@@ -30,7 +30,6 @@ export const SimpleAuthProvider: React.FC<{ children: ReactNode }> = ({ children
   const [session, setSession] = useState<Session | null>(null);
   const [isLoading, setIsLoading] = useState(true);
   const [authError, setAuthError] = useState<string | null>(null);
-  const [initialized, setInitialized] = useState(false);
 
   const clearAuthError = () => setAuthError(null);
 
@@ -42,20 +41,20 @@ export const SimpleAuthProvider: React.FC<{ children: ReactNode }> = ({ children
         .from('profiles')
         .select('id, name, role')
         .eq('id', supabaseUser.id)
-        .maybeSingle();
+        .single();
 
-      if (error && error.code !== 'PGRST116') {
+      if (error) {
         console.error('❌ Error cargando perfil:', error);
         throw error;
       }
 
       const userData: User = {
         id: supabaseUser.id,
-        name: profile?.name || supabaseUser.email?.split('@')[0] || 'Usuario Demo',
+        name: profile?.name || supabaseUser.email?.split('@')[0] || 'Usuario',
         role: (profile?.role as User['role']) || 'votante',
         email: supabaseUser.email || '',
-        isDemoUser: supabaseUser.email?.includes('demo.com') || false,
-        territory: 'DEMO'
+        phone: supabaseUser.user_metadata?.phone,
+        territory: 'PRINCIPAL'
       };
 
       setUser(userData);
@@ -72,10 +71,6 @@ export const SimpleAuthProvider: React.FC<{ children: ReactNode }> = ({ children
     setAuthError(null);
 
     try {
-      // Limpiar sesión anterior
-      await supabase.auth.signOut();
-      await new Promise(resolve => setTimeout(resolve, 500)); // Breve pausa
-
       const { data, error } = await supabase.auth.signInWithPassword({
         email: email.trim(),
         password: password.trim(),
@@ -88,8 +83,6 @@ export const SimpleAuthProvider: React.FC<{ children: ReactNode }> = ({ children
           errorMsg = 'Credenciales incorrectas. Verifica email y contraseña.';
         } else if (error.message.includes('Email not confirmed')) {
           errorMsg = 'Email no confirmado. Contacta al administrador.';
-        } else if (error.message.includes('Too many requests')) {
-          errorMsg = 'Demasiados intentos. Espera un momento.';
         }
         
         setAuthError(errorMsg);
@@ -99,7 +92,6 @@ export const SimpleAuthProvider: React.FC<{ children: ReactNode }> = ({ children
 
       if (data.user && data.session) {
         console.log('✅ Login exitoso para:', email);
-        // El perfil se cargará automáticamente en onAuthStateChange
         return { success: true };
       }
 
@@ -131,29 +123,20 @@ export const SimpleAuthProvider: React.FC<{ children: ReactNode }> = ({ children
   };
 
   useEffect(() => {
-    if (initialized) return;
-    
     console.log('🚀 Inicializando SimpleAuthProvider');
 
-    // Configurar listener de cambios de auth
     const { data: authListener } = supabase.auth.onAuthStateChange(async (event, session) => {
-      console.log(`🔔 AUTH EVENT: ${event}`, { hasSession: !!session, hasUser: !!session?.user });
+      console.log(`🔔 AUTH EVENT: ${event}`, { hasSession: !!session });
 
       if (session?.user && event !== 'SIGNED_OUT') {
         setSession(session);
-        // Solo cargar perfil si el usuario cambió
-        if (!user || user.id !== session.user.id) {
-          await loadUserProfile(session.user);
-        }
+        await loadUserProfile(session.user);
       } else {
         setUser(null);
         setSession(null);
       }
       
-      if (!initialized) {
-        setIsLoading(false);
-        setInitialized(true);
-      }
+      setIsLoading(false);
     });
 
     // Verificar sesión inicial
@@ -169,10 +152,7 @@ export const SimpleAuthProvider: React.FC<{ children: ReactNode }> = ({ children
       } catch (error) {
         console.error('❌ Error inicialización auth:', error);
       } finally {
-        if (!initialized) {
-          setIsLoading(false);
-          setInitialized(true);
-        }
+        setIsLoading(false);
       }
     };
 
@@ -181,7 +161,7 @@ export const SimpleAuthProvider: React.FC<{ children: ReactNode }> = ({ children
     return () => {
       authListener?.subscription.unsubscribe();
     };
-  }, [initialized, user]);
+  }, []);
 
   const value = {
     user,
