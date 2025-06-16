@@ -153,7 +153,7 @@ function App() {
           </TrackingProvider>
         </SecureAuthProvider>
       </AccessibilityProvider>
-    </QueryClient>
+    </QueryClientProvider>
   );
 }
 
