@@ -1,7 +1,3 @@
-/*
- * Copyright © 2025 sademarquezDLL. Todos los derechos reservados.
- */
-
 import { useState, useEffect } from 'react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
@@ -291,7 +287,7 @@ const InteractiveMapFunnel = () => {
                 <div className="min-w-0 flex-1">
                   <h1 className="text-lg sm:text-2xl font-bold truncate">Mapa Electoral Inteligente</h1>
                   <p className="opacity-90 text-xs sm:text-base truncate">
-                    {currentLevel ? `📍 ${currentLevel.name}` : 'Detectando ubicación...'}
+                    {currentLevel ? `${currentLevel.name}` : 'Detectando ubicación...'}
                   </p>
                 </div>
               </div>

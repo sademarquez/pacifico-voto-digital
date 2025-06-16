@@ -1,8 +1,4 @@
 
-/*
- * Copyright © 2025 sademarquezDLL. Todos los derechos reservados.
- */
-
 import InteractiveMapFunnel from '@/components/InteractiveMapFunnel';
 
 const VisitorFunnelPage = () => {
