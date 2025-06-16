@@ -1,11 +1,12 @@
+
 import { Toaster } from "@/components/ui/toaster";
 import { Toaster as Sonner } from "@/components/ui/sonner";
 import { TooltipProvider } from "@/components/ui/tooltip";
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import { BrowserRouter, Routes, Route, Navigate } from "react-router-dom";
 import { SimpleAuthProvider } from "@/contexts/SimpleAuthContext";
-import { ChatbotProvider } from "@/components/ChatbotProvider";
-import { TrackingProvider } from "@/components/TrackingProvider";
+import ChatbotProvider from "@/components/ChatbotProvider";
+import TrackingProvider from "@/components/TrackingProvider";
 import { AccessibilityProvider } from "@/components/AccessibilityProvider";
 
 // Páginas principales
