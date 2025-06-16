@@ -1,4 +1,3 @@
-
 import {
   BrowserRouter,
   Routes,
@@ -22,8 +21,16 @@ import QuickActionsPage from "./pages/QuickActionsPage";
 import { SecureAuthProvider } from "./contexts/SecureAuthContext";
 import TrackingProvider from './components/TrackingProvider';
 import ChatbotManager from './components/ChatbotManager';
+import GeminiAssistant from './components/GeminiAssistant';
 
-const queryClient = new QueryClient()
+const queryClient = new QueryClient({
+  defaultOptions: {
+    queries: {
+      staleTime: 1000 * 60 * 5, // 5 minutos
+      cacheTime: 1000 * 60 * 10, // 10 minutos
+    },
+  },
+})
 
 function App() {
   return (
@@ -46,8 +53,24 @@ function App() {
               <Route path="/eventos" element={<EventsPage />} />
               <Route path="/acciones-rapidas" element={<QuickActionsPage />} />
             </Routes>
+            
+            {/* Asistente IA Gemini disponible en toda la aplicación */}
+            <GeminiAssistant />
+            
             <ChatbotManager />
-            <Toaster />
+            <Toaster 
+              position="top-right"
+              toastOptions={{
+                duration: 4000,
+                style: {
+                  background: 'white',
+                  color: '#333',
+                  border: '1px solid #e2e8f0',
+                  borderRadius: '0.75rem',
+                  boxShadow: '0 10px 15px -3px rgba(0, 0, 0, 0.1)',
+                },
+              }}
+            />
           </BrowserRouter>
         </TrackingProvider>
       </SecureAuthProvider>

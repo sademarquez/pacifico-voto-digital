@@ -1,4 +1,3 @@
-
 const GEMINI_API_KEY = import.meta.env.VITE_GEMINI_API_KEY || 
   (typeof window !== 'undefined' && (window as any).GEMINI_API_KEY);
 
@@ -45,7 +44,7 @@ export class GeminiElectoralService {
     }
   }
 
-  private async makeRequest(prompt: string, config?: any): Promise<string> {
+  async makeRequest(prompt: string, config?: any): Promise<string> {
     if (!this.apiKey) {
       throw new Error('Gemini API key not configured');
     }
@@ -251,6 +250,38 @@ export class GeminiElectoralService {
     `;
 
     return await this.makeRequest(prompt);
+  }
+
+  // Nuevo método para el asistente conversacional
+  async generateAssistantResponse(userMessage: string, userRole: string, userName: string): Promise<string> {
+    const prompt = `
+    Eres un asistente IA especializado en campañas electorales para MI CAMPAÑA 2025.
+    Usuario actual: ${userName} (Rol: ${userRole})
+    
+    Contexto del sistema:
+    - Plataforma electoral con automatización IA avanzada
+    - Funcionalidades: gestión de votantes, análisis de sentimientos, métricas en tiempo real
+    - Capacidades: mensajes personalizados, optimización de campañas, análisis predictivo
+    - Integración con Gemini AI para automatización al 120%
+    
+    Pregunta del usuario: "${userMessage}"
+    
+    INSTRUCCIONES:
+    - Responde de manera profesional y específica para campañas electorales
+    - Adapta la respuesta al rol del usuario (${userRole})
+    - Proporciona consejos prácticos y accionables
+    - Mantén un tono profesional pero cercano
+    - Si es relevante, menciona funcionalidades específicas de la plataforma
+    - Máximo 200 palabras
+    - Usa emojis moderadamente para hacer la respuesta más amigable
+    
+    FORMATO: Solo la respuesta directa, sin explicaciones adicionales.
+    `;
+
+    return await this.makeRequest(prompt, {
+      temperature: 0.8,
+      maxOutputTokens: 512
+    });
   }
 }
 
