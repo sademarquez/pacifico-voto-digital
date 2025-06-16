@@ -24,7 +24,7 @@ interface AccessibilityProviderProps {
 
 const AccessibilityContext = createContext<AccessibilityContextType | undefined>(undefined);
 
-export const AccessibilityProvider: React.FC<AccessibilityProviderProps> = ({ children }) => {
+export function AccessibilityProvider({ children }: AccessibilityProviderProps) {
   const [settings, setSettings] = useState<AccessibilitySettings>({
     highContrast: false,
     largeText: false,
@@ -143,7 +143,7 @@ export const AccessibilityProvider: React.FC<AccessibilityProviderProps> = ({ ch
       {children}
     </AccessibilityContext.Provider>
   );
-};
+}
 
 export const useAccessibility = () => {
   const context = useContext(AccessibilityContext);
