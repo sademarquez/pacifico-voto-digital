@@ -18,6 +18,7 @@ type AlertPriority = 'low' | 'medium' | 'high' | 'urgent';
 
 interface Alert {
   id: string;
+  title: string;
   description: string | null;
   type: AlertType;
   priority: AlertPriority;
@@ -37,6 +38,7 @@ const AlertSystem = () => {
   const queryClient = useQueryClient();
 
   const [newAlert, setNewAlert] = useState({
+    title: '',
     description: '',
     type: 'information' as AlertType,
     priority: 'medium' as AlertPriority
@@ -75,6 +77,7 @@ const AlertSystem = () => {
       const { data, error } = await supabase
         .from('alerts')
         .insert({
+          title: alertData.title,
           description: alertData.description || null,
           type: alertData.type,
           priority: alertData.priority,
@@ -94,6 +97,7 @@ const AlertSystem = () => {
       });
       queryClient.invalidateQueries({ queryKey: ['alerts'] });
       setNewAlert({
+        title: '',
         description: '',
         type: 'information',
         priority: 'medium'
@@ -134,10 +138,10 @@ const AlertSystem = () => {
   });
 
   const handleCreateAlert = () => {
-    if (!newAlert.description) {
+    if (!newAlert.title) {
       toast({
         title: "Error",
-        description: "Por favor completa la descripción de la alerta",
+        description: "Por favor completa el título de la alerta",
         variant: "destructive"
       });
       return;
@@ -183,6 +187,17 @@ const AlertSystem = () => {
           </CardTitle>
         </CardHeader>
         <CardContent className="space-y-4 pt-6">
+          <div className="space-y-2">
+            <Label htmlFor="title" className="text-gray-700 font-medium">Título de la Alerta *</Label>
+            <Input
+              id="title"
+              value={newAlert.title}
+              onChange={(e) => setNewAlert({...newAlert, title: e.target.value})}
+              placeholder="Ej: Problema logístico en zona norte"
+              className="border-gray-300 focus:border-red-500"
+            />
+          </div>
+
           <div className="grid md:grid-cols-2 gap-4">
             <div className="space-y-2">
               <Label className="text-gray-700 font-medium">Prioridad</Label>
@@ -222,7 +237,7 @@ const AlertSystem = () => {
           </div>
 
           <div className="space-y-2">
-            <Label htmlFor="description" className="text-gray-700 font-medium">Descripción *</Label>
+            <Label htmlFor="description" className="text-gray-700 font-medium">Descripción</Label>
             <Textarea
               id="description"
               value={newAlert.description}
@@ -267,7 +282,7 @@ const AlertSystem = () => {
                       <div className="flex items-center gap-3">
                         <TypeIcon className="w-5 h-5 text-red-600" />
                         <h3 className="font-semibold text-lg text-gray-800">
-                          {alert.type.charAt(0).toUpperCase() + alert.type.slice(1)}
+                          {alert.title}
                         </h3>
                       </div>
                       <div className="flex gap-2">

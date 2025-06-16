@@ -1,4 +1,3 @@
-
 import { useState } from "react";
 import { useMutation, useQueryClient } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
@@ -34,6 +33,7 @@ const QuickActions = () => {
 
   const [activeAction, setActiveAction] = useState<ActionType | null>(null);
   const [quickAlert, setQuickAlert] = useState({
+    title: '',
     description: '',
     priority: 'medium' as Priority,
     type: 'information' as AlertType
@@ -62,6 +62,7 @@ const QuickActions = () => {
       const { data, error } = await supabase
         .from('alerts')
         .insert({
+          title: alertData.title,
           description: alertData.description,
           type: alertData.type,
           priority: alertData.priority,
@@ -80,7 +81,7 @@ const QuickActions = () => {
         description: "Tu alerta rápida ha sido enviada al equipo.",
       });
       queryClient.invalidateQueries({ queryKey: ['alerts'] });
-      setQuickAlert({ description: '', priority: 'medium', type: 'information' });
+      setQuickAlert({ title: '', description: '', priority: 'medium', type: 'information' });
       setActiveAction(null);
     }
   });
@@ -249,6 +250,16 @@ const QuickActions = () => {
             </CardTitle>
           </CardHeader>
           <CardContent className="space-y-4 pt-6">
+            <div className="space-y-2">
+              <Label htmlFor="alert-title">Título de la Alerta</Label>
+              <Input
+                id="alert-title"
+                value={quickAlert.title}
+                onChange={(e) => setQuickAlert({...quickAlert, title: e.target.value})}
+                placeholder="Ej: Problema en zona norte"
+              />
+            </div>
+
             <div className="grid md:grid-cols-2 gap-4">
               <div className="space-y-2">
                 <Label>Tipo de Alerta</Label>
@@ -301,7 +312,7 @@ const QuickActions = () => {
             <div className="flex gap-2">
               <Button 
                 onClick={() => createQuickAlertMutation.mutate(quickAlert)}
-                disabled={!quickAlert.description || createQuickAlertMutation.isPending}
+                disabled={!quickAlert.title || createQuickAlertMutation.isPending}
                 className="bg-red-600 hover:bg-red-700"
               >
                 <Send className="w-4 h-4 mr-2" />
