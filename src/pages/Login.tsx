@@ -150,20 +150,20 @@ const Login = () => {
               </CardHeader>
               
               <CardContent className="space-y-6">
-                {/* Botón principal de Mapa - Versión móvil mejorada */}
+                {/* Botón principal de Visitante - ACTUALIZADO para funnel */}
                 <div className="text-center space-y-4">
                   <Button 
-                    onClick={() => navigate('/mapa-alertas')}
+                    onClick={() => navigate('/visitor-funnel')}
                     size="lg"
-                    className="w-full btn-modern-primary h-14 text-lg font-bold shadow-modern-md hover:shadow-modern-lg"
+                    className="w-full btn-modern-primary h-14 text-lg font-bold shadow-modern-md hover:shadow-modern-lg bg-gradient-to-r from-green-600 via-emerald-600 to-teal-600 hover:from-green-700 hover:via-emerald-700 hover:to-teal-700"
                   >
                     <Map className="w-6 h-6 mr-3" />
-                    EXPLORAR MAPA
+                    DESCUBRE TU ZONA
                     <ArrowRight className="w-6 h-6 ml-3" />
                   </Button>
                   
                   <p className="text-sm text-gray-600">
-                    Descubre propuestas, alertas y participa en tu zona
+                    🤖 <strong>Con IA:</strong> Alertas, candidatos y propuestas personalizadas
                   </p>
                 </div>
 
@@ -173,14 +173,14 @@ const Login = () => {
                     <span className="w-full border-t border-gray-200" />
                   </div>
                   <div className="relative flex justify-center text-xs uppercase">
-                    <span className="bg-white px-4 text-blue-600 font-bold">Equipo de Campaña</span>
+                    <span className="bg-white px-4 text-blue-600 font-bold">Equipo Demo</span>
                   </div>
                 </div>
 
-                {/* Formulario de login moderno con cambios específicos */}
+                {/* Formulario de login moderno */}
                 <form onSubmit={handleSubmit} className="space-y-4">
                   <div className="space-y-2">
-                    <Label htmlFor="email" className="text-yellow-600 font-bold">Email Corporativo</Label>
+                    <Label htmlFor="email" className="text-yellow-600 font-bold">Email Demo</Label>
                     <Input
                       id="email"
                       type="email"
@@ -189,22 +189,22 @@ const Login = () => {
                       placeholder="usuario@micampana.com"
                       required
                       disabled={isLoading}
-                      className="h-12 bg-gray-100 border-gray-300 text-yellow-700 font-semibold placeholder-gray-500 focus:bg-gray-50 focus:border-yellow-500 focus:text-yellow-800"
+                      className="h-12 bg-gray-200 border-gray-300 text-yellow-800 font-semibold placeholder-gray-500 focus:bg-gray-100 focus:border-yellow-500 focus:text-yellow-900"
                     />
                   </div>
                   
                   <div className="space-y-2">
-                    <Label htmlFor="password" className="text-yellow-600 font-bold">Contraseña Segura</Label>
+                    <Label htmlFor="password" className="text-yellow-600 font-bold">Contraseña Demo</Label>
                     <div className="relative">
                       <Input
                         id="password"
                         type={showPassword ? "text" : "password"}
                         value={password}
                         onChange={(e) => setPassword(e.target.value)}
-                        placeholder="Contraseña segura"
+                        placeholder="Contraseña demo"
                         required
                         disabled={isLoading}
-                        className="h-12 bg-gray-100 border-gray-300 text-yellow-700 font-semibold placeholder-gray-500 focus:bg-gray-50 focus:border-yellow-500 focus:text-yellow-800 pr-12"
+                        className="h-12 bg-gray-200 border-gray-300 text-yellow-800 font-semibold placeholder-gray-500 focus:bg-gray-100 focus:border-yellow-500 focus:text-yellow-900 pr-12"
                       />
                       <Button
                         type="button"
@@ -234,47 +234,152 @@ const Login = () => {
                     ) : (
                       <div className="flex items-center gap-2">
                         <LogIn className="w-4 h-4" />
-                        Acceso Equipo
+                        Acceso Demo
                       </div>
                     )}
                   </Button>
 
-                  {/* Panel de credenciales ULTRA COMPACTO y moderno */}
-                  <div className="bg-gradient-to-br from-gray-50 to-gray-100 rounded-xl p-3 border border-gray-200 shadow-inner">
-                    <h3 className="text-xs font-bold text-gray-800 mb-2 text-center flex items-center justify-center gap-1">
+                  {/* Panel de credenciales DEMO actualizado */}
+                  <div className="bg-gradient-to-br from-amber-50 to-orange-100 rounded-xl p-3 border-2 border-amber-200 shadow-inner">
+                    <h3 className="text-xs font-bold text-amber-800 mb-2 text-center flex items-center justify-center gap-1">
                       <Shield className="w-3 h-3" />
-                      Acceso Rápido
+                      Credenciales DEMO
                     </h3>
                     <div className="grid grid-cols-2 gap-1.5">
-                      {teamCredentials.map((cred, index) => {
-                        const Icon = cred.icon;
-                        return (
-                          <div key={index} className="bg-white rounded-md p-2 border border-gray-100 hover:border-blue-200 transition-all shadow-sm hover:shadow-md">
-                            <div className="flex items-center justify-between">
-                              <div className="flex items-center space-x-1.5">
-                                <Icon className={`w-3 h-3 ${cred.color}`} />
-                                <span className="font-medium text-xs text-gray-800">{cred.role}</span>
-                              </div>
-                              <Button
-                                type="button"
-                                variant="outline"
-                                size="sm"
-                                onClick={() => quickLogin(cred.email, cred.password)}
-                                disabled={isLoading}
-                                className="text-xs h-6 px-2 border-gray-200 text-blue-600 hover:bg-blue-50 hover:border-blue-300"
-                              >
-                                ✓
-                              </Button>
-                            </div>
-                            <div className="text-xs font-mono bg-gray-50 px-1 py-0.5 rounded mt-1 text-gray-600 truncate">
-                              {cred.email.split('@')[0]}
-                            </div>
+                      <div className="bg-white rounded-md p-2 border border-amber-200 hover:border-purple-300 transition-all shadow-sm hover:shadow-md">
+                        <div className="flex items-center justify-between">
+                          <div className="flex items-center space-x-1.5">
+                            <Target className="w-3 h-3 text-purple-600" />
+                            <span className="font-medium text-xs text-gray-800">Master</span>
                           </div>
-                        );
-                      })}
+                          <Button
+                            type="button"
+                            variant="outline"
+                            size="sm"
+                            onClick={() => quickLogin('master@micampana.com', 'MasterSecure2025!')}
+                            disabled={isLoading}
+                            className="text-xs h-6 px-2 border-gray-200 text-purple-600 hover:bg-purple-50 hover:border-purple-300"
+                          >
+                            ✓
+                          </Button>
+                        </div>
+                        <div className="text-xs font-mono bg-gray-50 px-1 py-0.5 rounded mt-1 text-gray-600 truncate">
+                          master@demo
+                        </div>
+                      </div>
+
+                      <div className="bg-white rounded-md p-2 border border-amber-200 hover:border-green-300 transition-all shadow-sm hover:shadow-md">
+                        <div className="flex items-center justify-between">
+                          <div className="flex items-center space-x-1.5">
+                            <Users className="w-3 h-3 text-green-600" />
+                            <span className="font-medium text-xs text-gray-800">María G.</span>
+                          </div>
+                          <Button
+                            type="button"
+                            variant="outline"
+                            size="sm"
+                            onClick={() => quickLogin('maria.gonzalez@micampana.com', 'CandidatoSecure2025!')}
+                            disabled={isLoading}
+                            className="text-xs h-6 px-2 border-gray-200 text-green-600 hover:bg-green-50 hover:border-green-300"
+                          >
+                            ✓
+                          </Button>
+                        </div>
+                        <div className="text-xs font-mono bg-gray-50 px-1 py-0.5 rounded mt-1 text-gray-600 truncate">
+                          candidata@demo
+                        </div>
+                      </div>
+
+                      <div className="bg-white rounded-md p-2 border border-amber-200 hover:border-blue-300 transition-all shadow-sm hover:shadow-md">
+                        <div className="flex items-center justify-between">
+                          <div className="flex items-center space-x-1.5">
+                            <Vote className="w-3 h-3 text-blue-600" />
+                            <span className="font-medium text-xs text-gray-800">Juan M.</span>
+                          </div>
+                          <Button
+                            type="button"
+                            variant="outline"
+                            size="sm"
+                            onClick={() => quickLogin('juan.martinez@micampana.com', 'CandidatoSecure2025!')}
+                            disabled={isLoading}
+                            className="text-xs h-6 px-2 border-gray-200 text-blue-600 hover:bg-blue-50 hover:border-blue-300"
+                          >
+                            ✓
+                          </Button>
+                        </div>
+                        <div className="text-xs font-mono bg-gray-50 px-1 py-0.5 rounded mt-1 text-gray-600 truncate">
+                          concejal@demo
+                        </div>
+                      </div>
+
+                      <div className="bg-white rounded-md p-2 border border-amber-200 hover:border-orange-300 transition-all shadow-sm hover:shadow-md">
+                        <div className="flex items-center justify-between">
+                          <div className="flex items-center space-x-1.5">
+                            <MapPin className="w-3 h-3 text-orange-600" />
+                            <span className="font-medium text-xs text-gray-800">Líder 1</span>
+                          </div>
+                          <Button
+                            type="button"
+                            variant="outline"
+                            size="sm"
+                            onClick={() => quickLogin('lider1@micampana.com', 'LiderSecure2025!')}
+                            disabled={isLoading}
+                            className="text-xs h-6 px-2 border-gray-200 text-orange-600 hover:bg-orange-50 hover:border-orange-300"
+                          >
+                            ✓
+                          </Button>
+                        </div>
+                        <div className="text-xs font-mono bg-gray-50 px-1 py-0.5 rounded mt-1 text-gray-600 truncate">
+                          lider@demo
+                        </div>
+                      </div>
+
+                      <div className="bg-white rounded-md p-2 border border-amber-200 hover:border-indigo-300 transition-all shadow-sm hover:shadow-md">
+                        <div className="flex items-center justify-between">
+                          <div className="flex items-center space-x-1.5">
+                            <Vote className="w-3 h-3 text-indigo-600" />
+                            <span className="font-medium text-xs text-gray-800">Ana R.</span>
+                          </div>
+                          <Button
+                            type="button"
+                            variant="outline"
+                            size="sm"
+                            onClick={() => quickLogin('ana.rodriguez@micampana.com', 'CandidatoSecure2025!')}
+                            disabled={isLoading}
+                            className="text-xs h-6 px-2 border-gray-200 text-indigo-600 hover:bg-indigo-50 hover:border-indigo-300"
+                          >
+                            ✓
+                          </Button>
+                        </div>
+                        <div className="text-xs font-mono bg-gray-50 px-1 py-0.5 rounded mt-1 text-gray-600 truncate">
+                          suba@demo
+                        </div>
+                      </div>
+
+                      <div className="bg-white rounded-md p-2 border border-amber-200 hover:border-teal-300 transition-all shadow-sm hover:shadow-md">
+                        <div className="flex items-center justify-between">
+                          <div className="flex items-center space-x-1.5">
+                            <Globe className="w-3 h-3 text-teal-600" />
+                            <span className="font-medium text-xs text-gray-800">Admin</span>
+                          </div>
+                          <Button
+                            type="button"
+                            variant="outline"
+                            size="sm"
+                            onClick={() => quickLogin('admin@micampana.com', 'AdminSecure2025!')}
+                            disabled={isLoading}
+                            className="text-xs h-6 px-2 border-gray-200 text-teal-600 hover:bg-teal-50 hover:border-teal-300"
+                          >
+                            ✓
+                          </Button>
+                        </div>
+                        <div className="text-xs font-mono bg-gray-50 px-1 py-0.5 rounded mt-1 text-gray-600 truncate">
+                          admin@demo
+                        </div>
+                      </div>
                     </div>
                     <div className="text-center mt-2">
-                      <span className="text-xs text-gray-500 font-medium">Contraseña: *Secure2025!</span>
+                      <span className="text-xs text-amber-700 font-medium">🗝️ Contraseña: *Secure2025!</span>
                     </div>
                   </div>
                 </form>
@@ -283,11 +388,11 @@ const Login = () => {
                 <div className="flex items-center justify-center gap-6 pt-4 text-gray-600 border-t border-gray-200">
                   <div className="flex items-center gap-2">
                     <Users className="w-4 h-4 text-blue-600" />
-                    <span className="text-sm font-medium">+25,000 usuarios</span>
+                    <span className="text-sm font-medium">+1,000 usuarios demo</span>
                   </div>
                   <div className="flex items-center gap-2">
                     <MapPin className="w-4 h-4 text-green-600" />
-                    <span className="text-sm font-medium">15 ciudades</span>
+                    <span className="text-sm font-medium">8 territorios</span>
                   </div>
                 </div>
               </CardContent>
