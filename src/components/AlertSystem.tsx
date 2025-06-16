@@ -10,7 +10,7 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@
 import { Textarea } from "@/components/ui/textarea";
 import { Badge } from "@/components/ui/badge";
 import { AlertTriangle, Plus, MapPin, Clock, User } from "lucide-react";
-import { useAuth } from "../contexts/AuthContext";
+import { useSecureAuth } from "../contexts/SecureAuthContext";
 import { useDataSegregation } from "../hooks/useDataSegregation";
 import { useToast } from "@/hooks/use-toast";
 
@@ -41,7 +41,7 @@ interface Territory {
 }
 
 const AlertSystem = () => {
-  const { user } = useAuth();
+  const { user } = useSecureAuth();
   const { getAlertFilter } = useDataSegregation();
   const { toast } = useToast();
   const queryClient = useQueryClient();
