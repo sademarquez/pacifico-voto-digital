@@ -12,6 +12,7 @@ import Index from "./pages/Index";
 import Dashboard from "./pages/Dashboard";
 import MapaAlertas from "./pages/MapaAlertas";
 import Registro from "./pages/Registro";
+import Configuracion from "./pages/Configuracion";
 import UserHeader from "./components/UserHeader";
 import { SecureAuthProvider } from "./contexts/SecureAuthContext";
 import TrackingProvider from './components/TrackingProvider';
@@ -32,6 +33,7 @@ function App() {
               <Route path="/dashboard" element={<Dashboard />} />
               <Route path="/mapa-alertas" element={<MapaAlertas />} />
               <Route path="/registro" element={<Registro />} />
+              <Route path="/configuracion" element={<Configuracion />} />
             </Routes>
             <ChatbotManager />
             <Toaster />
