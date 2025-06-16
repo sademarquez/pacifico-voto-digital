@@ -1,5 +1,5 @@
 
-import { useState, useEffect } from 'react';
+import { useState } from 'react';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { supabase } from '@/integrations/supabase/client';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
@@ -53,21 +53,28 @@ const DatabaseManager = () => {
     mapping_config: {}
   });
 
-  // Fetch user databases
+  // Fetch user databases usando SQL directo
   const { data: databases, isLoading, refetch } = useQuery({
     queryKey: ['user-databases', user?.id],
     queryFn: async () => {
       if (!user?.id) return [];
 
       const { data, error } = await supabase
-        .from('user_databases')
-        .select('*')
-        .eq('user_id', user.id)
-        .order('created_at', { ascending: false });
+        .rpc('get_user_databases', { p_user_id: user.id });
 
       if (error) {
         console.error('Error fetching databases:', error);
-        return [];
+        // Fallback: consulta directa sin tipos
+        const { data: fallbackData, error: fallbackError } = await supabase
+          .from('user_databases' as any)
+          .select('*')
+          .eq('user_id', user.id);
+        
+        if (fallbackError) {
+          console.error('Fallback error:', fallbackError);
+          return [];
+        }
+        return fallbackData || [];
       }
       return data || [];
     },
@@ -89,7 +96,7 @@ const DatabaseManager = () => {
       };
 
       const { data, error } = await supabase
-        .from('user_databases')
+        .from('user_databases' as any)
         .insert({
           user_id: user.id,
           name: newDb.name,
@@ -136,7 +143,7 @@ const DatabaseManager = () => {
       if (!user?.id || !importConfig.database_id) throw new Error('Configuración incompleta');
 
       const { data, error } = await supabase
-        .from('data_imports')
+        .from('data_imports' as any)
         .insert({
           user_id: user.id,
           database_id: importConfig.database_id,
