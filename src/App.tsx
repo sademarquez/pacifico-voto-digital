@@ -1,13 +1,10 @@
+
 import { Toaster } from "@/components/ui/toaster";
 import { Toaster as Sonner } from "@/components/ui/sonner";
 import { TooltipProvider } from "@/components/ui/tooltip";
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import { BrowserRouter, Routes, Route, Navigate } from "react-router-dom";
 import { SimpleAuthProvider } from "@/contexts/SimpleAuthContext";
-import ChatbotProvider from "@/components/ChatbotProvider";
-import TrackingProvider from "@/components/TrackingProvider";
-import { AccessibilityProvider } from "@/components/AccessibilityProvider";
-import AppStateDebugger from "@/components/AppStateDebugger";
 
 // Páginas principales
 import Index from "./pages/Index";
@@ -44,132 +41,125 @@ function App() {
     <QueryClientProvider client={queryClient}>
       <TooltipProvider>
         <SimpleAuthProvider>
-          <AccessibilityProvider>
-            <ChatbotProvider>
-              <TrackingProvider>
-                <Toaster />
-                <Sonner />
-                <AppStateDebugger />
-                <BrowserRouter>
-                  <Routes>
-                    {/* Rutas públicas */}
-                    <Route path="/" element={<Index />} />
-                    <Route path="/simple-login" element={<SimpleLogin />} />
-                    <Route path="/login-test" element={<LoginTestPage />} />
-                    <Route path="/mobile-audit" element={<MobileAuditPage />} />
-                    
-                    {/* Redirect de login antiguo */}
-                    <Route path="/login" element={<Navigate to="/simple-login" replace />} />
-                    
-                    {/* Rutas protegidas */}
-                    <Route path="/dashboard" element={
-                      <SimpleProtectedRoute>
-                        <Dashboard />
-                      </SimpleProtectedRoute>
-                    } />
-                    <Route path="/estructura" element={
-                      <SimpleProtectedRoute>
-                        <Estructura />
-                      </SimpleProtectedRoute>
-                    } />
-                    <Route path="/mensajes" element={
-                      <SimpleProtectedRoute>
-                        <Mensajes />
-                      </SimpleProtectedRoute>
-                    } />
-                    <Route path="/mensajes-privados" element={
-                      <SimpleProtectedRoute>
-                        <MensajesPrivados />
-                      </SimpleProtectedRoute>
-                    } />
-                    <Route path="/informes" element={
-                      <SimpleProtectedRoute>
-                        <Informes />
-                      </SimpleProtectedRoute>
-                    } />
-                    <Route path="/mapa-alertas" element={
-                      <SimpleProtectedRoute>
-                        <MapaAlertas />
-                      </SimpleProtectedRoute>
-                    } />
-                    <Route path="/ubicacion-votantes" element={
-                      <SimpleProtectedRoute>
-                        <UbicacionVotantes />
-                      </SimpleProtectedRoute>
-                    } />
-                    <Route path="/lugar-votacion" element={
-                      <SimpleProtectedRoute>
-                        <LugarVotacion />
-                      </SimpleProtectedRoute>
-                    } />
-                    <Route path="/registro" element={
-                      <SimpleProtectedRoute>
-                        <Registro />
-                      </SimpleProtectedRoute>
-                    } />
-                    <Route path="/registro-personalizado" element={
-                      <SimpleProtectedRoute>
-                        <RegistroPersonalizado />
-                      </SimpleProtectedRoute>
-                    } />
-                    <Route path="/liderazgo" element={
-                      <SimpleProtectedRoute>
-                        <Liderazgo />
-                      </SimpleProtectedRoute>
-                    } />
-                    <Route path="/red-ayudantes" element={
-                      <SimpleProtectedRoute>
-                        <RedAyudantes />
-                      </SimpleProtectedRoute>
-                    } />
-                    <Route path="/reporte-publicidad" element={
-                      <SimpleProtectedRoute>
-                        <ReportePublicidad />
-                      </SimpleProtectedRoute>
-                    } />
-                    <Route path="/configuracion" element={
-                      <SimpleProtectedRoute>
-                        <Configuracion />
-                      </SimpleProtectedRoute>
-                    } />
-                    <Route path="/candidato-funnel" element={
-                      <SimpleProtectedRoute>
-                        <CandidatoFunnel />
-                      </SimpleProtectedRoute>
-                    } />
-                    <Route path="/visitor-funnel" element={
-                      <SimpleProtectedRoute>
-                        <VisitorFunnelPage />
-                      </SimpleProtectedRoute>
-                    } />
-                    <Route path="/manuales-demo" element={
-                      <SimpleProtectedRoute>
-                        <ManualesDemo />
-                      </SimpleProtectedRoute>
-                    } />
-                    <Route path="/events" element={
-                      <SimpleProtectedRoute>
-                        <EventsPage />
-                      </SimpleProtectedRoute>
-                    } />
-                    <Route path="/tasks" element={
-                      <SimpleProtectedRoute>
-                        <TasksPage />
-                      </SimpleProtectedRoute>
-                    } />
-                    <Route path="/quick-actions" element={
-                      <SimpleProtectedRoute>
-                        <QuickActionsPage />
-                      </SimpleProtectedRoute>
-                    } />
-                    
-                    {/* 404 */}
-                    <Route path="*" element={<NotFound />} />
-                  </Routes>
-                </BrowserRouter>
-              </TrackingProvider>
-            </ChatbotProvider>
-          </AccessibilityProvider>
+          <Toaster />
+          <Sonner />
+          <BrowserRouter>
+            <Routes>
+              {/* Rutas públicas */}
+              <Route path="/" element={<Index />} />
+              <Route path="/simple-login" element={<SimpleLogin />} />
+              <Route path="/login-test" element={<LoginTestPage />} />
+              <Route path="/mobile-audit" element={<MobileAuditPage />} />
+              
+              {/* Redirect de login antiguo */}
+              <Route path="/login" element={<Navigate to="/simple-login" replace />} />
+              
+              {/* Rutas protegidas */}
+              <Route path="/dashboard" element={
+                <SimpleProtectedRoute>
+                  <Dashboard />
+                </SimpleProtectedRoute>
+              } />
+              <Route path="/estructura" element={
+                <SimpleProtectedRoute>
+                  <Estructura />
+                </SimpleProtectedRoute>
+              } />
+              <Route path="/mensajes" element={
+                <SimpleProtectedRoute>
+                  <Mensajes />
+                </SimpleProtectedRoute>
+              } />
+              <Route path="/mensajes-privados" element={
+                <SimpleProtectedRoute>
+                  <MensajesPrivados />
+                </SimpleProtectedRoute>
+              } />
+              <Route path="/informes" element={
+                <SimpleProtectedRoute>
+                  <Informes />
+                </SimpleProtectedRoute>
+              } />
+              <Route path="/mapa-alertas" element={
+                <SimpleProtectedRoute>
+                  <MapaAlertas />
+                </SimpleProtectedRoute>
+              } />
+              <Route path="/ubicacion-votantes" element={
+                <SimpleProtectedRoute>
+                  <UbicacionVotantes />
+                </SimpleProtectedRoute>
+              } />
+              <Route path="/lugar-votacion" element={
+                <SimpleProtectedRoute>
+                  <LugarVotacion />
+                </SimpleProtectedRoute>
+              } />
+              <Route path="/registro" element={
+                <SimpleProtectedRoute>
+                  <Registro />
+                </SimpleProtectedRoute>
+              } />
+              <Route path="/registro-personalizado" element={
+                <SimpleProtectedRoute>
+                  <RegistroPersonalizado />
+                </SimpleProtectedRoute>
+              } />
+              <Route path="/liderazgo" element={
+                <SimpleProtectedRoute>
+                  <Liderazgo />
+                </SimpleProtectedRoute>
+              } />
+              <Route path="/red-ayudantes" element={
+                <SimpleProtectedRoute>
+                  <RedAyudantes />
+                </SimpleProtectedRoute>
+              } />
+              <Route path="/reporte-publicidad" element={
+                <SimpleProtectedRoute>
+                  <ReportePublicidad />
+                </SimpleProtectedRoute>
+              } />
+              <Route path="/configuracion" element={
+                <SimpleProtectedRoute>
+                  <Configuracion />
+                </SimpleProtectedRoute>
+              } />
+              <Route path="/candidato-funnel" element={
+                <SimpleProtectedRoute>
+                  <CandidatoFunnel />
+                </SimpleProtectedRoute>
+              } />
+              <Route path="/visitor-funnel" element={
+                <SimpleProtectedRoute>
+                  <VisitorFunnelPage />
+                </SimpleProtectedRoute>
+              } />
+              <Route path="/manuales-demo" element={
+                <SimpleProtectedRoute>
+                  <ManualesDemo />
+                </SimpleProtectedRoute>
+              } />
+              <Route path="/events" element={
+                <SimpleProtectedRoute>
+                  <EventsPage />
+                </SimpleProtectedRoute>
+              } />
+              <Route path="/tasks" element={
+                <SimpleProtectedRoute>
+                  <TasksPage />
+                </SimpleProtectedRoute>
+              } />
+              <Route path="/quick-actions" element={
+                <SimpleProtectedRoute>
+                  <QuickActionsPage />
+                </SimpleProtectedRoute>
+              } />
+              
+              {/* 404 */}
+              <Route path="*" element={<NotFound />} />
+            </Routes>
+          </BrowserRouter>
         </SimpleAuthProvider>
       </TooltipProvider>
     </QueryClientProvider>
