@@ -1,3 +1,4 @@
+
 import { useState } from 'react';
 import { useSecureAuth } from '@/contexts/SecureAuthContext';
 import { useNavigate } from 'react-router-dom';
@@ -67,13 +68,13 @@ const Login = () => {
     setError('');
   };
 
-  // teamCredentials array
+  // teamCredentials array - Optimizado y moderno
   const teamCredentials = [
-    { email: 'admin@micampana.com', password: 'AdminSecure2025!', role: 'Desarrollador', description: 'Control total del sistema', icon: Shield, color: 'text-purple-600' },
-    { email: 'master@micampana.com', password: 'MasterSecure2025!', role: 'Master', description: 'Gestión completa', icon: Target, color: 'text-blue-600' },
-    { email: 'candidato@micampana.com', password: 'CandidatoSecure2025!', role: 'Candidato', description: 'Liderazgo territorial', icon: Users, color: 'text-green-600' },
-    { email: 'lider@micampana.com', password: 'LiderSecure2025!', role: 'Líder', description: 'Coordinación local', icon: MapPin, color: 'text-orange-600' },
-    { email: 'votante@micampana.com', password: 'VotanteSecure2025!', role: 'Votante', description: 'Participación ciudadana', icon: Vote, color: 'text-indigo-600' }
+    { email: 'admin@micampana.com', password: 'AdminSecure2025!', role: 'Dev', icon: Shield, color: 'text-purple-600' },
+    { email: 'master@micampana.com', password: 'MasterSecure2025!', role: 'Master', icon: Target, color: 'text-blue-600' },
+    { email: 'candidato@micampana.com', password: 'CandidatoSecure2025!', role: 'Candidato', icon: Users, color: 'text-green-600' },
+    { email: 'lider@micampana.com', password: 'LiderSecure2025!', role: 'Líder', icon: MapPin, color: 'text-orange-600' },
+    { email: 'votante@micampana.com', password: 'VotanteSecure2025!', role: 'Votante', icon: Vote, color: 'text-indigo-600' }
   ];
 
   return (
@@ -133,7 +134,7 @@ const Login = () => {
             </div>
           </div>
 
-          {/* Panel derecho - Login moderno */}
+          {/* Panel derecho - Login moderno optimizado */}
           <div className="flex items-center justify-center">
             <Card className="campaign-card w-full max-w-md bg-white bg-opacity-95 backdrop-blur-xl border-0 shadow-modern-xl">
               <CardHeader className="space-y-4 text-center pb-6">
@@ -176,10 +177,10 @@ const Login = () => {
                   </div>
                 </div>
 
-                {/* Formulario de login moderno */}
+                {/* Formulario de login moderno con cambios específicos */}
                 <form onSubmit={handleSubmit} className="space-y-4">
                   <div className="space-y-2">
-                    <Label htmlFor="email" className="text-gray-700 font-medium">Email Corporativo</Label>
+                    <Label htmlFor="email" className="text-yellow-600 font-bold">Email Corporativo</Label>
                     <Input
                       id="email"
                       type="email"
@@ -188,12 +189,12 @@ const Login = () => {
                       placeholder="usuario@micampana.com"
                       required
                       disabled={isLoading}
-                      className="input-modern h-12"
+                      className="h-12 bg-gray-100 border-gray-300 text-yellow-700 font-semibold placeholder-gray-500 focus:bg-gray-50 focus:border-yellow-500 focus:text-yellow-800"
                     />
                   </div>
                   
                   <div className="space-y-2">
-                    <Label htmlFor="password" className="text-gray-700 font-medium">Contraseña Segura</Label>
+                    <Label htmlFor="password" className="text-yellow-600 font-bold">Contraseña Segura</Label>
                     <div className="relative">
                       <Input
                         id="password"
@@ -203,13 +204,13 @@ const Login = () => {
                         placeholder="Contraseña segura"
                         required
                         disabled={isLoading}
-                        className="input-modern pr-12 h-12"
+                        className="h-12 bg-gray-100 border-gray-300 text-yellow-700 font-semibold placeholder-gray-500 focus:bg-gray-50 focus:border-yellow-500 focus:text-yellow-800 pr-12"
                       />
                       <Button
                         type="button"
                         variant="ghost"
                         size="sm"
-                        className="absolute right-3 top-1/2 -translate-y-1/2 h-6 w-6 p-0 text-blue-600 hover:text-blue-700"
+                        className="absolute right-3 top-1/2 -translate-y-1/2 h-6 w-6 p-0 text-yellow-600 hover:text-yellow-700"
                         onClick={() => setShowPassword(!showPassword)}
                         disabled={isLoading}
                       >
@@ -238,37 +239,42 @@ const Login = () => {
                     )}
                   </Button>
 
-                  {/* Panel de credenciales compacto y moderno */}
-                  <div className="bg-gray-50 rounded-xl p-4 border border-gray-200">
-                    <h3 className="text-sm font-semibold text-gray-800 mb-3 text-center flex items-center justify-center gap-2">
-                      <Shield className="w-4 h-4" />
-                      Credenciales de Acceso Rápido
+                  {/* Panel de credenciales ULTRA COMPACTO y moderno */}
+                  <div className="bg-gradient-to-br from-gray-50 to-gray-100 rounded-xl p-3 border border-gray-200 shadow-inner">
+                    <h3 className="text-xs font-bold text-gray-800 mb-2 text-center flex items-center justify-center gap-1">
+                      <Shield className="w-3 h-3" />
+                      Acceso Rápido
                     </h3>
-                    <div className="grid grid-cols-1 gap-2">
+                    <div className="grid grid-cols-2 gap-1.5">
                       {teamCredentials.map((cred, index) => {
                         const Icon = cred.icon;
                         return (
-                          <div key={index} className="flex justify-between items-center bg-white rounded-lg p-3 border border-gray-100 hover:border-blue-200 transition-all shadow-sm hover:shadow-md">
-                            <div className="flex items-center space-x-3">
-                              <Icon className={`w-4 h-4 ${cred.color}`} />
-                              <div>
-                                <span className="font-medium text-sm text-gray-800">{cred.role}</span>
-                                <p className="text-xs text-gray-500">{cred.description}</p>
+                          <div key={index} className="bg-white rounded-md p-2 border border-gray-100 hover:border-blue-200 transition-all shadow-sm hover:shadow-md">
+                            <div className="flex items-center justify-between">
+                              <div className="flex items-center space-x-1.5">
+                                <Icon className={`w-3 h-3 ${cred.color}`} />
+                                <span className="font-medium text-xs text-gray-800">{cred.role}</span>
                               </div>
+                              <Button
+                                type="button"
+                                variant="outline"
+                                size="sm"
+                                onClick={() => quickLogin(cred.email, cred.password)}
+                                disabled={isLoading}
+                                className="text-xs h-6 px-2 border-gray-200 text-blue-600 hover:bg-blue-50 hover:border-blue-300"
+                              >
+                                ✓
+                              </Button>
                             </div>
-                            <Button
-                              type="button"
-                              variant="outline"
-                              size="sm"
-                              onClick={() => quickLogin(cred.email, cred.password)}
-                              disabled={isLoading}
-                              className="text-xs h-8 px-3 border-gray-200 text-blue-600 hover:bg-blue-50 hover:border-blue-300"
-                            >
-                              Usar
-                            </Button>
+                            <div className="text-xs font-mono bg-gray-50 px-1 py-0.5 rounded mt-1 text-gray-600 truncate">
+                              {cred.email.split('@')[0]}
+                            </div>
                           </div>
                         );
                       })}
+                    </div>
+                    <div className="text-center mt-2">
+                      <span className="text-xs text-gray-500 font-medium">Contraseña: *Secure2025!</span>
                     </div>
                   </div>
                 </form>
