@@ -1,3 +1,4 @@
+
 import { createContext, useContext, useState, useEffect, ReactNode } from 'react';
 
 interface AccessibilitySettings {
@@ -18,15 +19,13 @@ interface AccessibilityContextType {
   isKeyboardUser: boolean;
 }
 
-// Fix: Explicitly define and export the props interface
 export interface AccessibilityProviderProps {
   children: ReactNode;
 }
 
 const AccessibilityContext = createContext<AccessibilityContextType | undefined>(undefined);
 
-// Fix: Proper component definition with explicit prop typing
-export const AccessibilityProvider = ({ children }: AccessibilityProviderProps) => {
+export function AccessibilityProvider({ children }: AccessibilityProviderProps) {
   const [settings, setSettings] = useState<AccessibilitySettings>({
     highContrast: false,
     largeText: false,
@@ -145,7 +144,7 @@ export const AccessibilityProvider = ({ children }: AccessibilityProviderProps) 
       {children}
     </AccessibilityContext.Provider>
   );
-};
+}
 
 export const useAccessibility = () => {
   const context = useContext(AccessibilityContext);
