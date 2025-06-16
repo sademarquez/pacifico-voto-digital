@@ -14,6 +14,8 @@ import MapaAlertas from "./pages/MapaAlertas";
 import Registro from "./pages/Registro";
 import Configuracion from "./pages/Configuracion";
 import Informes from "./pages/Informes";
+import Liderazgo from "./pages/Liderazgo";
+import RedAyudantes from "./pages/RedAyudantes";
 import UserHeader from "./components/UserHeader";
 import { SecureAuthProvider } from "./contexts/SecureAuthContext";
 import TrackingProvider from './components/TrackingProvider';
@@ -36,6 +38,8 @@ function App() {
               <Route path="/registro" element={<Registro />} />
               <Route path="/configuracion" element={<Configuracion />} />
               <Route path="/informes" element={<Informes />} />
+              <Route path="/liderazgo" element={<Liderazgo />} />
+              <Route path="/red-ayudantes" element={<RedAyudantes />} />
             </Routes>
             <ChatbotManager />
             <Toaster />

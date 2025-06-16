@@ -13,13 +13,13 @@ const Navigation = () => {
   const navigate = useNavigate();
 
   const navigationItems = [
-    { href: "/", label: "Inicio", icon: Home },
     { href: "/dashboard", label: "Dashboard", icon: BarChart3 },
     { href: "/registro", label: "Registro", icon: User },
     { href: "/mapa-alertas", label: "Mapa", icon: MapPin },
     { href: "/informes", label: "Informes", icon: FileText },
     { href: "/liderazgo", label: "Liderazgo", icon: Users },
-    { href: "/red-ayudantes", label: "Red Ayudantes", icon: Network }
+    { href: "/red-ayudantes", label: "Red Ayudantes", icon: Network },
+    { href: "/configuracion", label: "Configuración", icon: Shield }
   ];
 
   const isActiveRoute = (href: string) => {
@@ -39,19 +39,19 @@ const Navigation = () => {
   return (
     <>
       {/* Navegación superior */}
-      <nav className="sticky top-0 z-50 nav-ecosystem">
+      <nav className="sticky top-0 z-50 bg-slate-900 border-b border-slate-700 shadow-xl">
         <div className="container mx-auto px-4">
           <div className="flex items-center justify-between h-16">
             {/* Logo */}
-            <Link to="/" className="flex items-center space-x-3">
-              <div className="w-10 h-10 rounded-lg overflow-hidden shadow-ecosystem-soft bg-blue-ecosystem-primary p-2">
+            <Link to="/dashboard" className="flex items-center space-x-3">
+              <div className="w-10 h-10 rounded-lg overflow-hidden shadow-lg bg-slate-700 p-2">
                 <img 
                   src="/lovable-uploads/83527a7a-6d3b-4edb-bdfc-312894177818.png" 
                   alt="MI CAMPAÑA Logo" 
                   className="w-full h-full object-cover filter brightness-0 invert"
                 />
               </div>
-              <span className="font-bold text-xl text-blue-ecosystem-primary">
+              <span className="font-bold text-xl text-slate-100">
                 MI CAMPAÑA 2025
               </span>
             </Link>
@@ -62,26 +62,26 @@ const Navigation = () => {
                 <Link
                   key={item.href}
                   to={item.href}
-                  className={`flex items-center space-x-2 px-4 py-2 rounded-lg transition-all duration-300 font-medium shadow-ecosystem-soft hover:shadow-ecosystem-medium ${
+                  className={`flex items-center space-x-2 px-4 py-2 rounded-lg transition-all duration-300 font-medium shadow-sm hover:shadow-md ${
                     isActiveRoute(item.href)
-                      ? 'bg-blue-ecosystem-primary text-white shadow-blue-glow'
-                      : 'text-gray-ecosystem-text hover:bg-gray-ecosystem-light hover:text-blue-ecosystem-primary'
+                      ? 'bg-slate-700 text-slate-100 shadow-lg border border-slate-600'
+                      : 'text-slate-300 hover:bg-slate-800 hover:text-slate-100'
                   }`}
                 >
                   <item.icon className="w-4 h-4" />
                   <span>{item.label}</span>
                 </Link>
               ))}
-              <div className="flex items-center space-x-3 ml-4 pl-4 border-l border-gray-ecosystem-border">
+              <div className="flex items-center space-x-3 ml-4 pl-4 border-l border-slate-700">
                 <div className="text-sm">
-                  <p className="font-medium text-gray-ecosystem-dark">{user.name}</p>
-                  <p className="text-xs text-gray-ecosystem-text">({user.role})</p>
+                  <p className="font-medium text-slate-200">{user.name}</p>
+                  <p className="text-xs text-slate-400">({user.role})</p>
                 </div>
                 <Button 
                   onClick={handleLogout}
                   variant="outline" 
                   size="sm"
-                  className="border-gray-ecosystem-border text-gray-ecosystem-text hover:bg-gray-ecosystem-light hover:text-blue-ecosystem-primary hover:border-blue-ecosystem-primary"
+                  className="border-slate-600 text-slate-300 hover:bg-slate-800 hover:text-slate-100 hover:border-slate-500"
                 >
                   <LogOut className="w-4 h-4 mr-2" />
                   Salir
@@ -93,25 +93,25 @@ const Navigation = () => {
             <div className="md:hidden">
               <Sheet open={isOpen} onOpenChange={setIsOpen}>
                 <SheetTrigger asChild>
-                  <Button variant="ghost" size="icon" className="text-blue-ecosystem-primary shadow-ecosystem-soft hover:shadow-ecosystem-medium hover:bg-gray-ecosystem-light">
+                  <Button variant="ghost" size="icon" className="text-slate-300 shadow-sm hover:shadow-md hover:bg-slate-800">
                     <Menu className="w-6 h-6" />
                   </Button>
                 </SheetTrigger>
-                <SheetContent side="right" className="w-[300px] sm:w-[400px] bg-white shadow-ecosystem-large border-gray-ecosystem-border">
+                <SheetContent side="right" className="w-[300px] sm:w-[400px] bg-slate-900 shadow-2xl border-slate-700">
                   <div className="flex flex-col space-y-4 mt-8">
-                    <div className="p-4 bg-gray-ecosystem-light rounded-lg shadow-ecosystem-soft border border-gray-ecosystem-border">
-                      <p className="font-medium text-blue-ecosystem-primary">{user.name}</p>
-                      <p className="text-sm text-gray-ecosystem-text">Rol: {user.role}</p>
+                    <div className="p-4 bg-slate-800 rounded-lg shadow-sm border border-slate-700">
+                      <p className="font-medium text-slate-200">{user.name}</p>
+                      <p className="text-sm text-slate-400">Rol: {user.role}</p>
                     </div>
                     {navigationItems.map((item) => (
                       <Link
                         key={item.href}
                         to={item.href}
                         onClick={() => setIsOpen(false)}
-                        className={`flex items-center space-x-3 p-3 rounded-lg transition-all duration-300 shadow-ecosystem-soft hover:shadow-ecosystem-medium ${
+                        className={`flex items-center space-x-3 p-3 rounded-lg transition-all duration-300 shadow-sm hover:shadow-md ${
                           isActiveRoute(item.href)
-                            ? 'bg-blue-ecosystem-primary text-white shadow-blue-glow'
-                            : 'text-gray-ecosystem-text hover:bg-gray-ecosystem-light hover:text-blue-ecosystem-primary'
+                            ? 'bg-slate-700 text-slate-100 shadow-lg border border-slate-600'
+                            : 'text-slate-300 hover:bg-slate-800 hover:text-slate-100'
                         }`}
                       >
                         <item.icon className="w-5 h-5" />
@@ -120,7 +120,7 @@ const Navigation = () => {
                     ))}
                     <Button 
                       onClick={handleLogout}
-                      className="btn-primary-ecosystem mt-6 shadow-ecosystem-medium hover:shadow-ecosystem-large"
+                      className="bg-slate-800 hover:bg-slate-700 text-slate-100 shadow-md hover:shadow-lg mt-6"
                     >
                       <LogOut className="w-4 h-4 mr-2" />
                       Cerrar Sesión
@@ -134,7 +134,7 @@ const Navigation = () => {
       </nav>
 
       {/* Navegación inferior para móviles */}
-      <div className="md:hidden fixed bottom-0 left-0 right-0 z-50 bg-white border-t border-gray-ecosystem-border shadow-ecosystem-large">
+      <div className="md:hidden fixed bottom-0 left-0 right-0 z-50 bg-slate-900 border-t border-slate-700 shadow-2xl">
         <div className="grid grid-cols-4 gap-1 p-2">
           {navigationItems.slice(0, 4).map((item) => (
             <Link
@@ -142,8 +142,8 @@ const Navigation = () => {
               to={item.href}
               className={`flex flex-col items-center p-3 rounded-lg transition-all duration-300 ${
                 isActiveRoute(item.href)
-                  ? 'bg-blue-ecosystem-primary text-white shadow-blue-glow transform scale-105'
-                  : 'text-gray-ecosystem-text hover:bg-gray-ecosystem-light hover:text-blue-ecosystem-primary shadow-ecosystem-soft hover:shadow-ecosystem-medium'
+                  ? 'bg-slate-700 text-slate-100 shadow-lg transform scale-105 border border-slate-600'
+                  : 'text-slate-400 hover:bg-slate-800 hover:text-slate-200 shadow-sm hover:shadow-md'
               }`}
             >
               <item.icon className={`w-5 h-5 mb-1 ${isActiveRoute(item.href) ? 'filter drop-shadow-sm' : ''}`} />
