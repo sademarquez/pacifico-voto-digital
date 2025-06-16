@@ -1061,7 +1061,13 @@ export type Database = {
         | "vereda"
         | "barrio"
         | "sector"
-      user_role: "desarrollador" | "master" | "candidato" | "lider" | "votante"
+      user_role:
+        | "desarrollador"
+        | "master"
+        | "candidato"
+        | "lider"
+        | "votante"
+        | "visitante"
     }
     CompositeTypes: {
       [_ in never]: never
@@ -1210,7 +1216,14 @@ export const Constants = {
         "barrio",
         "sector",
       ],
-      user_role: ["desarrollador", "master", "candidato", "lider", "votante"],
+      user_role: [
+        "desarrollador",
+        "master",
+        "candidato",
+        "lider",
+        "votante",
+        "visitante",
+      ],
     },
   },
 } as const

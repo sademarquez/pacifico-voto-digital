@@ -74,7 +74,7 @@ export const AuthProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
             .insert({
               id: supabaseUser.id,
               name: supabaseUser.email || 'Visitante',
-              role: 'visitante'
+              role: 'votante' // Usar 'votante' como rol por defecto en lugar de 'visitante'
             });
 
           if (insertError) {
@@ -84,7 +84,7 @@ export const AuthProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
           const basicUser: User = {
             id: supabaseUser.id,
             name: supabaseUser.email || 'Visitante',
-            role: 'visitante',
+            role: 'votante', // Usar 'votante' como rol por defecto
             email: supabaseUser.email || '',
           };
           setUser(basicUser);
@@ -95,7 +95,7 @@ export const AuthProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
           const basicUser: User = {
             id: supabaseUser.id,
             name: supabaseUser.email || 'Visitante',
-            role: 'visitante',
+            role: 'votante', // Usar 'votante' como rol por defecto
             email: supabaseUser.email || '',
           };
           setUser(basicUser);
