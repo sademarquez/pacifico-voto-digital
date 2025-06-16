@@ -1,8 +1,7 @@
-
-import { useAuth } from "../contexts/AuthContext";
+import { useSecureAuth } from "../contexts/SecureAuthContext";
 
 export const useDataSegregation = () => {
-  const { user } = useAuth();
+  const { user } = useSecureAuth();
 
   // Función para obtener territorios según el rol del usuario
   const getTerritoryFilter = () => {
@@ -167,7 +166,7 @@ export const useDataSegregation = () => {
           canCreateDesarrollador: false,
           canCreateMaster: false,
           canCreateCandidatos: false,
-          canCreateLideres: false,
+          canCreateLideres: true,
           canCreateVotantes: true,
           canCreateAlerts: true,
           canManageVotingTables: true,
