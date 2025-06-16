@@ -14,12 +14,19 @@ interface AlertData {
   id: string;
   title: string;
   description: string;
-  priority: 'low' | 'medium' | 'high' | 'critical';
+  priority: 'low' | 'medium' | 'high' | 'urgent';
   status: 'active' | 'resolved' | 'investigating';
+  type: 'security' | 'logistics' | 'political' | 'emergency' | 'information';
   location_lat?: number;
   location_lng?: number;
   created_at: string;
   created_by?: string;
+  affected_user_id?: string;
+  territory_id?: string;
+  resolved_at?: string;
+  resolved_by?: string;
+  updated_at: string;
+  visible_to_voters: boolean;
 }
 
 const MapaAlertas = () => {
@@ -33,6 +40,7 @@ const MapaAlertas = () => {
     title: "",
     description: "",
     priority: "medium" as const,
+    type: "information" as const,
     location_lat: 0,
     location_lng: 0
   });
@@ -90,11 +98,11 @@ const MapaAlertas = () => {
           title: newAlert.title,
           description: newAlert.description,
           priority: newAlert.priority,
+          type: newAlert.type,
           location_lat: newAlert.location_lat || null,
           location_lng: newAlert.location_lng || null,
           created_by: user.id,
-          status: 'active',
-          type: 'system'
+          status: 'active'
         });
 
       if (error) {
@@ -107,6 +115,7 @@ const MapaAlertas = () => {
         title: "",
         description: "",
         priority: "medium",
+        type: "information",
         location_lat: 0,
         location_lng: 0
       });
@@ -126,7 +135,7 @@ const MapaAlertas = () => {
 
   const getPriorityColor = (priority: string) => {
     switch (priority) {
-      case 'critical': return 'bg-red-100 text-red-800 border-red-200';
+      case 'urgent': return 'bg-red-100 text-red-800 border-red-200';
       case 'high': return 'bg-orange-100 text-orange-800 border-orange-200';
       case 'medium': return 'bg-yellow-100 text-yellow-800 border-yellow-200';
       case 'low': return 'bg-green-100 text-green-800 border-green-200';
@@ -197,7 +206,7 @@ const MapaAlertas = () => {
                 className="w-full px-3 py-2 border border-slate-300 rounded-md focus:outline-none focus:ring-2 focus:ring-slate-500 focus:border-slate-500"
               >
                 <option value="all">Todas las prioridades</option>
-                <option value="critical">Crítica</option>
+                <option value="urgent">Urgente</option>
                 <option value="high">Alta</option>
                 <option value="medium">Media</option>
                 <option value="low">Baja</option>
@@ -230,7 +239,7 @@ const MapaAlertas = () => {
                   rows={3}
                 />
               </div>
-              <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
+              <div className="grid grid-cols-1 sm:grid-cols-4 gap-4">
                 <select
                   value={newAlert.priority}
                   onChange={(e) => setNewAlert({...newAlert, priority: e.target.value as any})}
@@ -239,7 +248,18 @@ const MapaAlertas = () => {
                   <option value="low">Baja</option>
                   <option value="medium">Media</option>
                   <option value="high">Alta</option>
-                  <option value="critical">Crítica</option>
+                  <option value="urgent">Urgente</option>
+                </select>
+                <select
+                  value={newAlert.type}
+                  onChange={(e) => setNewAlert({...newAlert, type: e.target.value as any})}
+                  className="px-3 py-2 border border-slate-300 rounded-md focus:outline-none focus:ring-2 focus:ring-slate-500 focus:border-slate-500"
+                >
+                  <option value="information">Información</option>
+                  <option value="security">Seguridad</option>
+                  <option value="logistics">Logística</option>
+                  <option value="political">Política</option>
+                  <option value="emergency">Emergencia</option>
                 </select>
                 <Input
                   type="number"
@@ -324,6 +344,9 @@ const MapaAlertas = () => {
                       <Badge variant="outline" className="text-slate-600 border-slate-300">
                         {alert.status.toUpperCase()}
                       </Badge>
+                      <Badge variant="outline" className="text-slate-600 border-slate-300">
+                        {alert.type.toUpperCase()}
+                      </Badge>
                     </div>
                   </div>
                 </CardContent>
@@ -345,9 +368,9 @@ const MapaAlertas = () => {
           <Card className="border-slate-200 shadow-sm">
             <CardContent className="p-4 text-center">
               <div className="text-2xl font-bold text-red-600">
-                {alerts.filter(a => a.priority === 'critical').length}
+                {alerts.filter(a => a.priority === 'urgent').length}
               </div>
-              <div className="text-sm text-slate-600">Críticas</div>
+              <div className="text-sm text-slate-600">Urgentes</div>
             </CardContent>
           </Card>
           <Card className="border-slate-200 shadow-sm">
