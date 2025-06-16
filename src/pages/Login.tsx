@@ -13,19 +13,14 @@ import {
   Eye, 
   EyeOff, 
   LogIn, 
-  MapPin, 
-  Users, 
   ArrowRight, 
   Map,
-  Zap,
   Shield,
   Sparkles,
-  Target,
   Globe,
   Crown,
-  Star,
   TrendingUp,
-  Database
+  Users
 } from 'lucide-react';
 
 const Login = () => {
@@ -34,6 +29,7 @@ const Login = () => {
   const [showPassword, setShowPassword] = useState(false);
   const [error, setError] = useState('');
   const [isLoading, setIsLoading] = useState(false);
+  const [showCredentials, setShowCredentials] = useState(false);
   const { login, isAuthenticated } = useSecureAuth();
   const navigate = useNavigate();
   const { demoUsers, databaseStats } = useDemoUsers();
@@ -56,7 +52,7 @@ const Login = () => {
         console.log('✅ Login exitoso, redirigiendo...');
         navigate('/dashboard');
       } else {
-        setError('Error de autenticación. Verifica tus credenciales.');
+        setError('Credenciales incorrectas. Verifica tu email y contraseña.');
       }
     } catch (error) {
       console.error('💥 Error crítico en handleSubmit:', error);
@@ -76,133 +72,113 @@ const Login = () => {
     switch (role) {
       case 'desarrollador': return <Shield className="w-4 h-4 text-purple-600" />;
       case 'master': return <Crown className="w-4 h-4 text-blue-600" />;
-      case 'candidato': return <Star className="w-4 h-4 text-green-600" />;
-      case 'lider': return <Target className="w-4 h-4 text-orange-600" />;
-      case 'votante': return <Vote className="w-4 h-4 text-indigo-600" />;
+      case 'candidato': return <Vote className="w-4 h-4 text-green-600" />;
+      case 'lider': return <Users className="w-4 h-4 text-orange-600" />;
+      case 'votante': return <Globe className="w-4 h-4 text-indigo-600" />;
       default: return <Users className="w-4 h-4 text-gray-600" />;
-    }
-  };
-
-  const getRoleColor = (role: string) => {
-    switch (role) {
-      case 'desarrollador': return 'border-purple-300 hover:bg-purple-50';
-      case 'master': return 'border-blue-300 hover:bg-blue-50';
-      case 'candidato': return 'border-green-300 hover:bg-green-50';
-      case 'lider': return 'border-orange-300 hover:bg-orange-50';
-      case 'votante': return 'border-indigo-300 hover:bg-indigo-50';
-      default: return 'border-gray-300 hover:bg-gray-50';
     }
   };
 
   return (
     <div className="min-h-screen relative overflow-hidden">
-      {/* Background moderno con gradientes */}
-      <div className="absolute inset-0 gradient-bg-primary"></div>
-      <div 
-        className="absolute inset-0 opacity-20"
-        style={{
-          backgroundImage: `radial-gradient(circle at 25% 25%, rgba(255,255,255,0.2) 1px, transparent 1px),
-                           radial-gradient(circle at 75% 75%, rgba(255,255,255,0.1) 1px, transparent 1px)`,
-          backgroundSize: '30px 30px'
-        }}
-      ></div>
+      {/* Background elegante */}
+      <div className="absolute inset-0 bg-gradient-to-br from-slate-900 via-blue-900 to-indigo-900"></div>
+      <div className="absolute inset-0 bg-[radial-gradient(circle_at_50%_50%,rgba(56,189,248,0.1),transparent_50%)]"></div>
+      <div className="absolute inset-0 bg-[conic-gradient(from_0deg_at_50%_50%,transparent_0deg,rgba(59,130,246,0.05)_120deg,transparent_240deg)]"></div>
       
       <div className="relative z-10 flex items-center justify-center min-h-screen p-4">
-        <div className="w-full max-w-7xl grid grid-cols-1 lg:grid-cols-2 gap-8">
+        <div className="w-full max-w-6xl grid grid-cols-1 lg:grid-cols-2 gap-12 items-center">
           
-          {/* Panel izquierdo - Presentación moderna */}
+          {/* Panel izquierdo - Presentación elegante */}
           <div className="hidden lg:flex flex-col justify-center space-y-8 text-white">
             <div className="space-y-6">
-              <div className="flex items-center space-x-3">
-                <div className="w-16 h-16 bg-white bg-opacity-20 rounded-2xl flex items-center justify-center backdrop-blur-sm">
-                  <Sparkles className="w-8 h-8 text-white" />
+              <div className="flex items-center space-x-4">
+                <div className="w-20 h-20 bg-gradient-to-br from-blue-500 to-purple-600 rounded-2xl flex items-center justify-center shadow-2xl">
+                  <Crown className="w-10 h-10 text-white" />
                 </div>
                 <div>
-                  <h1 className="text-4xl font-bold">MI CAMPAÑA 2025</h1>
-                  <p className="text-xl opacity-90">Automatización Electoral con IA</p>
+                  <h1 className="text-5xl font-bold bg-gradient-to-r from-white to-blue-200 bg-clip-text text-transparent">
+                    MI CAMPAÑA
+                  </h1>
+                  <p className="text-2xl font-semibold text-blue-200">2025</p>
+                  <p className="text-lg opacity-90">Automatización Electoral con IA</p>
                 </div>
               </div>
               
-              <div className="space-y-4">
-                <div className="flex items-center space-x-4 p-4 bg-white bg-opacity-10 rounded-xl backdrop-blur-sm">
-                  <Database className="w-6 h-6 text-green-300" />
+              <div className="space-y-6 mt-12">
+                <div className="flex items-center space-x-4 p-6 bg-white/10 backdrop-blur-sm rounded-2xl border border-white/20">
+                  <TrendingUp className="w-8 h-8 text-green-300" />
                   <div>
-                    <h3 className="font-semibold">Base Demo Completa</h3>
-                    <p className="text-sm opacity-80">{databaseStats.totalUsers.toLocaleString()} usuarios, {databaseStats.territories} territorios</p>
+                    <h3 className="text-xl font-bold">Resultados Garantizados</h3>
+                    <p className="text-blue-200">ROI +280% • Engagement +340%</p>
                   </div>
                 </div>
                 
-                <div className="flex items-center space-x-4 p-4 bg-white bg-opacity-10 rounded-xl backdrop-blur-sm">
-                  <TrendingUp className="w-6 h-6 text-blue-300" />
+                <div className="flex items-center space-x-4 p-6 bg-white/10 backdrop-blur-sm rounded-2xl border border-white/20">
+                  <Sparkles className="w-8 h-8 text-yellow-300" />
                   <div>
-                    <h3 className="font-semibold">Métricas en Tiempo Real</h3>
-                    <p className="text-sm opacity-80">{databaseStats.votes.toLocaleString()} votos simulados</p>
+                    <h3 className="text-xl font-bold">IA Generativa Avanzada</h3>
+                    <p className="text-blue-200">Gemini + N8N • Automatización Total</p>
                   </div>
                 </div>
                 
-                <div className="flex items-center space-x-4 p-4 bg-white bg-opacity-10 rounded-xl backdrop-blur-sm">
-                  <Zap className="w-6 h-6 text-yellow-300" />
+                <div className="flex items-center space-x-4 p-6 bg-white/10 backdrop-blur-sm rounded-2xl border border-white/20">
+                  <Users className="w-8 h-8 text-blue-300" />
                   <div>
-                    <h3 className="font-semibold">IA + N8N Integrado</h3>
-                    <p className="text-sm opacity-80">Análisis predictivo y automatización avanzada</p>
+                    <h3 className="text-xl font-bold">Base Masiva</h3>
+                    <p className="text-blue-200">{databaseStats.totalUsers.toLocaleString()} usuarios activos</p>
                   </div>
                 </div>
               </div>
             </div>
           </div>
 
-          {/* Panel derecho - Login moderno optimizado */}
+          {/* Panel derecho - Login elegante */}
           <div className="flex items-center justify-center">
-            <Card className="campaign-card w-full max-w-lg bg-white bg-opacity-95 backdrop-blur-xl border-0 shadow-modern-xl">
-              <CardHeader className="space-y-4 text-center pb-6">
-                <div className="mx-auto w-20 h-20 gradient-bg-primary rounded-2xl flex items-center justify-center shadow-modern-lg">
-                  <Vote className="w-10 h-10 text-white" />
+            <Card className="w-full max-w-lg bg-white/95 backdrop-blur-xl border-0 shadow-2xl">
+              <CardHeader className="space-y-4 text-center pb-8">
+                <div className="mx-auto w-16 h-16 bg-gradient-to-br from-blue-600 to-purple-700 rounded-2xl flex items-center justify-center shadow-xl">
+                  <Shield className="w-8 h-8 text-white" />
                 </div>
                 <div>
-                  <CardTitle className="text-2xl font-bold gradient-text-primary mb-2">
-                    Acceso Demo Completo
+                  <CardTitle className="text-3xl font-bold bg-gradient-to-r from-blue-600 to-purple-700 bg-clip-text text-transparent mb-2">
+                    Acceso Seguro
                   </CardTitle>
-                  <p className="text-gray-600 font-medium">Base de Datos Electoral con {databaseStats.totalUsers.toLocaleString()} usuarios</p>
+                  <p className="text-gray-600">Plataforma Electoral Empresarial</p>
                 </div>
               </CardHeader>
               
               <CardContent className="space-y-6">
-                {/* Botón principal de Visitante - Funnel con mapa IA */}
-                <div className="text-center space-y-4">
+                {/* Botón principal de Visitante */}
+                <div className="text-center">
                   <Button 
                     onClick={() => navigate('/visitor-funnel')}
                     size="lg"
-                    className="w-full btn-modern-primary h-16 text-lg font-bold shadow-modern-md hover:shadow-modern-lg bg-gradient-to-r from-green-600 via-emerald-600 to-teal-600 hover:from-green-700 hover:via-emerald-700 hover:to-teal-700"
+                    className="w-full h-14 text-lg font-bold bg-gradient-to-r from-green-600 to-emerald-600 hover:from-green-700 hover:to-emerald-700 shadow-lg hover:shadow-xl transition-all duration-300"
                   >
                     <Map className="w-6 h-6 mr-3" />
                     <div className="flex flex-col">
                       <span>DESCUBRE TU ZONA</span>
-                      <span className="text-sm opacity-90">Mapa + IA + Alertas Georreferenciadas</span>
+                      <span className="text-sm opacity-90">Mapa Inteligente + IA</span>
                     </div>
                     <ArrowRight className="w-6 h-6 ml-3" />
                   </Button>
-                  
-                  <div className="bg-green-50 border border-green-200 rounded-lg p-3">
-                    <p className="text-sm text-green-800">
-                      🤖 <strong>Funnel Inteligente:</strong> {databaseStats.territories} territorios, {databaseStats.alerts} alertas activas, candidatos con propuestas reales
-                    </p>
-                  </div>
                 </div>
 
-                {/* Divisor elegante */}
+                {/* Divisor */}
                 <div className="relative">
                   <div className="absolute inset-0 flex items-center">
                     <span className="w-full border-t border-gray-200" />
                   </div>
-                  <div className="relative flex justify-center text-xs uppercase">
-                    <span className="bg-white px-4 text-blue-600 font-bold">Acceso Administrativo</span>
+                  <div className="relative flex justify-center text-sm uppercase">
+                    <span className="bg-white px-4 text-gray-500 font-medium">Acceso Administrativo</span>
                   </div>
                 </div>
 
-                {/* Formulario de login moderno */}
+                {/* Formulario de login */}
                 <form onSubmit={handleSubmit} className="space-y-4">
                   <div className="space-y-2">
-                    <Label htmlFor="email" className="text-gray-700 font-bold">Email Demo</Label>
+                    <Label htmlFor="email" className="text-gray-700 font-medium">Email Corporativo</Label>
                     <Input
                       id="email"
                       type="email"
@@ -211,22 +187,22 @@ const Login = () => {
                       placeholder="usuario@micampana.com"
                       required
                       disabled={isLoading}
-                      className="h-12 border-2 focus:border-blue-500"
+                      className="h-12 border-2 focus:border-blue-500 transition-colors"
                     />
                   </div>
                   
                   <div className="space-y-2">
-                    <Label htmlFor="password" className="text-gray-700 font-bold">Contraseña Demo</Label>
+                    <Label htmlFor="password" className="text-gray-700 font-medium">Contraseña</Label>
                     <div className="relative">
                       <Input
                         id="password"
                         type={showPassword ? "text" : "password"}
                         value={password}
                         onChange={(e) => setPassword(e.target.value)}
-                        placeholder="*Secure2025!"
+                        placeholder="Contraseña segura"
                         required
                         disabled={isLoading}
-                        className="h-12 border-2 focus:border-blue-500 pr-12"
+                        className="h-12 border-2 focus:border-blue-500 pr-12 transition-colors"
                       />
                       <Button
                         type="button"
@@ -247,72 +223,65 @@ const Login = () => {
                     </Alert>
                   )}
 
-                  <Button type="submit" className="w-full h-12 bg-blue-600 hover:bg-blue-700" disabled={isLoading}>
+                  <Button type="submit" className="w-full h-12 bg-blue-600 hover:bg-blue-700 text-white font-semibold" disabled={isLoading}>
                     {isLoading ? (
                       <div className="flex items-center gap-2">
                         <div className="w-4 h-4 border-2 border-white border-t-transparent rounded-full animate-spin" />
-                        Iniciando sesión...
+                        Verificando...
                       </div>
                     ) : (
                       <div className="flex items-center gap-2">
-                        <LogIn className="w-4 h-4" />
-                        Acceso Demo
+                        <LogIn className="w-5 h-5" />
+                        Iniciar Sesión
                       </div>
                     )}
                   </Button>
                 </form>
 
-                {/* Panel de credenciales demo mejorado */}
-                <div className="bg-gradient-to-br from-blue-50 to-indigo-100 rounded-xl p-4 border-2 border-blue-200">
-                  <div className="flex items-center gap-2 mb-3">
-                    <Shield className="w-5 h-5 text-blue-600" />
-                    <h3 className="font-bold text-blue-800">Base Demo Completa - 100K+ Usuarios</h3>
-                  </div>
-                  
-                  <div className="grid grid-cols-1 gap-2 max-h-80 overflow-y-auto">
-                    {demoUsers.map((user, index) => (
-                      <div key={index} className={`bg-white rounded-lg p-3 border-2 transition-all shadow-sm hover:shadow-md ${getRoleColor(user.role)}`}>
-                        <div className="flex items-center justify-between mb-2">
-                          <div className="flex items-center space-x-2">
-                            {getRoleIcon(user.role)}
-                            <div>
-                              <span className="font-semibold text-sm text-gray-800">{user.name}</span>
-                              {user.territory && (
-                                <div className="text-xs text-gray-600">📍 {user.territory}</div>
-                              )}
+                {/* Enlace discreto para credenciales */}
+                <div className="text-center">
+                  <Button
+                    variant="ghost"
+                    size="sm"
+                    onClick={() => setShowCredentials(!showCredentials)}
+                    className="text-gray-500 hover:text-gray-700 text-sm"
+                  >
+                    {showCredentials ? 'Ocultar' : 'Ver'} credenciales de prueba
+                  </Button>
+                </div>
+
+                {/* Panel de credenciales - Solo visible cuando se solicita */}
+                {showCredentials && (
+                  <div className="bg-gray-50 rounded-xl p-4 border">
+                    <h4 className="font-semibold text-gray-800 mb-3 text-sm">Credenciales de Prueba</h4>
+                    <div className="space-y-2 max-h-60 overflow-y-auto">
+                      {demoUsers.slice(0, 5).map((user, index) => (
+                        <div key={index} className="bg-white rounded-lg p-3 border hover:border-blue-200 transition-colors">
+                          <div className="flex items-center justify-between mb-1">
+                            <div className="flex items-center space-x-2">
+                              {getRoleIcon(user.role)}
+                              <span className="font-medium text-sm text-gray-800">{user.name}</span>
                             </div>
+                            <Button
+                              type="button"
+                              variant="outline"
+                              size="sm"
+                              onClick={() => quickLogin(user.email, user.password)}
+                              disabled={isLoading}
+                              className="text-xs h-7 px-3"
+                            >
+                              Usar
+                            </Button>
                           </div>
-                          <Button
-                            type="button"
-                            variant="outline"
-                            size="sm"
-                            onClick={() => quickLogin(user.email, user.password)}
-                            disabled={isLoading}
-                            className="text-xs h-7 px-2"
-                          >
-                            Usar
-                          </Button>
+                          <div className="text-xs text-gray-600 mb-1">{user.description}</div>
+                          <div className="text-xs font-mono text-gray-500 bg-gray-100 px-2 py-1 rounded">
+                            {user.email}
+                          </div>
                         </div>
-                        <div className="text-xs text-gray-600 mb-1">{user.description}</div>
-                        <div className="text-xs font-mono bg-gray-100 px-2 py-1 rounded border">
-                          {user.email}
-                        </div>
-                      </div>
-                    ))}
-                  </div>
-                  
-                  <div className="mt-4 p-3 bg-blue-600 text-white rounded-lg">
-                    <div className="text-sm font-bold mb-2">📊 Estadísticas de la Base Demo:</div>
-                    <div className="grid grid-cols-2 gap-2 text-xs">
-                      <div>👥 {databaseStats.totalUsers.toLocaleString()} usuarios</div>
-                      <div>🗳️ {databaseStats.votes.toLocaleString()} votos</div>
-                      <div>🏛️ {databaseStats.candidates} candidatos</div>
-                      <div>🗺️ {databaseStats.territories} territorios</div>
-                      <div>⚠️ {databaseStats.alerts} alertas</div>
-                      <div>👑 {databaseStats.leaders} líderes</div>
+                      ))}
                     </div>
                   </div>
-                </div>
+                )}
               </CardContent>
             </Card>
           </div>
