@@ -37,47 +37,50 @@ const Navigation = () => {
 
   return (
     <>
-      {/* Navegación superior */}
-      <nav className="sticky top-0 z-50 bg-white/95 backdrop-blur-sm border-b border-gold/20 shadow-elegant">
+      {/* Navegación superior con nueva paleta */}
+      <nav className="sticky top-0 z-50 nav-ecosystem">
         <div className="container mx-auto px-4">
           <div className="flex items-center justify-between h-16">
-            {/* Logo */}
-            <Link to="/" className="flex items-center space-x-2">
-              <div className="w-10 h-10 rounded-lg overflow-hidden shadow-gold">
+            {/* Logo con nueva paleta */}
+            <Link to="/" className="flex items-center space-x-3">
+              <div className="w-10 h-10 rounded-lg overflow-hidden shadow-ecosystem-soft bg-blue-ecosystem-primary p-2">
                 <img 
                   src="/lovable-uploads/83527a7a-6d3b-4edb-bdfc-312894177818.png" 
                   alt="MI CAMPAÑA Logo" 
-                  className="w-full h-full object-cover"
+                  className="w-full h-full object-cover filter brightness-0 invert"
                 />
               </div>
-              <span className="font-bold text-xl text-black-elegant drop-shadow-sm">
+              <span className="font-bold text-xl text-blue-ecosystem-primary">
                 MI CAMPAÑA 2025
               </span>
             </Link>
 
             {/* Desktop Navigation */}
-            <div className="hidden md:flex items-center space-x-4">
+            <div className="hidden md:flex items-center space-x-2">
               {navigationItems.map((item) => (
                 <Link
                   key={item.href}
                   to={item.href}
-                  className={`flex items-center space-x-2 px-4 py-2 rounded-lg transition-all duration-300 font-medium shadow-sm hover:shadow-elegant ${
+                  className={`flex items-center space-x-2 px-4 py-2 rounded-lg transition-all duration-300 font-medium shadow-ecosystem-soft hover:shadow-ecosystem-medium ${
                     isActiveRoute(item.href)
-                      ? 'bg-black-elegant text-gold shadow-gold'
-                      : 'text-black-elegant hover:bg-gold/10 hover:text-gold'
+                      ? 'bg-blue-ecosystem-primary text-white shadow-blue-glow'
+                      : 'text-gray-ecosystem-text hover:bg-gray-ecosystem-light hover:text-blue-ecosystem-primary'
                   }`}
                 >
                   <item.icon className="w-4 h-4" />
                   <span>{item.label}</span>
                 </Link>
               ))}
-              <div className="flex items-center space-x-2">
-                <span className="text-sm text-black-elegant">{user.name} ({user.role})</span>
+              <div className="flex items-center space-x-3 ml-4 pl-4 border-l border-gray-ecosystem-border">
+                <div className="text-sm">
+                  <p className="font-medium text-gray-ecosystem-dark">{user.name}</p>
+                  <p className="text-xs text-gray-ecosystem-text">({user.role})</p>
+                </div>
                 <Button 
                   onClick={handleLogout}
                   variant="outline" 
                   size="sm"
-                  className="border-gold text-gold hover:bg-gold/10"
+                  className="border-gray-ecosystem-border text-gray-ecosystem-text hover:bg-gray-ecosystem-light hover:text-blue-ecosystem-primary hover:border-blue-ecosystem-primary"
                 >
                   <LogOut className="w-4 h-4 mr-2" />
                   Salir
@@ -89,25 +92,25 @@ const Navigation = () => {
             <div className="md:hidden">
               <Sheet open={isOpen} onOpenChange={setIsOpen}>
                 <SheetTrigger asChild>
-                  <Button variant="ghost" size="icon" className="text-black-elegant shadow-sm hover:shadow-elegant">
+                  <Button variant="ghost" size="icon" className="text-blue-ecosystem-primary shadow-ecosystem-soft hover:shadow-ecosystem-medium hover:bg-gray-ecosystem-light">
                     <Menu className="w-6 h-6" />
                   </Button>
                 </SheetTrigger>
-                <SheetContent side="right" className="w-[300px] sm:w-[400px] bg-gradient-elegant shadow-elegant">
+                <SheetContent side="right" className="w-[300px] sm:w-[400px] bg-white shadow-ecosystem-large border-gray-ecosystem-border">
                   <div className="flex flex-col space-y-4 mt-8">
-                    <div className="p-3 bg-white/10 rounded-lg shadow-gold border border-gold/20">
-                      <p className="font-medium text-gold">{user.name}</p>
-                      <p className="text-sm text-gold/80">Rol: {user.role}</p>
+                    <div className="p-4 bg-gray-ecosystem-light rounded-lg shadow-ecosystem-soft border border-gray-ecosystem-border">
+                      <p className="font-medium text-blue-ecosystem-primary">{user.name}</p>
+                      <p className="text-sm text-gray-ecosystem-text">Rol: {user.role}</p>
                     </div>
                     {navigationItems.map((item) => (
                       <Link
                         key={item.href}
                         to={item.href}
                         onClick={() => setIsOpen(false)}
-                        className={`flex items-center space-x-3 p-3 rounded-lg transition-all duration-300 shadow-sm hover:shadow-elegant ${
+                        className={`flex items-center space-x-3 p-3 rounded-lg transition-all duration-300 shadow-ecosystem-soft hover:shadow-ecosystem-medium ${
                           isActiveRoute(item.href)
-                            ? 'bg-gold text-black-elegant shadow-gold'
-                            : 'text-gold hover:bg-white/10 hover:shadow-gold'
+                            ? 'bg-blue-ecosystem-primary text-white shadow-blue-glow'
+                            : 'text-gray-ecosystem-text hover:bg-gray-ecosystem-light hover:text-blue-ecosystem-primary'
                         }`}
                       >
                         <item.icon className="w-5 h-5" />
@@ -116,7 +119,7 @@ const Navigation = () => {
                     ))}
                     <Button 
                       onClick={handleLogout}
-                      className="bg-gold hover:bg-gold-dark text-black-elegant mt-6 rounded-lg shadow-gold hover:shadow-gold-dark transition-shadow"
+                      className="btn-primary-ecosystem mt-6 shadow-ecosystem-medium hover:shadow-ecosystem-large"
                     >
                       <LogOut className="w-4 h-4 mr-2" />
                       Cerrar Sesión
@@ -130,7 +133,7 @@ const Navigation = () => {
       </nav>
 
       {/* Navegación inferior para móviles */}
-      <div className="md:hidden fixed bottom-0 left-0 right-0 z-50 bg-white border-t border-gold/20 shadow-elegant">
+      <div className="md:hidden fixed bottom-0 left-0 right-0 z-50 bg-white border-t border-gray-ecosystem-border shadow-ecosystem-large">
         <div className="grid grid-cols-4 gap-1 p-2">
           {navigationItems.slice(0, 4).map((item) => (
             <Link
@@ -138,12 +141,12 @@ const Navigation = () => {
               to={item.href}
               className={`flex flex-col items-center p-3 rounded-lg transition-all duration-300 ${
                 isActiveRoute(item.href)
-                  ? 'bg-black-elegant text-gold shadow-gold transform scale-105'
-                  : 'text-black-elegant hover:bg-gold/10 hover:text-gold shadow-sm hover:shadow-elegant'
+                  ? 'bg-blue-ecosystem-primary text-white shadow-blue-glow transform scale-105'
+                  : 'text-gray-ecosystem-text hover:bg-gray-ecosystem-light hover:text-blue-ecosystem-primary shadow-ecosystem-soft hover:shadow-ecosystem-medium'
               }`}
             >
-              <item.icon className={`w-5 h-5 mb-1 ${isActiveRoute(item.href) ? 'drop-shadow-sm' : ''}`} />
-              <span className={`text-xs font-medium ${isActiveRoute(item.href) ? 'drop-shadow-sm' : ''}`}>
+              <item.icon className={`w-5 h-5 mb-1 ${isActiveRoute(item.href) ? 'filter drop-shadow-sm' : ''}`} />
+              <span className={`text-xs font-medium ${isActiveRoute(item.href) ? 'filter drop-shadow-sm' : ''}`}>
                 {item.label}
               </span>
             </Link>

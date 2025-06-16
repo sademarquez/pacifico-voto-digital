@@ -3,83 +3,84 @@
 @tailwind components;
 @tailwind utilities;
 
-/* Plataforma Zona Segura - Nueva Paleta: Negro, Dorado y Azul */
-/* Paleta profesional: Negro elegante + Dorado refinado + Azul corporativo */
+/* ECOSISTEMA POLÍTICO - PALETA PROFESIONAL: Blanco, Azul, Gris */
+/* Paleta optimizada para máxima legibilidad y profesionalismo */
 
 @layer base {
   :root {
-    /* Colores base actualizados con nueva paleta negra-dorada-azul */
-    --background: 248 250 252;
-    --foreground: 15 23 42; /* Negro slate más profundo */
+    /* Colores base con nueva paleta profesional */
+    --background: 255 255 255; /* Fondo blanco puro */
+    --foreground: 51 65 85; /* Texto gris oscuro */
 
-    --card: 255 255 255;
-    --card-foreground: 15 23 42;
+    --card: 255 255 255; /* Cards blanco */
+    --card-foreground: 51 65 85;
 
-    --popover: 255 255 255;
-    --popover-foreground: 15 23 42;
+    --popover: 255 255 255; /* Popovers blanco */
+    --popover-foreground: 51 65 85;
 
-    /* Paleta principal - Negro, Dorado y Azul */
-    --primary: 15 23 42; /* Negro slate-900 */
+    /* Paleta principal - Azul profesional */
+    --primary: 29 78 216; /* Azul profesional */
     --primary-foreground: 255 255 255;
 
-    --secondary: 241 245 249; /* Slate-100 mantenido */
-    --secondary-foreground: 15 23 42;
+    --secondary: 248 250 252; /* Gris muy claro */
+    --secondary-foreground: 51 65 85;
 
-    --muted: 248 250 252; /* Slate-50 */
-    --muted-foreground: 71 85 105; /* Slate-600 */
+    --muted: 241 245 249; /* Gris suave */
+    --muted-foreground: 100 116 139;
 
-    --accent: 30 58 138; /* Azul corporativo */
+    --accent: 59 130 246; /* Azul brillante */
     --accent-foreground: 255 255 255;
 
     --destructive: 220 38 38;
     --destructive-foreground: 255 255 255;
 
-    --border: 226 232 240; /* Slate-200 */
-    --input: 241 245 249; /* Slate-100 */
-    --ring: 184 134 11; /* Dorado para focus */
+    --border: 229 231 235; /* Bordes grises suaves */
+    --input: 249 250 251; /* Inputs gris muy claro */
+    --ring: 29 78 216; /* Focus azul */
 
     --radius: 0.75rem;
 
-    /* Nueva paleta personalizada - Negro, Dorado y Azul */
-    --gold: 184 134 11; /* Dorado principal */
-    --gold-dark: 146 104 8; /* Dorado oscuro */
-    --gold-light: 217 160 33; /* Dorado claro */
-    --blue-primary: 30 58 138; /* Azul corporativo */
-    --blue-secondary: 59 130 246; /* Azul brillante */
+    /* Nueva paleta específica del ecosistema */
+    --blue-primary: 29 78 216; /* Azul principal */
+    --blue-secondary: 59 130 246; /* Azul secundario */
     --blue-light: 219 234 254; /* Azul claro */
-    --black-elegant: 15 23 42; /* Negro elegante */
-    --black-soft: 30 41 59; /* Negro suave */
+    --gray-card: 249 250 251; /* Gris para cards */
+    --gray-border: 229 231 235; /* Gris para bordes */
+    --gray-text: 107 114 128; /* Gris para texto secundario */
+    --shadow-soft: 0 1px 3px 0 rgba(0, 0, 0, 0.1), 0 1px 2px 0 rgba(0, 0, 0, 0.06);
+    --shadow-medium: 0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -1px rgba(0, 0, 0, 0.06);
+    --shadow-large: 0 10px 15px -3px rgba(0, 0, 0, 0.1), 0 4px 6px -2px rgba(0, 0, 0, 0.05);
 
-    --sidebar-background: 15 23 42; /* Negro para sidebar */
-    --sidebar-foreground: 248 250 252;
-    --sidebar-primary: 184 134 11; /* Dorado para elementos activos */
-    --sidebar-primary-foreground: 15 23 42;
-    --sidebar-accent: 30 41 59;
-    --sidebar-accent-foreground: 248 250 252;
-    --sidebar-border: 71 85 105;
-    --sidebar-ring: 184 134 11;
+    --sidebar-background: 255 255 255;
+    --sidebar-foreground: 51 65 85;
+    --sidebar-primary: 29 78 216;
+    --sidebar-primary-foreground: 255 255 255;
+    --sidebar-accent: 241 245 249;
+    --sidebar-accent-foreground: 51 65 85;
+    --sidebar-border: 229 231 235;
+    --sidebar-ring: 29 78 216;
   }
 
   .dark {
-    --background: 15 23 42; /* Negro slate-900 */
+    --background: 15 23 42;
     --foreground: 248 250 252;
 
-    --card: 30 41 59; /* Negro slate-800 */
+    --card: 30 41 59;
     --card-foreground: 248 250 252;
 
     --popover: 30 41 59;
     --popover-foreground: 248 250 252;
 
-    --primary: 184 134 11; /* Dorado para dark mode */
+    --primary: 59 130 246;
     --primary-foreground: 15 23 42;
 
-    --secondary: 51 65 85; /* Slate-700 */
+    --secondary: 51 65 85;
     --secondary-foreground: 248 250 252;
 
     --muted: 51 65 85;
     --muted-foreground: 148 163 184;
 
-    --accent: 59 130 246; /* Azul brillante */
+    --accent: 59 130 246;
     --accent-foreground: 15 23 42;
 
     --destructive: 239 68 68;
@@ -87,16 +88,16 @@
 
     --border: 51 65 85;
     --input: 51 65 85;
-    --ring: 184 134 11;
+    --ring: 59 130 246;
 
     --sidebar-background: 15 23 42;
     --sidebar-foreground: 203 213 225;
-    --sidebar-primary: 184 134 11;
+    --sidebar-primary: 59 130 246;
     --sidebar-primary-foreground: 15 23 42;
     --sidebar-accent: 30 41 59;
     --sidebar-accent-foreground: 203 213 225;
     --sidebar-border: 51 65 85;
-    --sidebar-ring: 184 134 11;
+    --sidebar-ring: 59 130 246;
   }
 }
 
@@ -106,16 +107,19 @@
   }
 
   body {
-    background-color: hsl(var(--background));
+    background-color: rgb(255, 255, 255); /* Fondo blanco garantizado */
     color: hsl(var(--foreground));
     font-family: 'Inter', system-ui, sans-serif;
+    line-height: 1.6;
+    -webkit-font-smoothing: antialiased;
+    -moz-osx-font-smoothing: grayscale;
   }
 
-  /* Tipografía elegante con dorado */
+  /* Tipografía optimizada con azul */
   h1, h2, h3, h4, h5, h6 {
     font-weight: 700;
     letter-spacing: -0.025em;
-    color: rgb(var(--gold));
+    color: rgb(29 78 216); /* Azul principal para títulos */
   }
 
   h1 {
@@ -152,293 +156,226 @@
 }
 
 @layer components {
-  /* Gradientes actualizados - Negro, Dorado y Azul */
-  .gradient-elegant {
-    background: linear-gradient(135deg, 
-      rgb(15 23 42) 0%,     /* Negro elegante */
-      rgb(30 41 59) 25%,    /* Negro suave */
-      rgb(30 58 138) 50%,   /* Azul corporativo */
-      rgb(184 134 11) 75%,  /* Dorado */
-      rgb(217 160 33) 100%  /* Dorado claro */
-    );
-  }
-
-  .gradient-primary {
-    background: linear-gradient(135deg, 
-      rgb(15 23 42) 0%,     /* Negro elegante */
-      rgb(30 58 138) 50%,   /* Azul corporativo */
-      rgb(59 130 246) 100%  /* Azul brillante */
-    );
-  }
-
-  .gradient-secondary {
-    background: linear-gradient(135deg, 
-      rgb(30 41 59) 0%,     /* Negro suave */
-      rgb(71 85 105) 50%,   /* Slate-600 */
-      rgb(100 116 139) 100% /* Slate-500 */
-    );
-  }
-
-  .gradient-gold {
-    background: linear-gradient(135deg, 
-      rgb(184 134 11) 0%,   /* Dorado principal */
-      rgb(217 160 33) 50%,  /* Dorado claro */
-      rgb(146 104 8) 100%   /* Dorado oscuro */
-    );
-  }
-
-  /* Componentes actualizados con nueva paleta */
-  .card-elegant {
-    background-color: rgba(255, 255, 255, 0.95);
-    backdrop-filter: blur(16px);
-    border-radius: 1rem;
-    border: 1px solid rgba(184, 134, 11, 0.2);
-    box-shadow: 0 4px 6px -1px rgba(15, 23, 42, 0.1), 0 2px 4px -2px rgba(15, 23, 42, 0.1);
-    transition: all 0.4s cubic-bezier(0.25, 0.8, 0.25, 1);
-  }
-
-  .card-elegant:hover {
-    box-shadow: 0 10px 25px rgba(15, 23, 42, 0.15), 0 20px 40px rgba(30, 58, 138, 0.1), 0 4px 12px rgba(184, 134, 11, 0.2);
-    transform: translateY(-4px);
-    border-color: rgba(184, 134, 11, 0.4);
-  }
-
-  .btn-primary {
-    color: white;
-    font-weight: 700;
-    border: none;
+  /* Componentes con nueva paleta profesional */
+  .ecosystem-card {
+    background-color: rgb(255, 255, 255);
+    border: 1px solid rgb(229 231 235);
     border-radius: 0.75rem;
-    box-shadow: 0 4px 6px -1px rgba(15, 23, 42, 0.2);
-    transition: all 0.3s ease;
-    background: linear-gradient(135deg, 
-      rgb(15 23 42) 0%,     /* Negro elegante */
-      rgb(30 58 138) 100%   /* Azul corporativo */
-    );
+    box-shadow: var(--shadow-soft);
+    transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
   }
 
-  .btn-primary:hover {
-    background: linear-gradient(135deg, 
-      rgb(30 41 59) 0%,     /* Negro suave */
-      rgb(59 130 246) 100%  /* Azul brillante */
-    );
-    box-shadow: 0 6px 8px -1px rgba(184, 134, 11, 0.3);
-    transform: scale(1.05);
+  .ecosystem-card:hover {
+    box-shadow: var(--shadow-medium);
+    transform: translateY(-2px);
+    border-color: rgb(29 78 216);
   }
 
-  .btn-secondary {
-    background: linear-gradient(135deg, 
-      rgb(71 85 105) 0%,    /* Slate-600 */
-      rgb(100 116 139) 100% /* Slate-500 */
-    );
+  .btn-primary-ecosystem {
+    background: linear-gradient(135deg, rgb(29 78 216), rgb(59 130 246));
     color: white;
     font-weight: 600;
     border: none;
     border-radius: 0.75rem;
-    box-shadow: 0 4px 6px -1px rgba(15, 23, 42, 0.2);
+    box-shadow: var(--shadow-soft);
     transition: all 0.3s ease;
+    padding: 0.75rem 1.5rem;
   }
 
-  .btn-secondary:hover {
-    background: linear-gradient(135deg, 
-      rgb(51 65 85) 0%,     /* Slate-700 */
-      rgb(71 85 105) 100%   /* Slate-600 */
-    );
-    transform: scale(1.05);
+  .btn-primary-ecosystem:hover {
+    background: linear-gradient(135deg, rgb(59 130 246), rgb(29 78 216));
+    box-shadow: var(--shadow-medium);
+    transform: scale(1.02);
   }
 
-  .btn-gold {
-    background: linear-gradient(135deg, 
-      rgb(184 134 11) 0%,   /* Dorado principal */
-      rgb(217 160 33) 100%  /* Dorado claro */
-    );
-    color: rgb(15 23 42);
-    font-weight: 700;
-    border: none;
+  .btn-secondary-ecosystem {
+    background-color: rgb(249 250 251);
+    color: rgb(51 65 85);
+    font-weight: 600;
+    border: 1px solid rgb(229 231 235);
     border-radius: 0.75rem;
-    box-shadow: 0 4px 6px -1px rgba(184, 134, 11, 0.4);
+    box-shadow: var(--shadow-soft);
     transition: all 0.3s ease;
+    padding: 0.75rem 1.5rem;
   }
 
-  .btn-gold:hover {
-    background: linear-gradient(135deg, 
-      rgb(217 160 33) 0%,   /* Dorado claro */
-      rgb(184 134 11) 100%  /* Dorado principal */
-    );
-    transform: scale(1.05);
-    box-shadow: 0 6px 8px -1px rgba(184, 134, 11, 0.5);
+  .btn-secondary-ecosystem:hover {
+    background-color: rgb(241 245 249);
+    border-color: rgb(29 78 216);
+    transform: scale(1.02);
   }
 
-  .input-elegant {
-    background-color: rgba(248, 250, 252, 0.8);
-    border: 2px solid rgba(184, 134, 11, 0.2);
+  .input-ecosystem {
+    background-color: rgb(249 250 251);
+    border: 2px solid rgb(229 231 235);
     border-radius: 0.75rem;
     transition: all 0.3s ease;
-    box-shadow: 0 1px 2px 0 rgba(15, 23, 42, 0.05);
+    box-shadow: var(--shadow-soft);
+    padding: 0.75rem 1rem;
   }
 
-  .input-elegant:focus {
-    border-color: rgb(184 134 11);
+  .input-ecosystem:focus {
+    border-color: rgb(29 78 216);
     background-color: white;
-    box-shadow: 0 4px 6px -1px rgba(184, 134, 11, 0.2), 0 0 0 3px rgba(184, 134, 11, 0.1);
+    box-shadow: 0 0 0 3px rgba(29, 78, 216, 0.1);
+    outline: none;
   }
 
-  .alert-elegant {
-    border-radius: 0.75rem;
-    border-left: 4px solid rgb(184 134 11);
-    background-color: rgba(254, 249, 195, 0.5);
-    backdrop-filter: blur(4px);
+  /* Navegación con transparencia y sombras */
+  .nav-ecosystem {
+    background-color: rgba(255, 255, 255, 0.95);
+    backdrop-filter: blur(10px);
+    border-bottom: 1px solid rgba(229, 231, 235, 0.8);
+    box-shadow: var(--shadow-soft);
   }
 
-  /* Efectos de hover actualizados */
+  /* Cards con efectos y transparencias */
+  .card-professional {
+    background-color: rgba(255, 255, 255, 0.98);
+    backdrop-filter: blur(8px);
+    border: 1px solid rgba(229, 231, 235, 0.6);
+    border-radius: 1rem;
+    box-shadow: var(--shadow-medium);
+    transition: all 0.4s cubic-bezier(0.25, 0.8, 0.25, 1);
+  }
+
+  .card-professional:hover {
+    box-shadow: var(--shadow-large);
+    transform: translateY(-4px);
+    border-color: rgba(29, 78, 216, 0.4);
+  }
+
+  /* Elementos de feedback y estado */
+  .status-success {
+    background-color: rgba(34, 197, 94, 0.1);
+    color: rgb(21, 128, 61);
+    border: 1px solid rgba(34, 197, 94, 0.3);
+  }
+
+  .status-warning {
+    background-color: rgba(245, 158, 11, 0.1);
+    color: rgb(146, 64, 14);
+    border: 1px solid rgba(245, 158, 11, 0.3);
+  }
+
+  .status-error {
+    background-color: rgba(239, 68, 68, 0.1);
+    color: rgb(153, 27, 27);
+    border: 1px solid rgba(239, 68, 68, 0.3);
+  }
+
+  /* Efectos de hover y animaciones optimizadas */
   .hover-lift {
-    transition: all 0.3s ease;
+    transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
   }
 
   .hover-lift:hover {
-    transform: translateY(-0.5rem);
-    box-shadow: 0 10px 25px rgba(15, 23, 42, 0.15), 0 20px 40px rgba(30, 58, 138, 0.1), 0 4px 12px rgba(184, 134, 11, 0.2);
+    transform: translateY(-2px);
+    box-shadow: var(--shadow-medium);
   }
 
-  .hover-glow {
-    transition: all 0.3s ease;
+  .hover-scale {
+    transition: transform 0.2s ease;
   }
 
-  .hover-glow:hover {
-    box-shadow: 0 4px 6px -1px rgba(184, 134, 11, 0.3), 0 0 20px rgba(184, 134, 11, 0.2);
-    filter: drop-shadow(0 0 8px rgba(184, 134, 11, 0.4));
+  .hover-scale:hover {
+    transform: scale(1.02);
   }
 
-  /* Estados de loading actualizados */
-  .loading-elegant {
-    position: relative;
-    overflow: hidden;
-  }
-
-  .loading-elegant::before {
-    content: '';
-    position: absolute;
-    top: 0;
-    left: -100%;
-    width: 100%;
-    height: 100%;
+  /* Loading y skeleton states */
+  .loading-skeleton {
     background: linear-gradient(90deg, 
-      transparent, 
-      rgba(184, 134, 11, 0.4), 
-      transparent
+      rgba(241, 245, 249, 0.4) 25%, 
+      rgba(248, 250, 252, 0.8) 50%, 
+      rgba(241, 245, 249, 0.4) 75%
     );
+    background-size: 200% 100%;
     animation: shimmer 2s infinite;
   }
 
-  /* Elementos decorativos actualizados */
-  .decorative-dots {
-    background-image: radial-gradient(circle, rgba(184, 134, 11, 0.3) 1px, transparent 1px);
+  /* Elementos decorativos optimizados */
+  .decorative-pattern {
+    background-image: radial-gradient(circle, rgba(29, 78, 216, 0.1) 1px, transparent 1px);
     background-size: 20px 20px;
   }
 
-  .decorative-lines {
-    background-image: 
-      linear-gradient(45deg, rgba(15, 23, 42, 0.1) 25%, transparent 25%),
-      linear-gradient(-45deg, rgba(30, 58, 138, 0.1) 25%, transparent 25%);
-    background-size: 40px 40px;
+  .decorative-gradient {
+    background: linear-gradient(135deg, 
+      rgba(29, 78, 216, 0.05) 0%,
+      rgba(59, 130, 246, 0.05) 50%,
+      rgba(29, 78, 216, 0.05) 100%
+    );
   }
 }
 
 @layer utilities {
-  /* Nuevas utilidades de color */
-  .text-gold {
-    color: rgb(184 134 11);
-  }
-
-  .text-gold-dark {
-    color: rgb(146 104 8);
-  }
-
-  .text-black-elegant {
-    color: rgb(15 23 42);
-  }
-
+  /* Utilidades de color actualizadas */
   .text-blue-primary {
-    color: rgb(30 58 138);
+    color: rgb(29 78 216);
   }
 
-  .bg-gold {
-    background-color: rgb(184 134 11);
+  .text-blue-secondary {
+    color: rgb(59 130 246);
   }
 
-  .bg-gold-dark {
-    background-color: rgb(146 104 8);
-  }
-
-  .bg-black-elegant {
-    background-color: rgb(15 23 42);
+  .text-gray-professional {
+    color: rgb(107 114 128);
   }
 
   .bg-blue-primary {
-    background-color: rgb(30 58 138);
+    background-color: rgb(29 78 216);
   }
 
-  .border-gold {
-    border-color: rgb(184 134 11);
+  .bg-blue-secondary {
+    background-color: rgb(59 130 246);
   }
 
-  .border-black-elegant {
-    border-color: rgb(15 23 42);
+  .bg-gray-card {
+    background-color: rgb(249 250 251);
   }
 
-  /* Animaciones elegantes */
-  .animate-elegant-fade-in {
-    animation: elegantFadeIn 0.6s cubic-bezier(0.25, 0.8, 0.25, 1);
+  .border-blue-primary {
+    border-color: rgb(29 78 216);
   }
 
-  .animate-elegant-scale-in {
-    animation: elegantScaleIn 0.4s cubic-bezier(0.25, 0.8, 0.25, 1);
+  .border-gray-soft {
+    border-color: rgb(229 231 235);
   }
 
-  .animate-elegant-slide-up {
-    animation: elegantSlideUp 0.5s cubic-bezier(0.25, 0.8, 0.25, 1);
+  /* Sombras profesionales */
+  .shadow-ecosystem-soft {
+    box-shadow: var(--shadow-soft);
+  }
+
+  .shadow-ecosystem-medium {
+    box-shadow: var(--shadow-medium);
+  }
+
+  .shadow-ecosystem-large {
+    box-shadow: var(--shadow-large);
+  }
+
+  /* Transparencias controladas */
+  .bg-white-95 {
+    background-color: rgba(255, 255, 255, 0.95);
+  }
+
+  .bg-white-90 {
+    background-color: rgba(255, 255, 255, 0.9);
+  }
+
+  .backdrop-professional {
+    backdrop-filter: blur(10px);
   }
 }
 
-/* Keyframes mantenidos */
-@keyframes elegantFadeIn {
-  from {
-    opacity: 0;
-    transform: translateY(30px) scale(0.95);
-  }
-  to {
-    opacity: 1;
-    transform: translateY(0) scale(1);
-  }
-}
-
-@keyframes elegantScaleIn {
-  from {
-    opacity: 0;
-    transform: scale(0.9) rotateX(10deg);
-  }
-  to {
-    opacity: 1;
-    transform: scale(1) rotateX(0deg);
-  }
-}
-
-@keyframes elegantSlideUp {
-  from {
-    opacity: 0;
-    transform: translateY(40px);
-  }
-  to {
-    opacity: 1;
-    transform: translateY(0);
-  }
-}
-
+/* Keyframes para animaciones */
 @keyframes shimmer {
   0% {
-    left: -100%;
+    background-position: -200% 0;
   }
   100% {
-    left: 100%;
+    background-position: 200% 0;
   }
 }
 
@@ -449,7 +386,7 @@
     padding-right: 1rem;
   }
   
-  .card-elegant {
+  .card-professional {
     border-radius: 0.75rem;
   }
   
@@ -465,5 +402,32 @@
 
   body {
     padding-bottom: 5rem;
+  }
+}
+
+/* Optimizaciones de rendimiento */
+* {
+  box-sizing: border-box;
+}
+
+img {
+  max-width: 100%;
+  height: auto;
+}
+
+/* Modo de alto contraste para accesibilidad */
+@media (prefers-contrast: high) {
+  :root {
+    --border: 51 65 85;
+    --ring: 29 78 216;
+  }
+}
+
+/* Reducción de movimiento para accesibilidad */
+@media (prefers-reduced-motion: reduce) {
+  *, *::before, *::after {
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.01ms !important;
   }
 }
