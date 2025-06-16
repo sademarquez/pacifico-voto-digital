@@ -1,5 +1,5 @@
 
-import { useEffect } from 'react';
+import { useEffect, useState } from 'react';
 import { useNavigate, useLocation } from 'react-router-dom';
 import { useSimpleAuth } from '@/contexts/SimpleAuthContext';
 
@@ -11,23 +11,30 @@ const SimpleProtectedRoute = ({ children }: SimpleProtectedRouteProps) => {
   const { isAuthenticated, isLoading, user } = useSimpleAuth();
   const navigate = useNavigate();
   const location = useLocation();
+  const [hasRedirected, setHasRedirected] = useState(false);
 
   useEffect(() => {
     console.log('🛡️ Protected Route Check:', {
       path: location.pathname,
       isAuthenticated,
       isLoading,
-      hasUser: !!user
+      hasUser: !!user,
+      hasRedirected
     });
 
-    if (!isLoading && !isAuthenticated) {
-      console.log('🔒 No autenticado, redirigiendo...');
-      navigate('/simple-login', { 
-        replace: true, 
-        state: { from: location }
-      });
+    if (!isLoading && !isAuthenticated && !hasRedirected) {
+      console.log('🔒 No autenticado, redirigiendo a login...');
+      setHasRedirected(true);
+      
+      // Usar setTimeout para evitar problemas de re-render
+      setTimeout(() => {
+        navigate('/simple-login', { 
+          replace: true, 
+          state: { from: location }
+        });
+      }, 100);
     }
-  }, [isAuthenticated, isLoading, navigate, location]);
+  }, [isAuthenticated, isLoading, navigate, location, hasRedirected]);
 
   if (isLoading) {
     return (
@@ -38,6 +45,10 @@ const SimpleProtectedRoute = ({ children }: SimpleProtectedRouteProps) => {
         </div>
       </div>
     );
+  }
+
+  if (!isAuthenticated && hasRedirected) {
+    return null; // Evitar flash mientras redirige
   }
 
   if (isAuthenticated && user) {

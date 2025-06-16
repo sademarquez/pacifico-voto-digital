@@ -1,5 +1,5 @@
 
-import { useEffect } from "react";
+import { useEffect, useState } from "react";
 import { useNavigate, useLocation } from "react-router-dom";
 import { useSimpleAuth } from "@/contexts/SimpleAuthContext";
 import { SystemHealthIndicator } from "@/components/SystemHealthIndicator";
@@ -10,6 +10,7 @@ const SimpleLogin = () => {
   const { login, authError, clearAuthError, isAuthenticated, isLoading } = useSimpleAuth();
   const navigate = useNavigate();
   const location = useLocation();
+  const [hasRedirected, setHasRedirected] = useState(false);
 
   // Log para debugging
   useEffect(() => {
@@ -17,21 +18,27 @@ const SimpleLogin = () => {
       isAuthenticated,
       isLoading,
       authError,
-      pathname: location.pathname
+      pathname: location.pathname,
+      hasRedirected
     });
-  }, [isAuthenticated, isLoading, authError, location.pathname]);
+  }, [isAuthenticated, isLoading, authError, location.pathname, hasRedirected]);
 
-  // Redirigir si ya está autenticado
+  // Redirigir si ya está autenticado (solo una vez)
   useEffect(() => {
-    if (isAuthenticated && !isLoading) {
+    if (isAuthenticated && !isLoading && !hasRedirected) {
       console.log('✅ Usuario autenticado, redirigiendo...');
+      setHasRedirected(true);
       const from = location.state?.from?.pathname || '/dashboard';
-      navigate(from, { replace: true });
+      
+      // Usar setTimeout para evitar problemas de re-render
+      setTimeout(() => {
+        navigate(from, { replace: true });
+      }, 100);
     }
-  }, [isAuthenticated, isLoading, navigate, location.state]);
+  }, [isAuthenticated, isLoading, navigate, location.state, hasRedirected]);
 
-  // Si ya está autenticado, mostrar loading
-  if (isAuthenticated) {
+  // Si ya está autenticado y redirigiendo, mostrar loading
+  if (isAuthenticated && !hasRedirected) {
     return (
       <PageLayout borderVariant="gradient" borderColor="green">
         <div className="min-h-screen flex items-center justify-center">
@@ -43,6 +50,11 @@ const SimpleLogin = () => {
         </div>
       </PageLayout>
     );
+  }
+
+  // Si ya redirigió, no mostrar nada
+  if (hasRedirected) {
+    return null;
   }
 
   return (

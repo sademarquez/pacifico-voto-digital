@@ -30,6 +30,7 @@ export const SimpleAuthProvider: React.FC<{ children: ReactNode }> = ({ children
   const [session, setSession] = useState<Session | null>(null);
   const [isLoading, setIsLoading] = useState(true);
   const [authError, setAuthError] = useState<string | null>(null);
+  const [initialized, setInitialized] = useState(false);
 
   const clearAuthError = () => setAuthError(null);
 
@@ -73,6 +74,7 @@ export const SimpleAuthProvider: React.FC<{ children: ReactNode }> = ({ children
     try {
       // Limpiar sesión anterior
       await supabase.auth.signOut();
+      await new Promise(resolve => setTimeout(resolve, 500)); // Breve pausa
 
       const { data, error } = await supabase.auth.signInWithPassword({
         email: email.trim(),
@@ -85,7 +87,7 @@ export const SimpleAuthProvider: React.FC<{ children: ReactNode }> = ({ children
         if (error.message.includes('Invalid login credentials')) {
           errorMsg = 'Credenciales incorrectas. Verifica email y contraseña.';
         } else if (error.message.includes('Email not confirmed')) {
-          errorMsg = 'Email no confirmado';
+          errorMsg = 'Email no confirmado. Contacta al administrador.';
         } else if (error.message.includes('Too many requests')) {
           errorMsg = 'Demasiados intentos. Espera un momento.';
         }
@@ -96,9 +98,8 @@ export const SimpleAuthProvider: React.FC<{ children: ReactNode }> = ({ children
       }
 
       if (data.user && data.session) {
-        console.log('✅ Login exitoso');
+        console.log('✅ Login exitoso para:', email);
         // El perfil se cargará automáticamente en onAuthStateChange
-        setIsLoading(false);
         return { success: true };
       }
 
@@ -116,6 +117,7 @@ export const SimpleAuthProvider: React.FC<{ children: ReactNode }> = ({ children
 
   const logout = async () => {
     try {
+      setIsLoading(true);
       await supabase.auth.signOut();
       setUser(null);
       setSession(null);
@@ -123,25 +125,35 @@ export const SimpleAuthProvider: React.FC<{ children: ReactNode }> = ({ children
       console.log('👋 Logout exitoso');
     } catch (error) {
       console.error('❌ Error en logout:', error);
+    } finally {
+      setIsLoading(false);
     }
   };
 
   useEffect(() => {
+    if (initialized) return;
+    
     console.log('🚀 Inicializando SimpleAuthProvider');
 
     // Configurar listener de cambios de auth
     const { data: authListener } = supabase.auth.onAuthStateChange(async (event, session) => {
-      console.log(`🔔 AUTH EVENT: ${event}`, { hasSession: !!session });
+      console.log(`🔔 AUTH EVENT: ${event}`, { hasSession: !!session, hasUser: !!session?.user });
 
       if (session?.user && event !== 'SIGNED_OUT') {
         setSession(session);
-        await loadUserProfile(session.user);
+        // Solo cargar perfil si el usuario cambió
+        if (!user || user.id !== session.user.id) {
+          await loadUserProfile(session.user);
+        }
       } else {
         setUser(null);
         setSession(null);
       }
       
-      setIsLoading(false);
+      if (!initialized) {
+        setIsLoading(false);
+        setInitialized(true);
+      }
     });
 
     // Verificar sesión inicial
@@ -150,14 +162,17 @@ export const SimpleAuthProvider: React.FC<{ children: ReactNode }> = ({ children
         const { data: { session } } = await supabase.auth.getSession();
         
         if (session?.user) {
-          console.log('✅ Sesión inicial encontrada');
+          console.log('✅ Sesión inicial encontrada para:', session.user.email);
           setSession(session);
           await loadUserProfile(session.user);
         }
       } catch (error) {
         console.error('❌ Error inicialización auth:', error);
       } finally {
-        setIsLoading(false);
+        if (!initialized) {
+          setIsLoading(false);
+          setInitialized(true);
+        }
       }
     };
 
@@ -166,7 +181,7 @@ export const SimpleAuthProvider: React.FC<{ children: ReactNode }> = ({ children
     return () => {
       authListener?.subscription.unsubscribe();
     };
-  }, []);
+  }, [initialized, user]);
 
   const value = {
     user,
