@@ -11,14 +11,24 @@ const SimpleLogin = () => {
   const navigate = useNavigate();
   const location = useLocation();
 
+  // Log para debugging
+  useEffect(() => {
+    console.log('🔄 SimpleLogin - Estado actual:', {
+      isAuthenticated,
+      isLoading,
+      authError,
+      pathname: location.pathname
+    });
+  }, [isAuthenticated, isLoading, authError, location.pathname]);
+
   // Redirigir si ya está autenticado
   useEffect(() => {
-    if (isAuthenticated) {
+    if (isAuthenticated && !isLoading) {
       console.log('✅ Usuario autenticado, redirigiendo...');
       const from = location.state?.from?.pathname || '/dashboard';
       navigate(from, { replace: true });
     }
-  }, [isAuthenticated, navigate, location.state]);
+  }, [isAuthenticated, isLoading, navigate, location.state]);
 
   // Si ya está autenticado, mostrar loading
   if (isAuthenticated) {

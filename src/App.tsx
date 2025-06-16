@@ -1,4 +1,3 @@
-
 import { Toaster } from "@/components/ui/toaster";
 import { Toaster as Sonner } from "@/components/ui/sonner";
 import { TooltipProvider } from "@/components/ui/tooltip";
@@ -8,6 +7,7 @@ import { SimpleAuthProvider } from "@/contexts/SimpleAuthContext";
 import ChatbotProvider from "@/components/ChatbotProvider";
 import TrackingProvider from "@/components/TrackingProvider";
 import { AccessibilityProvider } from "@/components/AccessibilityProvider";
+import AppStateDebugger from "@/components/AppStateDebugger";
 
 // Páginas principales
 import Index from "./pages/Index";
@@ -44,11 +44,12 @@ function App() {
     <QueryClientProvider client={queryClient}>
       <TooltipProvider>
         <SimpleAuthProvider>
-          <ChatbotProvider>
-            <TrackingProvider>
-              <AccessibilityProvider>
+          <AccessibilityProvider>
+            <ChatbotProvider>
+              <TrackingProvider>
                 <Toaster />
                 <Sonner />
+                <AppStateDebugger />
                 <BrowserRouter>
                   <Routes>
                     {/* Rutas públicas */}
@@ -166,9 +167,9 @@ function App() {
                     <Route path="*" element={<NotFound />} />
                   </Routes>
                 </BrowserRouter>
-              </AccessibilityProvider>
-            </TrackingProvider>
-          </ChatbotProvider>
+              </TrackingProvider>
+            </ChatbotProvider>
+          </AccessibilityProvider>
         </SimpleAuthProvider>
       </TooltipProvider>
     </QueryClientProvider>
