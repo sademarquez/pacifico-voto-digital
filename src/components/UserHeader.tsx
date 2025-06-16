@@ -1,4 +1,8 @@
 
+/*
+ * Copyright © 2025 sademarquezDLL. Todos los derechos reservados.
+ */
+
 import { useSecureAuth } from "../contexts/SecureAuthContext";
 import { useNavigate } from "react-router-dom";
 import { Button } from "@/components/ui/button";
@@ -12,7 +16,9 @@ import {
   Vote,
   Globe,
   Sparkles,
-  Zap
+  Zap,
+  ArrowLeft,
+  MessageCircle
 } from "lucide-react";
 
 const UserHeader = () => {
@@ -22,6 +28,10 @@ const UserHeader = () => {
   const handleLogout = async () => {
     await logout();
     navigate("/login");
+  };
+
+  const handleBack = () => {
+    navigate(-1);
   };
 
   const getRoleInfo = () => {
@@ -101,6 +111,17 @@ const UserHeader = () => {
     <div className={`campaign-card p-6 bg-gradient-to-br ${roleInfo.bgColor} border-2 ${roleInfo.borderColor} animate-fade-in`}>
       <div className="flex items-center justify-between">
         <div className="flex items-center gap-6">
+          {/* Botón de regreso */}
+          <Button
+            onClick={handleBack}
+            variant="outline"
+            size="sm"
+            className="bg-white/80 backdrop-blur-sm border-gray-300 hover:bg-gray-50 hover:border-gray-400 transition-all duration-300"
+          >
+            <ArrowLeft className="w-4 h-4 mr-2" />
+            Atrás
+          </Button>
+
           {/* Avatar y rol */}
           <div className="flex items-center gap-4">
             <div className={`w-16 h-16 bg-gradient-to-br ${roleInfo.color} rounded-2xl flex items-center justify-center shadow-modern-lg animate-pulse-glow`}>
@@ -145,7 +166,7 @@ const UserHeader = () => {
           </div>
         </div>
 
-        {/* Acciones - Solo mostrar logout en pantallas grandes */}
+        {/* Acciones de escritorio */}
         <div className="hidden lg:flex items-center gap-4">
           <div className="text-right">
             <p className="text-sm text-gray-600">Último acceso</p>
@@ -158,6 +179,15 @@ const UserHeader = () => {
               })}
             </p>
           </div>
+          
+          {/* WhatsApp para futuras integraciones */}
+          <Button
+            variant="outline"
+            className="bg-green-50 hover:bg-green-100 text-green-600 border-green-200 hover:border-green-300 transition-all duration-300"
+          >
+            <MessageCircle className="w-4 h-4 mr-2" />
+            WhatsApp
+          </Button>
           
           <Button
             onClick={handleLogout}

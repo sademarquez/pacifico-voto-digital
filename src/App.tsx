@@ -1,4 +1,12 @@
 
+/*
+ * MI CAMPAÑA 2025 - Sistema Electoral con IA
+ * Copyright © 2025 sademarquezDLL. Todos los derechos reservados.
+ * 
+ * Este software es propiedad exclusiva de sademarquezDLL.
+ * Prohibida su reproducción, distribución o modificación sin autorización expresa.
+ */
+
 import {
   BrowserRouter,
   Routes,
@@ -23,7 +31,6 @@ import VisitorFunnelPage from "./pages/VisitorFunnelPage";
 import { SecureAuthProvider } from "./contexts/SecureAuthContext";
 import TrackingProvider from './components/TrackingProvider';
 import ChatbotManager from './components/ChatbotManager';
-import GeminiAssistant from './components/GeminiAssistant';
 import EnhancedMobileNavigation from './components/EnhancedMobileNavigation';
 import './styles/modernTheme.css';
 
@@ -63,10 +70,9 @@ function App() {
                 <Route path="/acciones-rapidas" element={<QuickActionsPage />} />
               </Routes>
               
-              {/* Asistente IA Gemini con interfaz moderna */}
-              <GeminiAssistant />
-              
+              {/* Chatbot optimizado para ventas */}
               <ChatbotManager />
+              
               <Toaster 
                 position="top-right"
                 toastOptions={{
@@ -81,6 +87,11 @@ function App() {
                   },
                 }}
               />
+              
+              {/* Copyright Footer */}
+              <div className="fixed bottom-0 left-0 right-0 bg-black/5 backdrop-blur-sm border-t border-gray-200/50 py-2 px-4 text-center text-xs text-gray-500 z-10">
+                © 2025 sademarquezDLL - MI CAMPAÑA 2025. Todos los derechos reservados.
+              </div>
             </div>
           </BrowserRouter>
         </TrackingProvider>
