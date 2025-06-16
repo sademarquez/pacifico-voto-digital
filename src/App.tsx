@@ -1,3 +1,4 @@
+
 /*
  * MI CAMPAÑA 2025 - Sistema Electoral con IA
  * Copyright © 2025 sademarquezDLL. Todos los derechos reservados.
@@ -27,6 +28,7 @@ import TasksPage from "./pages/TasksPage";
 import EventsPage from "./pages/EventsPage";
 import QuickActionsPage from "./pages/QuickActionsPage";
 import VisitorFunnelPage from "./pages/VisitorFunnelPage";
+import MobileAuditPage from "./pages/MobileAuditPage";
 import { SecureAuthProvider } from "./contexts/SecureAuthContext";
 import TrackingProvider from './components/TrackingProvider';
 import ChatbotManager from './components/ChatbotManager';
@@ -56,6 +58,7 @@ function App() {
                 <Route path="/" element={<Login />} />
                 <Route path="/login" element={<Login />} />
                 <Route path="/visitor-funnel" element={<VisitorFunnelPage />} />
+                <Route path="/mobile-audit" element={<MobileAuditPage />} />
                 <Route path="/index" element={<Index />} />
                 <Route path="/dashboard" element={<Dashboard />} />
                 <Route path="/mapa-alertas" element={<MapaAlertas />} />

@@ -1,10 +1,11 @@
+
 import { useState, useEffect } from "react";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Alert, AlertDescription } from "@/components/ui/alert";
-import { Shield, Eye, EyeOff, AlertCircle, CheckCircle, User, Mail, Lock } from "lucide-react";
+import { Shield, Eye, EyeOff, AlertCircle, CheckCircle, User, Mail, Lock, Smartphone } from "lucide-react";
 import { useSecureAuth } from "@/contexts/SecureAuthContext";
 import { useDemoCredentials } from "@/hooks/useDemoCredentials";
 import { useNavigate } from "react-router-dom";
@@ -207,14 +208,26 @@ const Login = () => {
                       {isLoading ? "Autenticando..." : "Iniciar Sesión"}
                     </Button>
                     
-                    <Button
-                      type="button"
-                      variant="outline"
-                      onClick={() => setShowCredentials(!showCredentials)}
-                      className="w-full border-2 border-green-500 text-green-700 hover:bg-green-50"
-                    >
-                      {showCredentials ? "Ocultar" : "Ver"} Credenciales Demo
-                    </Button>
+                    <div className="grid grid-cols-2 gap-2">
+                      <Button
+                        type="button"
+                        variant="outline"
+                        onClick={() => setShowCredentials(!showCredentials)}
+                        className="border-2 border-green-500 text-green-700 hover:bg-green-50"
+                      >
+                        {showCredentials ? "Ocultar" : "Ver"} Credenciales Demo
+                      </Button>
+                      
+                      <Button
+                        type="button"
+                        variant="outline"
+                        onClick={() => navigate("/mobile-audit")}
+                        className="border-2 border-blue-500 text-blue-700 hover:bg-blue-50 flex items-center gap-2"
+                      >
+                        <Smartphone className="w-4 h-4" />
+                        Auditoría App
+                      </Button>
+                    </div>
                   </div>
                 </form>
                 
@@ -226,6 +239,7 @@ const Login = () => {
                   <p>• Login por nombre de usuario habilitado</p>
                   <p>• Mapeo automático a emails</p>
                   <p>• Credenciales demo pre-configuradas</p>
+                  <p>• Auditoría móvil disponible</p>
                 </div>
               </CardContent>
             </Card>
