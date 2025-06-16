@@ -1,10 +1,10 @@
 
 import { useCallback } from 'react';
-import { useSystemLogger } from './useSystemLogger';
+import { useSystemLogger, LogCategory } from './useSystemLogger';
 import { toast } from '@/hooks/use-toast';
 
 interface ErrorContext {
-  category?: 'auth' | 'ui' | 'api' | 'database' | 'security' | 'performance' | 'system' | 'n8n' | 'user_action';
+  category?: LogCategory;
   severity?: 'low' | 'medium' | 'high' | 'critical';
   userFriendly?: boolean;
   showToast?: boolean;
@@ -248,7 +248,7 @@ export const useErrorHandler = () => {
       const error = new Error(validationResult);
       handleError(error, `Validation failed for ${operation}`, {
         ...context,
-        category: 'validation',
+        category: 'system', // Changed from 'validation' to 'system'
         metadata: {
           ...context.metadata,
           data: typeof data === 'object' ? JSON.stringify(data) : String(data)
@@ -261,7 +261,7 @@ export const useErrorHandler = () => {
       const error = new Error(`Validation failed for ${operation}`);
       handleError(error, `Validation failed for ${operation}`, {
         ...context,
-        category: 'validation'
+        category: 'system' // Changed from 'validation' to 'system'
       });
       throw error;
     }
