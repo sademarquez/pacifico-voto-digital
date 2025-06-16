@@ -12,6 +12,8 @@ import Dashboard from "@/pages/Dashboard";
 import SimpleLogin from "@/pages/SimpleLogin";
 import LoginTestPage from "@/pages/LoginTestPage";
 import SystemAuditPage from "@/pages/SystemAuditPage";
+import CompleteSystemAuditPage from "@/pages/CompleteSystemAuditPage";
+import ConfiguracionAvanzada from "@/pages/ConfiguracionAvanzada";
 
 const queryClient = new QueryClient();
 
@@ -28,11 +30,18 @@ function App() {
               <Route path="/simple-login" element={<SimpleLogin />} />
               <Route path="/login-test" element={<LoginTestPage />} />
               <Route path="/system-audit" element={<SystemAuditPage />} />
+              <Route path="/complete-audit" element={<CompleteSystemAuditPage />} />
               
               {/* Rutas protegidas */}
               <Route path="/dashboard" element={
                 <SimpleProtectedRoute>
                   <Dashboard />
+                </SimpleProtectedRoute>
+              } />
+              
+              <Route path="/configuracion-avanzada" element={
+                <SimpleProtectedRoute>
+                  <ConfiguracionAvanzada />
                 </SimpleProtectedRoute>
               } />
               

@@ -5,7 +5,7 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Alert, AlertDescription } from "@/components/ui/alert";
-import { Shield, Eye, EyeOff, AlertCircle, User, Crown, Users } from "lucide-react";
+import { Shield, Eye, EyeOff, AlertCircle, User, Crown, Users, Zap, MessageSquare } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
 
 interface LoginFormProps {
@@ -82,7 +82,7 @@ const LoginForm = ({ onLogin, isLoading, authError, clearAuthError }: LoginFormP
           <CardTitle className="text-2xl font-bold text-gray-900">
             MI CAMPAÑA 2025
           </CardTitle>
-          <p className="text-gray-600">Sistema Electoral Profesional</p>
+          <p className="text-gray-600">Sistema Electoral Premium con IA</p>
         </CardHeader>
         
         <CardContent>
@@ -145,7 +145,7 @@ const LoginForm = ({ onLogin, isLoading, authError, clearAuthError }: LoginFormP
               className="w-full bg-gradient-to-r from-blue-600 to-purple-600 hover:from-blue-700 hover:to-purple-700 text-white font-bold py-3" 
               disabled={isLoading}
             >
-              {isLoading ? "Autenticando..." : "Acceder al Sistema"}
+              {isLoading ? "Autenticando..." : "Acceder al Sistema Premium"}
             </Button>
           </form>
 
@@ -186,12 +186,36 @@ const LoginForm = ({ onLogin, isLoading, authError, clearAuthError }: LoginFormP
           <div className="mt-6 p-4 bg-gradient-to-r from-blue-50 to-purple-50 rounded-lg border border-blue-200">
             <div className="flex items-center gap-2 mb-2">
               <Shield className="w-5 h-5 text-blue-600" />
-              <strong className="text-blue-900">Sistema Premium Activo</strong>
+              <strong className="text-blue-900">Sistema Premium Completo</strong>
             </div>
-            <p className="text-sm text-blue-700">• ✅ Gemini AI Premium integrado</p>
-            <p className="text-sm text-blue-700">• ✅ Base de datos empresarial</p>
-            <p className="text-sm text-blue-700">• ✅ Gestión multi-usuario</p>
-            <p className="text-sm text-blue-700">• ✅ Auditoría completa disponible</p>
+            <div className="space-y-1 text-sm text-blue-700">
+              <p className="flex items-center gap-1">
+                <Zap className="w-3 h-3" />
+                ✅ Gemini 2.0 Flash Premium (AIzaSyDaq...q14)
+              </p>
+              <p className="flex items-center gap-1">
+                <MessageSquare className="w-3 h-3" />
+                ✅ SellerChat WhatsApp Business API
+              </p>
+              <p>✅ Base de datos Supabase empresarial</p>
+              <p>✅ Gestión multi-usuario con roles</p>
+              <p>✅ Auditoría completa del sistema</p>
+              <p>✅ Automatización N8N workflows</p>
+            </div>
+          </div>
+
+          {/* Enlaces rápidos */}
+          <div className="mt-4 text-center space-y-2">
+            <div className="text-xs text-gray-500">Accesos directos:</div>
+            <div className="flex justify-center gap-2 text-xs">
+              <a href="/complete-audit" className="text-blue-600 hover:underline">
+                🔍 Auditoría Completa
+              </a>
+              <span className="text-gray-400">|</span>
+              <a href="/system-audit" className="text-purple-600 hover:underline">
+                ⚡ Test Sistema
+              </a>
+            </div>
           </div>
         </CardContent>
       </Card>
