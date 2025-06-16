@@ -1,3 +1,4 @@
+
 import React, { createContext, useContext, useState, ReactNode, useEffect } from 'react';
 import { supabase } from '@/integrations/supabase/client';
 import { User as SupabaseUser, Session } from '@supabase/supabase-js';
@@ -7,7 +8,7 @@ interface User {
   email: string;
   name: string;
   role: 'desarrollador' | 'master' | 'candidato' | 'lider' | 'votante' | 'visitante';
-  phone?: string;
+  isDemoUser?: boolean;
   territory?: string;
 }
 
@@ -29,6 +30,7 @@ export const SimpleAuthProvider: React.FC<{ children: ReactNode }> = ({ children
   const [session, setSession] = useState<Session | null>(null);
   const [isLoading, setIsLoading] = useState(true);
   const [authError, setAuthError] = useState<string | null>(null);
+  const [initialized, setInitialized] = useState(false);
 
   const clearAuthError = () => setAuthError(null);
 
@@ -36,53 +38,24 @@ export const SimpleAuthProvider: React.FC<{ children: ReactNode }> = ({ children
     try {
       console.log('🔄 Cargando perfil para:', supabaseUser.email);
       
-      let { data: profile, error } = await supabase
+      const { data: profile, error } = await supabase
         .from('profiles')
         .select('id, name, role')
         .eq('id', supabaseUser.id)
-        .single();
+        .maybeSingle();
 
-      if (error) {
+      if (error && error.code !== 'PGRST116') {
         console.error('❌ Error cargando perfil:', error);
-        
-        // Si no existe perfil, crear uno básico
-        if (error.code === 'PGRST116') {
-          console.log('📝 Creando perfil básico...');
-          const { error: insertError } = await supabase
-            .from('profiles')
-            .insert({
-              id: supabaseUser.id,
-              name: supabaseUser.email?.split('@')[0] || 'Usuario',
-              role: 'votante',
-              created_at: new Date().toISOString()
-            });
-
-          if (insertError) {
-            console.error('❌ Error creando perfil:', insertError);
-            throw insertError;
-          }
-
-          // Intentar cargar el perfil recién creado
-          const { data: newProfile, error: newError } = await supabase
-            .from('profiles')
-            .select('id, name, role')
-            .eq('id', supabaseUser.id)
-            .single();
-
-          if (newError) throw newError;
-          profile = newProfile;
-        } else {
-          throw error;
-        }
+        throw error;
       }
 
       const userData: User = {
         id: supabaseUser.id,
-        name: profile?.name || supabaseUser.email?.split('@')[0] || 'Usuario',
+        name: profile?.name || supabaseUser.email?.split('@')[0] || 'Usuario Demo',
         role: (profile?.role as User['role']) || 'votante',
         email: supabaseUser.email || '',
-        phone: supabaseUser.user_metadata?.phone,
-        territory: 'PRINCIPAL'
+        isDemoUser: supabaseUser.email?.includes('demo.com') || false,
+        territory: 'DEMO'
       };
 
       setUser(userData);
@@ -99,6 +72,10 @@ export const SimpleAuthProvider: React.FC<{ children: ReactNode }> = ({ children
     setAuthError(null);
 
     try {
+      // Limpiar sesión anterior
+      await supabase.auth.signOut();
+      await new Promise(resolve => setTimeout(resolve, 500)); // Breve pausa
+
       const { data, error } = await supabase.auth.signInWithPassword({
         email: email.trim(),
         password: password.trim(),
@@ -115,7 +92,6 @@ export const SimpleAuthProvider: React.FC<{ children: ReactNode }> = ({ children
           errorMsg = 'Demasiados intentos. Espera un momento.';
         }
         
-        console.error('❌ Error de login:', error);
         setAuthError(errorMsg);
         setIsLoading(false);
         return { success: false, error: errorMsg };
@@ -123,12 +99,13 @@ export const SimpleAuthProvider: React.FC<{ children: ReactNode }> = ({ children
 
       if (data.user && data.session) {
         console.log('✅ Login exitoso para:', email);
+        // El perfil se cargará automáticamente en onAuthStateChange
         return { success: true };
       }
 
-      setAuthError('Login sin datos válidos');
+      setAuthError('Login sin datos de usuario');
       setIsLoading(false);
-      return { success: false, error: 'Login sin datos válidos' };
+      return { success: false, error: 'Login sin datos de usuario' };
     } catch (error) {
       console.error('❌ Error crítico en login:', error);
       const errorMsg = 'Error inesperado durante el login';
@@ -141,60 +118,61 @@ export const SimpleAuthProvider: React.FC<{ children: ReactNode }> = ({ children
   const logout = async () => {
     try {
       setIsLoading(true);
-      const { error } = await supabase.auth.signOut();
-      if (error) {
-        console.error('❌ Error en logout:', error);
-      }
+      await supabase.auth.signOut();
       setUser(null);
       setSession(null);
       setAuthError(null);
       console.log('👋 Logout exitoso');
     } catch (error) {
-      console.error('❌ Error crítico en logout:', error);
+      console.error('❌ Error en logout:', error);
     } finally {
       setIsLoading(false);
     }
   };
 
   useEffect(() => {
+    if (initialized) return;
+    
     console.log('🚀 Inicializando SimpleAuthProvider');
 
+    // Configurar listener de cambios de auth
     const { data: authListener } = supabase.auth.onAuthStateChange(async (event, session) => {
-      console.log(`🔔 AUTH EVENT: ${event}`, { hasSession: !!session, userEmail: session?.user?.email });
+      console.log(`🔔 AUTH EVENT: ${event}`, { hasSession: !!session, hasUser: !!session?.user });
 
       if (session?.user && event !== 'SIGNED_OUT') {
         setSession(session);
-        await loadUserProfile(session.user);
+        // Solo cargar perfil si el usuario cambió
+        if (!user || user.id !== session.user.id) {
+          await loadUserProfile(session.user);
+        }
       } else {
         setUser(null);
         setSession(null);
       }
       
-      setIsLoading(false);
+      if (!initialized) {
+        setIsLoading(false);
+        setInitialized(true);
+      }
     });
 
     // Verificar sesión inicial
     const initializeAuth = async () => {
       try {
-        const { data: { session }, error } = await supabase.auth.getSession();
-        
-        if (error) {
-          console.error('❌ Error obteniendo sesión:', error);
-          setIsLoading(false);
-          return;
-        }
+        const { data: { session } } = await supabase.auth.getSession();
         
         if (session?.user) {
           console.log('✅ Sesión inicial encontrada para:', session.user.email);
           setSession(session);
           await loadUserProfile(session.user);
-        } else {
-          console.log('ℹ️ No hay sesión inicial');
         }
       } catch (error) {
         console.error('❌ Error inicialización auth:', error);
       } finally {
-        setIsLoading(false);
+        if (!initialized) {
+          setIsLoading(false);
+          setInitialized(true);
+        }
       }
     };
 
@@ -203,7 +181,7 @@ export const SimpleAuthProvider: React.FC<{ children: ReactNode }> = ({ children
     return () => {
       authListener?.subscription.unsubscribe();
     };
-  }, []);
+  }, [initialized, user]);
 
   const value = {
     user,

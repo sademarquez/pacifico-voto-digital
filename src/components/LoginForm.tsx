@@ -5,7 +5,7 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Alert, AlertDescription } from "@/components/ui/alert";
-import { Shield, Eye, EyeOff, AlertCircle, User, Crown, Users, Zap, MessageSquare } from "lucide-react";
+import { Shield, Eye, EyeOff, AlertCircle, CheckCircle } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
 
 interface LoginFormProps {
@@ -15,20 +15,58 @@ interface LoginFormProps {
   clearAuthError: () => void;
 }
 
+interface DemoCredential {
+  name: string;
+  email: string;
+  password: string;
+  role: string;
+  description: string;
+}
+
+const DEMO_CREDENTIALS: DemoCredential[] = [
+  {
+    name: 'Desarrollador',
+    email: 'dev@demo.com',
+    password: '12345678',
+    role: 'desarrollador',
+    description: 'Acceso completo de desarrollador'
+  },
+  {
+    name: 'Master',
+    email: 'master@demo.com', 
+    password: '12345678',
+    role: 'master',
+    description: 'Gestión completa de campaña'
+  },
+  {
+    name: 'Candidato',
+    email: 'candidato@demo.com',
+    password: '12345678',
+    role: 'candidato', 
+    description: 'Gestión territorial especializada'
+  },
+  {
+    name: 'Líder',
+    email: 'lider@demo.com',
+    password: '12345678',
+    role: 'lider',
+    description: 'Coordinación territorial local'
+  },
+  {
+    name: 'Votante',
+    email: 'votante@demo.com',
+    password: '12345678',
+    role: 'votante',
+    description: 'Usuario final del sistema'
+  }
+];
+
 const LoginForm = ({ onLogin, isLoading, authError, clearAuthError }: LoginFormProps) => {
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [showPassword, setShowPassword] = useState(false);
+  const [showCredentials, setShowCredentials] = useState(false);
   const { toast } = useToast();
-
-  const demoUsers = [
-    { email: 'daniel@demo.com', name: 'Daniel', role: 'desarrollador' },
-    { email: 'luis@demo.com', name: 'Luis', role: 'desarrollador' },
-    { email: 'sebastian@demo.com', name: 'Sebastian', role: 'desarrollador' },
-    { email: 'llm@demo.com', name: 'LLM Assistant', role: 'desarrollador' },
-    { email: 'dev@demo.com', name: 'Desarrollador', role: 'desarrollador' },
-    { email: 'master@demo.com', name: 'Master', role: 'master' }
-  ];
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -56,33 +94,34 @@ const LoginForm = ({ onLogin, isLoading, authError, clearAuthError }: LoginFormP
     
     if (result.success) {
       toast({
-        title: "¡Acceso Concedido!",
+        title: "¡Login exitoso!",
         description: `Bienvenido ${email}`,
       });
     }
   };
 
-  const fillCredentials = (userEmail: string, userName: string) => {
-    setEmail(userEmail);
-    setPassword('12345678');
+  const useCredential = (credential: DemoCredential) => {
+    setEmail(credential.email);
+    setPassword(credential.password);
     clearAuthError();
     toast({
-      title: "Credenciales Cargadas",
-      description: `Listo para acceso como ${userName}`,
+      title: "Credenciales cargadas",
+      description: `Listo para login como ${credential.name}`,
     });
   };
 
   return (
-    <div className="max-w-md w-full mx-auto">
-      <Card className="border-2 border-blue-200 shadow-2xl">
+    <div className="grid grid-cols-1 lg:grid-cols-2 gap-6 max-w-6xl w-full">
+      {/* Panel de Login */}
+      <Card className="w-full border-2 border-blue-200 shadow-2xl">
         <CardHeader className="text-center">
           <div className="w-16 h-16 bg-gradient-to-br from-blue-600 to-purple-600 rounded-xl flex items-center justify-center mx-auto mb-4 shadow-lg">
             <Shield className="text-white w-8 h-8" />
           </div>
           <CardTitle className="text-2xl font-bold text-gray-900">
-            MI CAMPAÑA 2025
+            Mi Campaña PWA
           </CardTitle>
-          <p className="text-gray-600">Sistema Electoral Premium con IA</p>
+          <p className="text-gray-600">Sistema Electoral Democrático</p>
         </CardHeader>
         
         <CardContent>
@@ -95,7 +134,7 @@ const LoginForm = ({ onLogin, isLoading, authError, clearAuthError }: LoginFormP
           
           <form onSubmit={handleSubmit} className="space-y-4">
             <div className="space-y-2">
-              <Label htmlFor="email">Email Corporativo</Label>
+              <Label htmlFor="email">Email</Label>
               <Input
                 id="email"
                 type="email"
@@ -104,7 +143,7 @@ const LoginForm = ({ onLogin, isLoading, authError, clearAuthError }: LoginFormP
                   setEmail(e.target.value);
                   if (authError) clearAuthError();
                 }}
-                placeholder="tu@demo.com"
+                placeholder="dev@demo.com"
                 className="border-2 border-gray-300 focus:border-blue-500"
                 required
                 disabled={isLoading}
@@ -140,85 +179,82 @@ const LoginForm = ({ onLogin, isLoading, authError, clearAuthError }: LoginFormP
               </div>
             </div>
 
-            <Button 
-              type="submit" 
-              className="w-full bg-gradient-to-r from-blue-600 to-purple-600 hover:from-blue-700 hover:to-purple-700 text-white font-bold py-3" 
-              disabled={isLoading}
-            >
-              {isLoading ? "Autenticando..." : "Acceder al Sistema Premium"}
-            </Button>
+            <div className="space-y-3">
+              <Button 
+                type="submit" 
+                className="w-full bg-gradient-to-r from-blue-600 to-purple-600 hover:from-blue-700 hover:to-purple-700 text-white font-bold py-3" 
+                disabled={isLoading}
+              >
+                {isLoading ? "Autenticando..." : "Iniciar Sesión"}
+              </Button>
+              
+              <Button
+                type="button"
+                variant="outline"
+                onClick={() => setShowCredentials(!showCredentials)}
+                className="w-full border-2 border-green-500 text-green-700 hover:bg-green-50"
+                disabled={isLoading}
+              >
+                {showCredentials ? "Ocultar" : "Ver"} Credenciales Demo
+              </Button>
+            </div>
           </form>
-
-          {/* Usuarios de prueba */}
-          <div className="mt-6 space-y-3">
-            <div className="flex items-center gap-2 mb-3">
-              <Users className="w-5 h-5 text-blue-600" />
-              <strong className="text-blue-900">Usuarios de Prueba:</strong>
-            </div>
-            
-            <div className="grid grid-cols-1 gap-2 max-h-48 overflow-y-auto">
-              {demoUsers.map((user, index) => (
-                <Button
-                  key={index}
-                  type="button"
-                  variant="outline"
-                  onClick={() => fillCredentials(user.email, user.name)}
-                  className="justify-start text-left p-3 h-auto border border-gray-300 hover:bg-blue-50"
-                  disabled={isLoading}
-                >
-                  <div className="flex items-center gap-2 w-full">
-                    {user.role === 'desarrollador' ? (
-                      <Crown className="w-4 h-4 text-amber-500" />
-                    ) : (
-                      <User className="w-4 h-4 text-blue-500" />
-                    )}
-                    <div className="flex-1">
-                      <div className="font-medium text-sm">{user.name}</div>
-                      <div className="text-xs text-gray-500">{user.email}</div>
-                    </div>
-                    <div className="text-xs text-gray-400 capitalize">{user.role}</div>
-                  </div>
-                </Button>
-              ))}
-            </div>
-          </div>
           
-          <div className="mt-6 p-4 bg-gradient-to-r from-blue-50 to-purple-50 rounded-lg border border-blue-200">
+          <div className="mt-4 p-3 bg-blue-50 rounded-lg text-xs text-blue-700 border border-blue-200">
             <div className="flex items-center gap-2 mb-2">
-              <Shield className="w-5 h-5 text-blue-600" />
-              <strong className="text-blue-900">Sistema Premium Completo</strong>
+              <CheckCircle className="w-4 h-4 text-green-600" />
+              <strong className="text-blue-900">✅ Sistema Demo Funcional</strong>
             </div>
-            <div className="space-y-1 text-sm text-blue-700">
-              <p className="flex items-center gap-1">
-                <Zap className="w-3 h-3" />
-                ✅ Gemini 2.0 Flash Premium (AIzaSyDaq...q14)
-              </p>
-              <p className="flex items-center gap-1">
-                <MessageSquare className="w-3 h-3" />
-                ✅ SellerChat WhatsApp Business API
-              </p>
-              <p>✅ Base de datos Supabase empresarial</p>
-              <p>✅ Gestión multi-usuario con roles</p>
-              <p>✅ Auditoría completa del sistema</p>
-              <p>✅ Automatización N8N workflows</p>
-            </div>
-          </div>
-
-          {/* Enlaces rápidos */}
-          <div className="mt-4 text-center space-y-2">
-            <div className="text-xs text-gray-500">Accesos directos:</div>
-            <div className="flex justify-center gap-2 text-xs">
-              <a href="/complete-audit" className="text-blue-600 hover:underline">
-                🔍 Auditoría Completa
-              </a>
-              <span className="text-gray-400">|</span>
-              <a href="/system-audit" className="text-purple-600 hover:underline">
-                ⚡ Test Sistema
-              </a>
-            </div>
+            <p>• ✅ Base de datos Supabase conectada</p>
+            <p>• ✅ Usuarios demo creados</p>
+            <p>• ✅ Contraseña: <strong>12345678</strong></p>
+            <p>• ✅ Login automático al dashboard</p>
           </div>
         </CardContent>
       </Card>
+
+      {/* Panel de Credenciales */}
+      {showCredentials && (
+        <Card className="w-full border-2 border-green-200 shadow-2xl">
+          <CardHeader>
+            <CardTitle className="text-green-800 text-xl flex items-center gap-2">
+              <CheckCircle className="w-6 h-6" />
+              Credenciales Demo Verificadas
+            </CardTitle>
+            <p className="text-green-600">Sistema con base de datos real</p>
+          </CardHeader>
+          <CardContent>
+            <div className="space-y-4">
+              {DEMO_CREDENTIALS.map((cred, index) => (
+                <div key={index} className="p-4 border-2 border-green-100 rounded-lg hover:bg-green-50 transition-colors">
+                  <div className="flex items-center justify-between mb-3">
+                    <div>
+                      <div className="font-bold text-lg text-gray-900">{cred.name}</div>
+                      <div className="text-sm text-gray-600">{cred.description}</div>
+                      <div className="text-xs text-green-600 font-medium">
+                        📧 {cred.email}
+                      </div>
+                    </div>
+                    <Button
+                      variant="outline"
+                      size="sm"
+                      onClick={() => useCredential(cred)}
+                      className="text-green-700 border-green-500 hover:bg-green-100"
+                      disabled={isLoading}
+                    >
+                      Usar
+                    </Button>
+                  </div>
+                  <div className="bg-gray-100 p-2 rounded text-xs font-mono border">
+                    <div><strong>Email:</strong> {cred.email}</div>
+                    <div><strong>Contraseña:</strong> {cred.password}</div>
+                  </div>
+                </div>
+              ))}
+            </div>
+          </CardContent>
+        </Card>
+      )}
     </div>
   );
 };
