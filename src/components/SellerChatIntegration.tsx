@@ -1,4 +1,3 @@
-
 import React, { useState, useEffect } from 'react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
@@ -14,7 +13,6 @@ import {
   Users,
   TrendingUp,
   MessageCircle,
-  WhatsappIcon as Phone2,
   Send,
   Sparkles
 } from 'lucide-react';
@@ -46,7 +44,6 @@ const SellerChatIntegration = () => {
   const [whatsappNumber, setWhatsappNumber] = useState('');
   const [isProcessing, setIsProcessing] = useState(false);
 
-  // Simular conexión SellerChat
   useEffect(() => {
     const connectToSellerChat = () => {
       console.log('🤖 Conectando a SellerChat...');
@@ -63,18 +60,15 @@ const SellerChatIntegration = () => {
     connectToSellerChat();
   }, []);
 
-  // Procesar mensaje con Gemini + SellerChat
   const processMessageWithAI = async (userMessage: string, voterProfile?: VoterProfile) => {
     setIsProcessing(true);
     try {
-      // 1. Analizar con Gemini
       const geminiResponse = await geminiService.generateWelcomeMessage(voterProfile || {
         nombre: 'Ciudadano',
         ubicacion: 'Bogotá',
         interes_politico: 'medio'
       });
 
-      // 2. Simular respuesta SellerChat
       const sellerChatResponse = {
         id: `sc_${Date.now()}`,
         content: geminiResponse,
@@ -82,7 +76,6 @@ const SellerChatIntegration = () => {
         timestamp: new Date()
       };
 
-      // 3. Agregar a conversación
       setMessages(prev => [...prev, {
         id: `user_${Date.now()}`,
         content: userMessage,
@@ -91,7 +84,6 @@ const SellerChatIntegration = () => {
         whatsapp_number: whatsappNumber
       }, sellerChatResponse]);
 
-      // 4. Simular envío por WhatsApp
       if (whatsappNumber) {
         await sendWhatsAppMessage(whatsappNumber, geminiResponse);
       }
@@ -109,13 +101,10 @@ const SellerChatIntegration = () => {
     }
   };
 
-  // Simular envío WhatsApp Business API
   const sendWhatsAppMessage = async (phoneNumber: string, message: string) => {
     console.log('📱 Enviando WhatsApp a:', phoneNumber);
     console.log('💬 Mensaje:', message);
     
-    // Aquí iría la integración real con WhatsApp Business API
-    // Por ahora simulamos el envío
     toast({
       title: "WhatsApp Enviado",
       description: `Mensaje enviado a ${phoneNumber}`,
@@ -340,7 +329,7 @@ const SellerChatIntegration = () => {
           <Card>
             <CardHeader>
               <CardTitle className="text-base flex items-center gap-2">
-                <Phone2 className="w-4 h-4 text-green-600" />
+                <Phone className="w-4 h-4 text-green-600" />
                 WhatsApp Business
               </CardTitle>
             </CardHeader>
