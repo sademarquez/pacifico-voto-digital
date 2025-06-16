@@ -1,3 +1,4 @@
+
 import { Toaster } from "@/components/ui/toaster";
 import { Toaster as Sonner } from "@/components/ui/sonner";
 import { TooltipProvider } from "@/components/ui/tooltip";
@@ -16,12 +17,6 @@ import ReportePublicidad from "./pages/ReportePublicidad";
 import Registro from "./pages/Registro";
 import UbicacionVotantes from "./pages/UbicacionVotantes";
 import LugarVotacion from "./pages/LugarVotacion";
-import AlertsPage from "./pages/AlertsPage";
-import TerritoriesPage from "./pages/TerritoriesPage";
-import EventsPage from "./pages/EventsPage";
-import UsersPage from "./pages/UsersPage";
-import InformesPage from "./pages/InformesPage";
-import MobileAudit from "./pages/MobileAudit";
 
 const queryClient = new QueryClient();
 
@@ -85,38 +80,6 @@ const App = () => (
                 <LugarVotacion />
               </SimpleProtectedRoute>
             } />
-
-            <Route path="/alerts" element={
-              <SimpleProtectedRoute>
-                <AlertsPage />
-              </SimpleProtectedRoute>
-            } />
-
-            <Route path="/territories" element={
-              <SimpleProtectedRoute>
-                <TerritoriesPage />
-              </SimpleProtectedRoute>
-            } />
-
-            <Route path="/events" element={
-              <SimpleProtectedRoute>
-                <EventsPage />
-              </SimpleProtectedRoute>
-            } />
-
-            <Route path="/users" element={
-              <SimpleProtectedRoute>
-                <UsersPage />
-              </SimpleProtectedRoute>
-            } />
-
-            <Route path="/informes" element={
-              <SimpleProtectedRoute>
-                <InformesPage />
-              </SimpleProtectedRoute>
-            } />
-
-            <Route path="/mobile-audit" element={<MobileAudit />} />
           </Routes>
         </BrowserRouter>
       </TooltipProvider>
