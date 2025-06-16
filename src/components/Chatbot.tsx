@@ -4,7 +4,7 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Badge } from "@/components/ui/badge";
 import { ScrollArea } from "@/components/ui/scroll-area";
-import { useAuth } from "../contexts/AuthContext";
+import { useSimpleAuth } from "@/contexts/SimpleAuthContext";
 import { 
   MessageSquare, 
   Send, 
@@ -36,7 +36,7 @@ interface ChatbotProps {
 }
 
 const Chatbot = ({ isMinimized = false, onToggleMinimize, onClose }: ChatbotProps) => {
-  const { user } = useAuth();
+  const { user } = useSimpleAuth();
   const [messages, setMessages] = useState<Message[]>([]);
   const [inputMessage, setInputMessage] = useState('');
   const [isLoading, setIsLoading] = useState(false);
