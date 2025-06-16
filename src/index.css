@@ -4,7 +4,7 @@
 @tailwind utilities;
 
 /* Plataforma Zona Segura - Identidad de Marca Elegante */
-/* Paleta: Azules premium + Dorado opaco (oro) */
+/* Paleta: Azules premium + Dorado opaco refinado */
 
 @layer base {
   :root {
@@ -40,8 +40,10 @@
 
     --radius: 0.75rem;
 
-    /* Colores personalizados para la marca */
-    --gold: 212 175 55; /* Dorado opaco elegante */
+    /* Colores personalizados para la marca - Dorado opaco refinado */
+    --gold: 184 134 11; /* Dorado más opaco y elegante */
+    --gold-dark: 146 104 8; /* Dorado oscuro para botones */
+    --gold-light: 217 160 33; /* Dorado claro para acentos */
     --blue-primary: 30 58 138; /* Azul principal */
     --blue-secondary: 59 130 246; /* Azul secundario */
     --blue-light: 219 234 254; /* Azul claro */
@@ -86,6 +88,10 @@
     --input: 51 65 85;
     --ring: 59 130 246;
 
+    --gold: 184 134 11;
+    --gold-dark: 146 104 8;
+    --gold-light: 217 160 33;
+
     --sidebar-background: 15 23 42;
     --sidebar-foreground: 203 213 225;
     --sidebar-primary: 59 130 246;
@@ -108,10 +114,11 @@
     font-family: 'Inter', system-ui, sans-serif;
   }
 
-  /* Tipografía elegante */
+  /* Tipografía elegante con dorado */
   h1, h2, h3, h4, h5, h6 {
     font-weight: 700;
     letter-spacing: -0.025em;
+    color: rgb(var(--gold));
   }
 
   h1 {
@@ -148,7 +155,7 @@
 }
 
 @layer components {
-  /* Gradientes elegantes de marca */
+  /* Gradientes elegantes de marca actualizados */
   .gradient-elegant {
     background: linear-gradient(135deg, 
       rgb(15 23 42) 0%,     /* slate-900 */
@@ -176,9 +183,9 @@
 
   .gradient-gold {
     background: linear-gradient(135deg, 
-      rgb(212 175 55) 0%,   /* gold */
-      rgb(234 179 8) 50%,   /* yellow-500 */
-      rgb(252 211 77) 100%  /* yellow-300 */
+      rgb(184 134 11) 0%,   /* gold opaco */
+      rgb(146 104 8) 50%,   /* gold dark */
+      rgb(217 160 33) 100%  /* gold light */
     );
   }
 
@@ -193,7 +200,7 @@
   }
 
   .card-elegant:hover {
-    box-shadow: 0 10px 25px rgba(30, 58, 138, 0.15), 0 20px 40px rgba(30, 58, 138, 0.1), 0 4px 12px rgba(212, 175, 55, 0.15);
+    box-shadow: 0 10px 25px rgba(30, 58, 138, 0.15), 0 20px 40px rgba(30, 58, 138, 0.1), 0 4px 12px rgba(184, 134, 11, 0.15);
     transform: perspective(1000px) rotateX(1deg) translateY(-8px);
   }
 
@@ -212,7 +219,7 @@
   }
 
   .btn-primary:hover {
-    box-shadow: 0 4px 6px -1px rgba(212, 175, 55, 0.2), 0 2px 4px -2px rgba(212, 175, 55, 0.15), 0 10px 15px -3px rgba(212, 175, 55, 0.1);
+    box-shadow: 0 4px 6px -1px rgba(184, 134, 11, 0.2), 0 2px 4px -2px rgba(184, 134, 11, 0.15), 0 10px 15px -3px rgba(184, 134, 11, 0.1);
     transform: scale(1.05);
   }
 
@@ -229,6 +236,28 @@
   .btn-secondary:hover {
     background-color: rgb(30 41 59);
     transform: scale(1.05);
+  }
+
+  .btn-gold {
+    background: linear-gradient(135deg, 
+      rgb(184 134 11) 0%,   /* gold opaco */
+      rgb(146 104 8) 100%   /* gold dark */
+    );
+    color: white;
+    font-weight: 700;
+    border: none;
+    border-radius: 0.75rem;
+    box-shadow: 0 4px 6px -1px rgba(146, 104, 8, 0.3), 0 2px 4px -2px rgba(146, 104, 8, 0.2);
+    transition: all 0.3s ease;
+  }
+
+  .btn-gold:hover {
+    background: linear-gradient(135deg, 
+      rgb(146 104 8) 0%,    /* gold dark */
+      rgb(120 85 6) 100%    /* gold darker */
+    );
+    transform: scale(1.05);
+    box-shadow: 0 6px 8px -1px rgba(146, 104, 8, 0.4), 0 4px 6px -2px rgba(146, 104, 8, 0.3);
   }
 
   .btn-outline-elegant {
@@ -271,7 +300,7 @@
 
   .hover-lift:hover {
     transform: translateY(-0.5rem);
-    box-shadow: 0 10px 25px rgba(30, 58, 138, 0.15), 0 20px 40px rgba(30, 58, 138, 0.1), 0 4px 12px rgba(212, 175, 55, 0.15);
+    box-shadow: 0 10px 25px rgba(30, 58, 138, 0.15), 0 20px 40px rgba(30, 58, 138, 0.1), 0 4px 12px rgba(184, 134, 11, 0.15);
   }
 
   .hover-glow {
@@ -279,8 +308,8 @@
   }
 
   .hover-glow:hover {
-    box-shadow: 0 4px 6px -1px rgba(212, 175, 55, 0.2), 0 2px 4px -2px rgba(212, 175, 55, 0.15), 0 10px 15px -3px rgba(212, 175, 55, 0.1);
-    filter: drop-shadow(0 0 8px rgba(212, 175, 55, 0.3));
+    box-shadow: 0 4px 6px -1px rgba(184, 134, 11, 0.2), 0 2px 4px -2px rgba(184, 134, 11, 0.15), 0 10px 15px -3px rgba(184, 134, 11, 0.1);
+    filter: drop-shadow(0 0 8px rgba(184, 134, 11, 0.3));
   }
 
   /* Estados de loading elegantes */
@@ -298,7 +327,7 @@
     height: 100%;
     background: linear-gradient(90deg, 
       transparent, 
-      rgba(212, 175, 55, 0.4), 
+      rgba(184, 134, 11, 0.4), 
       transparent
     );
     animation: shimmer 2s infinite;
@@ -306,7 +335,7 @@
 
   /* Elementos decorativos de marca */
   .decorative-dots {
-    background-image: radial-gradient(circle, rgba(212, 175, 55, 0.2) 1px, transparent 1px);
+    background-image: radial-gradient(circle, rgba(184, 134, 11, 0.2) 1px, transparent 1px);
     background-size: 20px 20px;
   }
 
@@ -319,17 +348,25 @@
 }
 
 @layer utilities {
-  /* Colores de utilidad */
+  /* Colores de utilidad actualizados */
   .text-gold {
-    color: rgb(212 175 55);
+    color: rgb(184 134 11);
+  }
+
+  .text-gold-dark {
+    color: rgb(146 104 8);
   }
 
   .bg-gold {
-    background-color: rgb(212 175 55);
+    background-color: rgb(184 134 11);
+  }
+
+  .bg-gold-dark {
+    background-color: rgb(146 104 8);
   }
 
   .border-gold {
-    border-color: rgb(212 175 55);
+    border-color: rgb(184 134 11);
   }
 
   /* Animaciones elegantes mejoradas */
@@ -400,12 +437,12 @@
     border-radius: 0.75rem;
   }
   
-  .text-4xl {
+  .title-responsive {
     font-size: 1.875rem;
     line-height: 2.25rem;
   }
   
-  .text-3xl {
+  .subtitle-responsive {
     font-size: 1.5rem;
     line-height: 2rem;
   }
