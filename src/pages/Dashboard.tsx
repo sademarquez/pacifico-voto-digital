@@ -1,3 +1,4 @@
+
 import { useState, useEffect } from "react";
 import { useSecureAuth } from "../contexts/SecureAuthContext";
 import { useSearchParams } from "react-router-dom";
@@ -21,7 +22,7 @@ import {
 import DashboardVisitante from "../components/DashboardVisitante";
 
 const Dashboard = () => {
-  const { user } = useSecureAuth();
+  const { user, isLoading } = useSecureAuth();
   const [searchParams] = useSearchParams();
   const [activeTab, setActiveTab] = useState("overview");
 
@@ -33,12 +34,35 @@ const Dashboard = () => {
     }
   }, [searchParams]);
 
+  // Mostrar loading mientras se verifica la autenticación
+  if (isLoading) {
+    return (
+      <div className="flex justify-center items-center min-h-screen bg-gradient-to-br from-gray-50 via-white to-gray-100">
+        <div className="text-center">
+          <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-blue-600 mx-auto mb-4"></div>
+          <p className="text-gray-600 text-lg">Cargando panel personalizado...</p>
+          <p className="text-gray-500 text-sm mt-2">MI CAMPAÑA 2025 - Preparando tu experiencia</p>
+        </div>
+      </div>
+    );
+  }
+
+  // Si no hay usuario después de cargar, mostrar error
   if (!user) {
     return (
-      <div className="flex justify-center items-center min-h-screen">
+      <div className="flex justify-center items-center min-h-screen bg-gradient-to-br from-gray-50 via-white to-gray-100">
         <div className="text-center">
-          <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-blue-600 mx-auto mb-4"></div>
-          <p className="text-gray-600">Cargando panel personalizado...</p>
+          <div className="w-16 h-16 bg-red-100 rounded-full flex items-center justify-center mx-auto mb-4">
+            <AlertTriangle className="w-8 h-8 text-red-600" />
+          </div>
+          <h2 className="text-xl font-semibold text-gray-900 mb-2">Error de Autenticación</h2>
+          <p className="text-gray-600 mb-4">No se pudo cargar la información del usuario.</p>
+          <button 
+            onClick={() => window.location.href = '/login'} 
+            className="px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700"
+          >
+            Ir al Login
+          </button>
         </div>
       </div>
     );

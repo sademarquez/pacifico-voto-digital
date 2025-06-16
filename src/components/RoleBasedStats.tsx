@@ -16,46 +16,82 @@ import {
 } from "lucide-react";
 
 const RoleBasedStats = () => {
-  const { user } = useSecureAuth();
+  const { user, isLoading: authLoading } = useSecureAuth();
   const { getPermissions } = useDataSegregation();
+
+  // No mostrar nada si aún está cargando la autenticación
+  if (authLoading || !user) {
+    return (
+      <div className="grid grid-cols-2 md:grid-cols-4 gap-4 mb-6">
+        {[1, 2, 3, 4].map((i) => (
+          <Card key={i} className="animate-pulse">
+            <CardContent className="p-4">
+              <div className="flex items-center justify-between">
+                <div className="flex-1">
+                  <div className="h-3 bg-gray-200 rounded mb-2"></div>
+                  <div className="h-6 bg-gray-200 rounded"></div>
+                </div>
+                <div className="w-8 h-8 bg-gray-200 rounded"></div>
+              </div>
+            </CardContent>
+          </Card>
+        ))}
+      </div>
+    );
+  }
 
   const permissions = getPermissions();
 
   // Query para estadísticas específicas del usuario
-  const { data: userStats } = useQuery({
+  const { data: userStats, isLoading: statsLoading } = useQuery({
     queryKey: ['user-stats', user?.id, user?.role],
     queryFn: async () => {
       if (!supabase || !user) return null;
 
       const stats: any = {};
 
-      // Estadísticas según permisos
-      if (permissions.canViewAllData) {
-        const [territories, voters, alerts, users] = await Promise.all([
-          supabase.from('territories').select('*'),
-          supabase.from('voters').select('*'),
-          supabase.from('alerts').select('*').eq('status', 'active'),
-          supabase.from('profiles').select('*')
-        ]);
+      try {
+        // Estadísticas según permisos
+        if (permissions.canViewAllData) {
+          const [territories, voters, alerts, users] = await Promise.all([
+            supabase.from('territories').select('*'),
+            supabase.from('voters').select('*'),
+            supabase.from('alerts').select('*').eq('status', 'active'),
+            supabase.from('profiles').select('*')
+          ]);
 
-        stats.territories = territories.data?.length || 0;
-        stats.voters = voters.data?.length || 0;
-        stats.alerts = alerts.data?.length || 0;
-        stats.users = users.data?.length || 0;
-      } else {
-        // Estadísticas limitadas según el rol
-        const [myTasks, myEvents] = await Promise.all([
-          supabase.from('tasks').select('*').eq('assigned_to', user.id),
-          supabase.from('events').select('*').gte('start_date', new Date().toISOString())
-        ]);
+          stats.territories = territories.data?.length || 0;
+          stats.voters = voters.data?.length || 0;
+          stats.alerts = alerts.data?.length || 0;
+          stats.users = users.data?.length || 0;
+        } else {
+          // Estadísticas limitadas según el rol
+          const [myTasks, myEvents] = await Promise.all([
+            supabase.from('tasks').select('*').eq('assigned_to', user.id),
+            supabase.from('events').select('*').gte('start_date', new Date().toISOString())
+          ]);
 
-        stats.tasks = myTasks.data?.length || 0;
-        stats.events = myEvents.data?.length || 0;
+          stats.tasks = myTasks.data?.length || 0;
+          stats.events = myEvents.data?.length || 0;
+        }
+      } catch (error) {
+        console.error('Error fetching user stats:', error);
+        // Devolver estadísticas por defecto en caso de error
+        return {
+          tasks: 0,
+          events: 0,
+          users: 0,
+          territories: 0,
+          voters: 0,
+          alerts: 0
+        };
       }
 
       return stats;
     },
-    enabled: !!supabase && !!user
+    enabled: !!supabase && !!user,
+    staleTime: 1000 * 60 * 5, // 5 minutos
+    retry: 1
   });
 
   const getStatsConfig = () => {
@@ -97,6 +133,27 @@ const RoleBasedStats = () => {
   const statsConfig = getStatsConfig();
 
   if (statsConfig.length === 0) return null;
+
+  // Mostrar skeleton mientras cargan las estadísticas
+  if (statsLoading) {
+    return (
+      <div className="grid grid-cols-2 md:grid-cols-4 gap-4 mb-6">
+        {statsConfig.map((_, index) => (
+          <Card key={index} className="animate-pulse">
+            <CardContent className="p-4">
+              <div className="flex items-center justify-between">
+                <div className="flex-1">
+                  <div className="h-3 bg-gray-200 rounded mb-2 w-20"></div>
+                  <div className="h-6 bg-gray-200 rounded w-12"></div>
+                </div>
+                <div className="w-8 h-8 bg-gray-200 rounded"></div>
+              </div>
+            </CardContent>
+          </Card>
+        ))}
+      </div>
+    );
+  }
 
   return (
     <div className="grid grid-cols-2 md:grid-cols-4 gap-4 mb-6">
