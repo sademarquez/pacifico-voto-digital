@@ -162,7 +162,7 @@ const Login = () => {
                         type="text"
                         value={username}
                         onChange={(e) => setUsername(e.target.value)}
-                        placeholder="Desarrollador o dev@micampana.com"
+                        placeholder="Desarrollador o dev@demo.com"
                         className="pl-10 border-2 border-gray-300 focus:border-blue-500"
                         required
                         disabled={isLoading}
@@ -181,7 +181,7 @@ const Login = () => {
                         type={showPassword ? "text" : "password"}
                         value={password}
                         onChange={(e) => setPassword(e.target.value)}
-                        placeholder="Password123!"
+                        placeholder="12345678"
                         className="pl-10 pr-10 border-2 border-gray-300 focus:border-blue-500"
                         required
                         disabled={isLoading}
@@ -234,12 +234,12 @@ const Login = () => {
                 <div className="mt-4 p-3 bg-blue-50 rounded-lg text-xs text-blue-700 border border-blue-200">
                   <div className="flex items-center gap-2 mb-2">
                     <CheckCircle className="w-4 h-4 text-green-600" />
-                    <strong className="text-blue-900">Sistema Demo Activo</strong>
+                    <strong className="text-blue-900">✅ Sistema Demo Actualizado</strong>
                   </div>
-                  <p>• Login por nombre de usuario habilitado</p>
-                  <p>• Mapeo automático a emails</p>
-                  <p>• Credenciales demo pre-configuradas</p>
-                  <p>• Auditoría móvil disponible</p>
+                  <p>• ✅ Usuarios creados en base de datos</p>
+                  <p>• ✅ Contraseña actualizada: <strong>12345678</strong></p>
+                  <p>• ✅ Login por nombre de usuario habilitado</p>
+                  <p>• ✅ Mapeo automático a emails</p>
                 </div>
               </CardContent>
             </Card>
@@ -250,9 +250,9 @@ const Login = () => {
                 <CardHeader>
                   <CardTitle className="text-green-800 text-xl flex items-center gap-2">
                     <CheckCircle className="w-6 h-6" />
-                    Credenciales Demo Verificadas
+                    🔥 Credenciales Demo Actualizadas
                   </CardTitle>
-                  <p className="text-green-600">Credenciales funcionales del sistema</p>
+                  <p className="text-green-600">Usuarios creados en base de datos - ¡Listo para usar!</p>
                 </CardHeader>
                 <CardContent>
                   <div className="space-y-4">
@@ -277,6 +277,7 @@ const Login = () => {
                         </div>
                         <div className="bg-gray-100 p-2 rounded text-xs font-mono border">
                           <div><strong>Usuario:</strong> {cred.name}</div>
+                          <div><strong>Email:</strong> {cred.email}</div>
                           <div><strong>Contraseña:</strong> {cred.password}</div>
                         </div>
                       </div>
@@ -284,13 +285,13 @@ const Login = () => {
                   </div>
                   
                   <div className="mt-6 p-4 bg-gradient-to-r from-green-50 to-blue-50 rounded-lg border-2 border-green-200">
-                    <h3 className="font-bold text-sm text-green-800 mb-3">✅ Instrucciones de Uso</h3>
+                    <h3 className="font-bold text-sm text-green-800 mb-3">✅ ¡CREDENCIALES FUNCIONANDO!</h3>
                     <div className="text-xs text-gray-700 space-y-2">
                       <div>1. <strong>Selecciona</strong> una credencial haciendo clic en "Usar"</div>
                       <div>2. <strong>Verifica</strong> que los campos se llenen automáticamente</div>
                       <div>3. <strong>Haz clic</strong> en "Iniciar Sesión"</div>
-                      <div className="mt-3 p-2 bg-yellow-100 rounded border border-yellow-300">
-                        <strong className="text-yellow-800">💡 Recomendado:</strong> Usar "Desarrollador" para acceso completo
+                      <div className="mt-3 p-2 bg-green-100 rounded border border-green-300">
+                        <strong className="text-green-800">🚀 NUEVA CONTRASEÑA:</strong> 12345678 (para todos los usuarios)
                       </div>
                     </div>
                   </div>

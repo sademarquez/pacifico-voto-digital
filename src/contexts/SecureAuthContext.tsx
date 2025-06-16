@@ -1,4 +1,3 @@
-
 /*
  * Copyright © 2025 sademarquezDLL. Todos los derechos reservados.
  */
@@ -83,7 +82,7 @@ export const SecureAuthProvider: React.FC<{ children: ReactNode }> = ({ children
   }, [logWarning, logError, logInfo]);
 
   useEffect(() => {
-    logInfo('auth', 'Inicializando SecureAuthProvider v4.0 - Sistema Electoral Optimizado');
+    logInfo('auth', 'Inicializando SecureAuthProvider v5.0 - Sistema Electoral con DB Sincronizada');
     
     detectDatabaseMode();
     checkSystemHealth();
@@ -166,8 +165,7 @@ export const SecureAuthProvider: React.FC<{ children: ReactNode }> = ({ children
       }
 
       if (profile) {
-        const isDemoUser = supabaseUser.email?.includes('micampana.com') || 
-                          supabaseUser.email?.includes('demo.com') ||
+        const isDemoUser = supabaseUser.email?.includes('demo.com') || 
                           databaseMode === 'demo';
 
         const userData: User = {
@@ -244,7 +242,7 @@ export const SecureAuthProvider: React.FC<{ children: ReactNode }> = ({ children
         let errorMsg = 'Error de autenticación: ';
         
         if (error.message.includes('Invalid login credentials')) {
-          errorMsg = 'Credenciales incorrectas. Verifica email y contraseña.';
+          errorMsg = '❌ Credenciales incorrectas. Verifica email y contraseña.\n🔑 Usa: dev@demo.com / 12345678';
         } else if (error.message.includes('Email not confirmed')) {
           errorMsg = 'Por favor confirma tu email antes de iniciar sesión.';
         } else if (error.message.includes('Too many requests')) {

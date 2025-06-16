@@ -10,12 +10,12 @@ export interface DemoCredential {
 }
 
 export const useDemoCredentials = () => {
-  // CREDENCIALES DEMO AUDITADAS Y 100% VERIFICADAS
+  // CREDENCIALES DEMO ACTUALIZADAS Y VERIFICADAS CON LA BASE DE DATOS
   const verifiedCredentials: DemoCredential[] = [
     {
       name: 'Desarrollador',
-      email: 'dev@micampana.com',
-      password: 'Password123!',
+      email: 'dev@demo.com',
+      password: '12345678',
       role: 'desarrollador',
       description: 'Acceso completo de desarrollador - Control total del sistema',
       territory: 'Nacional',
@@ -23,8 +23,8 @@ export const useDemoCredentials = () => {
     },
     {
       name: 'Master',
-      email: 'master1@demo.com', 
-      password: 'Password123!',
+      email: 'master@demo.com', 
+      password: '12345678',
       role: 'master',
       description: 'Gestión completa de campaña electoral y coordinación',
       territory: 'Regional',
@@ -33,16 +33,16 @@ export const useDemoCredentials = () => {
     {
       name: 'Candidato',
       email: 'candidato@demo.com',
-      password: 'Password123!',
+      password: '12345678',
       role: 'candidato', 
       description: 'Gestión territorial especializada y estrategia política',
       territory: 'Local',
       verified: true
     },
     {
-      name: 'Líder',
+      name: 'Lider',
       email: 'lider@demo.com',
-      password: 'Password123!',
+      password: '12345678',
       role: 'lider',
       description: 'Coordinación territorial local y gestión de equipos',
       territory: 'Barrial',
@@ -51,7 +51,7 @@ export const useDemoCredentials = () => {
     {
       name: 'Votante',
       email: 'votante@demo.com',
-      password: 'Password123!',
+      password: '12345678',
       role: 'votante',
       description: 'Usuario final del sistema electoral y participación',
       territory: 'Individual',
@@ -62,20 +62,20 @@ export const useDemoCredentials = () => {
   // Mapeo exhaustivo y optimizado de nombres a emails
   const nameToEmailMap: Record<string, string> = {
     // Desarrollador - todas las variaciones
-    'Desarrollador': 'dev@micampana.com',
-    'desarrollador': 'dev@micampana.com',
-    'DESARROLLADOR': 'dev@micampana.com',
-    'dev': 'dev@micampana.com',
-    'Dev': 'dev@micampana.com',
-    'DEV': 'dev@micampana.com',
+    'Desarrollador': 'dev@demo.com',
+    'desarrollador': 'dev@demo.com',
+    'DESARROLLADOR': 'dev@demo.com',
+    'dev': 'dev@demo.com',
+    'Dev': 'dev@demo.com',
+    'DEV': 'dev@demo.com',
     
     // Master - todas las variaciones
-    'Master': 'master1@demo.com',
-    'master': 'master1@demo.com',
-    'MASTER': 'master1@demo.com',
-    'master1': 'master1@demo.com',
-    'Master1': 'master1@demo.com',
-    'MASTER1': 'master1@demo.com',
+    'Master': 'master@demo.com',
+    'master': 'master@demo.com',
+    'MASTER': 'master@demo.com',
+    'master1': 'master@demo.com',
+    'Master1': 'master@demo.com',
+    'MASTER1': 'master@demo.com',
     
     // Candidato - todas las variaciones
     'Candidato': 'candidato@demo.com',
