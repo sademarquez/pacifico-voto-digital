@@ -1,4 +1,3 @@
-
 import { useState } from 'react';
 import { useSecureAuth } from '@/contexts/SecureAuthContext';
 import { useNavigate } from 'react-router-dom';
@@ -38,6 +37,7 @@ const Login = () => {
     return null;
   }
 
+  // handleSubmit function
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     setError('');
@@ -60,13 +60,14 @@ const Login = () => {
     }
   };
 
+  // quickLogin function
   const quickLogin = (testEmail: string, testPassword: string) => {
     setEmail(testEmail);
     setPassword(testPassword);
     setError('');
   };
 
-  // Credenciales para equipos de campaña
+  // teamCredentials array
   const teamCredentials = [
     { email: 'admin@micampana.com', password: 'AdminSecure2025!', role: 'Desarrollador', description: 'Control total del sistema', icon: Shield, color: 'text-purple-600' },
     { email: 'master@micampana.com', password: 'MasterSecure2025!', role: 'Master', description: 'Gestión completa', icon: Target, color: 'text-blue-600' },
