@@ -42,84 +42,68 @@ export const SecureAuthProvider: React.FC<{ children: ReactNode }> = ({ children
   const [databaseMode, setDatabaseMode] = useState<'demo' | 'production'>('demo');
 
   const { logInfo, logError, logWarning } = useSystemLogger();
-  const { handleError, handleAsyncError } = useErrorHandler();
+  const { handleError } = useErrorHandler();
 
   const clearAuthError = () => {
     setAuthError(null);
-    logInfo('auth', 'Error de autenticación limpiado por usuario');
+    logInfo('auth', 'Error de autenticación limpiado');
   };
 
-  // Detectar modo de base de datos
+  // Configuración mejorada de detección de modo
   const detectDatabaseMode = useCallback(async () => {
     try {
-      // Verificar si estamos en modo demo o producción
       const isDemoEnvironment = window.location.hostname.includes('lovable') || 
                                window.location.hostname.includes('localhost') ||
                                process.env.NODE_ENV === 'development';
 
-      if (isDemoEnvironment) {
-        setDatabaseMode('demo');
-        logInfo('system', 'Modo DEMO detectado - Base de datos de demostración activa');
-      } else {
-        setDatabaseMode('production');
-        logInfo('system', 'Modo PRODUCCIÓN detectado - Base de datos real activa');
-      }
+      setDatabaseMode(isDemoEnvironment ? 'demo' : 'production');
+      logInfo('system', `Modo ${isDemoEnvironment ? 'DEMO' : 'PRODUCCIÓN'} activado`);
     } catch (error) {
       logError('system', 'Error detectando modo de base de datos', error as Error);
-      setDatabaseMode('demo'); // Fallback a demo por seguridad
+      setDatabaseMode('demo');
     }
   }, [logInfo, logError]);
 
   const checkSystemHealth = useCallback(async () => {
     try {
-      const { data, error } = await supabase
-        .from('system_config')
-        .select('key, value')
-        .eq('key', 'maintenance_mode')
-        .single();
-
-      if (error && error.code !== 'PGRST116') { // PGRST116 = no rows returned
+      // Test de conexión básica a Supabase
+      const { data, error } = await supabase.from('profiles').select('count').limit(1);
+      
+      if (error) {
         setSystemHealth('warning');
-        logWarning('system', 'No se pudo verificar estado del sistema', { error: error.message });
-        return;
-      }
-
-      if (data?.value === true) {
-        setSystemHealth('warning');
-        logWarning('system', 'Sistema en modo mantenimiento');
+        logWarning('system', 'Advertencia en conectividad de base de datos', { error: error.message });
       } else {
         setSystemHealth('healthy');
+        logInfo('system', 'Sistema de base de datos operativo');
       }
     } catch (error) {
       setSystemHealth('error');
-      logError('system', 'Error crítico verificando salud del sistema', error as Error);
+      logError('system', 'Error crítico en sistema', error as Error);
     }
-  }, [logWarning, logError]);
+  }, [logWarning, logError, logInfo]);
 
   useEffect(() => {
-    logInfo('auth', `Inicializando SecureAuthProvider v3.0 - Sistema Electoral Colombia`);
+    logInfo('auth', 'Inicializando SecureAuthProvider v4.0 - Sistema Electoral Optimizado');
     
     detectDatabaseMode();
     checkSystemHealth();
 
     const { data: authListener } = supabase.auth.onAuthStateChange(async (event, session) => {
-      logInfo('auth', `Evento de autenticación: ${event}`, { 
+      logInfo('auth', `Evento: ${event}`, { 
         hasSession: !!session,
-        userEmail: session?.user?.email || 'No user',
-        databaseMode
+        userEmail: session?.user?.email 
       });
 
       if (session?.user) {
         setSession(session);
+        // Defer la carga del perfil para evitar loops
         setTimeout(async () => {
           try {
             await loadUserProfile(session.user);
           } catch (error) {
-            handleError(error as Error, 'Carga de perfil de usuario', {
-              category: 'auth'
-            });
+            handleError(error as Error, 'Carga de perfil', { category: 'auth' });
           }
-        }, 0);
+        }, 100);
       } else {
         setUser(null);
         setSession(null);
@@ -127,39 +111,35 @@ export const SecureAuthProvider: React.FC<{ children: ReactNode }> = ({ children
       }
     });
 
-    const getInitialSession = async () => {
+    const initializeAuth = async () => {
       try {
         const { data: { session }, error } = await supabase.auth.getSession();
         
         if (error) {
-          handleError(error, 'Obtención de sesión inicial', { category: 'auth' });
+          logError('auth', 'Error obteniendo sesión inicial', error);
         } else if (session?.user) {
           setSession(session);
           await loadUserProfile(session.user);
-          logInfo('auth', `Sesión inicial restaurada - Modo ${databaseMode}`, { 
-            userEmail: session.user.email 
-          });
+          logInfo('auth', 'Sesión inicial restaurada');
         }
       } catch (error) {
-        handleError(error as Error, 'Inicialización de sesión', { category: 'auth' });
+        logError('auth', 'Error en inicialización', error as Error);
       } finally {
         setIsLoading(false);
       }
     };
 
-    getInitialSession();
+    initializeAuth();
 
     return () => {
       authListener?.subscription.unsubscribe();
       logInfo('auth', 'SecureAuthProvider limpiado');
     };
-  }, [databaseMode, detectDatabaseMode, checkSystemHealth, handleError, logInfo]);
+  }, [detectDatabaseMode, checkSystemHealth, handleError, logInfo, logError]);
 
   const loadUserProfile = async (supabaseUser: SupabaseUser) => {
     try {
-      logInfo('auth', `Cargando perfil de usuario - Modo ${databaseMode}`, { 
-        userId: supabaseUser.id 
-      });
+      logInfo('auth', 'Cargando perfil de usuario', { userId: supabaseUser.id });
       
       const { data: profile, error } = await supabase
         .from('profiles')
@@ -168,112 +148,153 @@ export const SecureAuthProvider: React.FC<{ children: ReactNode }> = ({ children
         .maybeSingle();
 
       if (error) {
-        throw new Error(`Error cargando perfil: ${error.message}`);
+        logWarning('auth', 'Error cargando perfil,usando datos base', { error: error.message });
+        
+        // Fallback: crear usuario con datos básicos
+        const fallbackUser: User = {
+          id: supabaseUser.id,
+          name: supabaseUser.email?.split('@')[0] || 'Usuario',
+          role: 'visitante',
+          email: supabaseUser.email || '',
+          isDemoUser: true,
+          territory: 'DEMO'
+        };
+        
+        setUser(fallbackUser);
+        setAuthError(null);
+        return;
       }
 
       if (profile) {
-        // Determinar si es usuario demo basado en el email
         const isDemoUser = supabaseUser.email?.includes('micampana.com') || 
                           supabaseUser.email?.includes('demo.com') ||
                           databaseMode === 'demo';
 
         const userData: User = {
           id: profile.id,
-          name: profile.name || supabaseUser.email || 'Usuario',
-          role: profile.role as User['role'],
+          name: profile.name || supabaseUser.email?.split('@')[0] || 'Usuario',
+          role: profile.role as User['role'] || 'visitante',
           email: supabaseUser.email || '',
           isDemoUser,
-          territory: isDemoUser ? 'DEMO' : undefined
+          territory: isDemoUser ? 'DEMO' : 'NACIONAL'
         };
 
         setUser(userData);
         setAuthError(null);
         
-        logInfo('auth', `Perfil cargado exitosamente - ${databaseMode.toUpperCase()}`, {
+        logInfo('auth', 'Perfil cargado exitosamente', {
           userId: userData.id,
           role: userData.role,
           name: userData.name,
-          isDemoUser: userData.isDemoUser,
-          databaseMode
+          isDemoUser: userData.isDemoUser
         });
       } else {
-        throw new Error(`Perfil de usuario no encontrado en base ${databaseMode}`);
+        // Crear perfil automáticamente si no existe
+        const newProfile = {
+          id: supabaseUser.id,
+          name: supabaseUser.email?.split('@')[0] || 'Usuario',
+          role: 'visitante',
+          email: supabaseUser.email
+        };
+
+        const { error: insertError } = await supabase
+          .from('profiles')
+          .insert([newProfile]);
+
+        if (insertError) {
+          logWarning('auth', 'No se pudo crear perfil automático', { error: insertError.message });
+        } else {
+          logInfo('auth', 'Perfil creado automáticamente');
+        }
+
+        // Usar el perfil recién creado
+        const userData: User = {
+          id: newProfile.id,
+          name: newProfile.name,
+          role: newProfile.role as User['role'],
+          email: newProfile.email || '',
+          isDemoUser: true,
+          territory: 'DEMO'
+        };
+
+        setUser(userData);
+        setAuthError(null);
       }
     } catch (error) {
-      const errorMsg = `Error cargando perfil ${databaseMode}: ${(error as Error).message}`;
+      const errorMsg = `Error cargando perfil: ${(error as Error).message}`;
       setAuthError(errorMsg);
-      logError('auth', `Error cargando perfil de usuario ${databaseMode}`, error as Error);
-      throw error;
+      logError('auth', 'Error crítico cargando perfil', error as Error);
     }
   };
 
   const login = async (email: string, password: string): Promise<boolean> => {
-    logInfo('auth', `Intento de login iniciado - Modo ${databaseMode}`, { email });
+    logInfo('auth', 'Intento de login iniciado', { email });
     setAuthError(null);
+    setIsLoading(true);
 
     try {
+      // Limpiar cualquier sesión previa
+      await supabase.auth.signOut();
+      
       const { data, error } = await supabase.auth.signInWithPassword({
         email: email.trim(),
         password: password,
       });
 
       if (error) {
-        let errorMsg = `Error de autenticación en modo ${databaseMode}: `;
+        let errorMsg = 'Error de autenticación: ';
         
         if (error.message.includes('Invalid login credentials')) {
-          errorMsg = databaseMode === 'demo' 
-            ? 'Credenciales incorrectas. Usa las credenciales demo proporcionadas.'
-            : 'Credenciales incorrectas. Verifica tu email y contraseña.';
+          errorMsg = 'Credenciales incorrectas. Verifica email y contraseña.';
         } else if (error.message.includes('Email not confirmed')) {
-          errorMsg = databaseMode === 'demo'
-            ? 'Email no confirmado. Los usuarios demo están preconfigurados.'
-            : 'Por favor confirma tu email antes de iniciar sesión.';
+          errorMsg = 'Por favor confirma tu email antes de iniciar sesión.';
+        } else if (error.message.includes('Too many requests')) {
+          errorMsg = 'Demasiados intentos. Espera un momento e intenta de nuevo.';
         } else {
           errorMsg += error.message;
         }
         
         setAuthError(errorMsg);
-        logError('auth', `Error en login ${databaseMode}`, error);
+        logError('auth', 'Error en login', error);
         return false;
       }
 
-      if (data.user) {
-        logInfo('auth', `Login exitoso - ${databaseMode.toUpperCase()}`, { 
+      if (data.user && data.session) {
+        logInfo('auth', 'Login exitoso', { 
           userId: data.user.id,
-          email: data.user.email,
-          databaseMode
+          email: data.user.email
         });
         return true;
       }
 
+      setAuthError('Login exitoso pero sin datos de usuario');
       return false;
     } catch (error) {
-      const errorMsg = `Error inesperado durante el login ${databaseMode}`;
+      const errorMsg = 'Error inesperado durante el login';
       setAuthError(errorMsg);
-      logError('auth', `Error crítico en login ${databaseMode}`, error as Error);
+      logError('auth', 'Error crítico en login', error as Error);
       return false;
+    } finally {
+      setIsLoading(false);
     }
   };
 
   const logout = async () => {
-    logInfo('auth', 'Cerrando sesión de usuario', { 
-      userId: user?.id,
-      databaseMode 
-    });
+    logInfo('auth', 'Cerrando sesión', { userId: user?.id });
     
     try {
       const { error } = await supabase.auth.signOut();
       
       if (error) {
-        handleError(error, 'Cierre de sesión', { category: 'auth' });
+        logError('auth', 'Error en logout', error);
       } else {
         setUser(null);
         setSession(null);
         setAuthError(null);
-        logInfo('auth', `Sesión cerrada exitosamente - ${databaseMode}`);
+        logInfo('auth', 'Sesión cerrada exitosamente');
       }
     } catch (error) {
-      handleError(error as Error, 'Cierre de sesión', { category: 'auth' });
+      logError('auth', 'Error crítico en logout', error as Error);
     }
   };
 
