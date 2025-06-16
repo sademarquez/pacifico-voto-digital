@@ -1,14 +1,15 @@
+
 import { useState } from "react";
 import { Button } from "@/components/ui/button";
 import { Sheet, SheetContent, SheetTrigger } from "@/components/ui/sheet";
 import { Menu, Users, MapPin, User, Home, Shield, BarChart3, Network, LogOut } from "lucide-react";
 import { Link, useLocation, useNavigate } from "react-router-dom";
-import { useAuth } from "../contexts/AuthContext";
+import { useSecureAuth } from "../contexts/SecureAuthContext";
 
 const Navigation = () => {
   const [isOpen, setIsOpen] = useState(false);
   const location = useLocation();
-  const { user, logout } = useAuth();
+  const { user, logout } = useSecureAuth();
   const navigate = useNavigate();
 
   const navigationItems = [
@@ -37,19 +38,19 @@ const Navigation = () => {
   return (
     <>
       {/* Navegación superior */}
-      <nav className="sticky top-0 z-50 bg-white/95 backdrop-blur-sm border-b border-blue-200 shadow-sm">
+      <nav className="sticky top-0 z-50 bg-white/95 backdrop-blur-sm border-b border-gold/20 shadow-elegant">
         <div className="container mx-auto px-4">
           <div className="flex items-center justify-between h-16">
             {/* Logo */}
             <Link to="/" className="flex items-center space-x-2">
-              <div className="w-10 h-10 rounded-lg overflow-hidden shadow-md">
+              <div className="w-10 h-10 rounded-lg overflow-hidden shadow-gold">
                 <img 
                   src="/lovable-uploads/83527a7a-6d3b-4edb-bdfc-312894177818.png" 
                   alt="MI CAMPAÑA Logo" 
                   className="w-full h-full object-cover"
                 />
               </div>
-              <span className="font-bold text-xl text-blue-700 drop-shadow-sm">
+              <span className="font-bold text-xl text-black-elegant drop-shadow-sm">
                 MI CAMPAÑA 2025
               </span>
             </Link>
@@ -60,10 +61,10 @@ const Navigation = () => {
                 <Link
                   key={item.href}
                   to={item.href}
-                  className={`flex items-center space-x-2 px-4 py-2 rounded-lg transition-all duration-300 font-medium shadow-sm hover:shadow-md ${
+                  className={`flex items-center space-x-2 px-4 py-2 rounded-lg transition-all duration-300 font-medium shadow-sm hover:shadow-elegant ${
                     isActiveRoute(item.href)
-                      ? 'bg-blue-700 text-white shadow-lg'
-                      : 'text-blue-600 hover:bg-blue-100 hover:text-blue-700'
+                      ? 'bg-black-elegant text-gold shadow-gold'
+                      : 'text-black-elegant hover:bg-gold/10 hover:text-gold'
                   }`}
                 >
                   <item.icon className="w-4 h-4" />
@@ -71,12 +72,12 @@ const Navigation = () => {
                 </Link>
               ))}
               <div className="flex items-center space-x-2">
-                <span className="text-sm text-blue-600">{user.name} ({user.role})</span>
+                <span className="text-sm text-black-elegant">{user.name} ({user.role})</span>
                 <Button 
                   onClick={handleLogout}
                   variant="outline" 
                   size="sm"
-                  className="border-blue-300 text-blue-600 hover:bg-blue-50"
+                  className="border-gold text-gold hover:bg-gold/10"
                 >
                   <LogOut className="w-4 h-4 mr-2" />
                   Salir
@@ -88,25 +89,25 @@ const Navigation = () => {
             <div className="md:hidden">
               <Sheet open={isOpen} onOpenChange={setIsOpen}>
                 <SheetTrigger asChild>
-                  <Button variant="ghost" size="icon" className="text-blue-600 shadow-sm hover:shadow-md">
+                  <Button variant="ghost" size="icon" className="text-black-elegant shadow-sm hover:shadow-elegant">
                     <Menu className="w-6 h-6" />
                   </Button>
                 </SheetTrigger>
-                <SheetContent side="right" className="w-[300px] sm:w-[400px] bg-blue-50 shadow-2xl">
+                <SheetContent side="right" className="w-[300px] sm:w-[400px] bg-gradient-elegant shadow-elegant">
                   <div className="flex flex-col space-y-4 mt-8">
-                    <div className="p-3 bg-white rounded-lg shadow-sm">
-                      <p className="font-medium text-blue-700">{user.name}</p>
-                      <p className="text-sm text-blue-600">Rol: {user.role}</p>
+                    <div className="p-3 bg-white/10 rounded-lg shadow-gold border border-gold/20">
+                      <p className="font-medium text-gold">{user.name}</p>
+                      <p className="text-sm text-gold/80">Rol: {user.role}</p>
                     </div>
                     {navigationItems.map((item) => (
                       <Link
                         key={item.href}
                         to={item.href}
                         onClick={() => setIsOpen(false)}
-                        className={`flex items-center space-x-3 p-3 rounded-lg transition-all duration-300 shadow-sm hover:shadow-md ${
+                        className={`flex items-center space-x-3 p-3 rounded-lg transition-all duration-300 shadow-sm hover:shadow-elegant ${
                           isActiveRoute(item.href)
-                            ? 'bg-blue-700 text-white shadow-lg'
-                            : 'text-blue-600 hover:bg-white hover:shadow-lg'
+                            ? 'bg-gold text-black-elegant shadow-gold'
+                            : 'text-gold hover:bg-white/10 hover:shadow-gold'
                         }`}
                       >
                         <item.icon className="w-5 h-5" />
@@ -115,7 +116,7 @@ const Navigation = () => {
                     ))}
                     <Button 
                       onClick={handleLogout}
-                      className="bg-blue-700 hover:bg-blue-800 text-white mt-6 rounded-lg shadow-lg hover:shadow-xl transition-shadow"
+                      className="bg-gold hover:bg-gold-dark text-black-elegant mt-6 rounded-lg shadow-gold hover:shadow-gold-dark transition-shadow"
                     >
                       <LogOut className="w-4 h-4 mr-2" />
                       Cerrar Sesión
@@ -129,7 +130,7 @@ const Navigation = () => {
       </nav>
 
       {/* Navegación inferior para móviles */}
-      <div className="md:hidden fixed bottom-0 left-0 right-0 z-50 bg-white border-t border-blue-200 shadow-2xl">
+      <div className="md:hidden fixed bottom-0 left-0 right-0 z-50 bg-white border-t border-gold/20 shadow-elegant">
         <div className="grid grid-cols-4 gap-1 p-2">
           {navigationItems.slice(0, 4).map((item) => (
             <Link
@@ -137,8 +138,8 @@ const Navigation = () => {
               to={item.href}
               className={`flex flex-col items-center p-3 rounded-lg transition-all duration-300 ${
                 isActiveRoute(item.href)
-                  ? 'bg-blue-700 text-white shadow-lg transform scale-105'
-                  : 'text-blue-600 hover:bg-blue-100 hover:text-blue-700 shadow-sm hover:shadow-md'
+                  ? 'bg-black-elegant text-gold shadow-gold transform scale-105'
+                  : 'text-black-elegant hover:bg-gold/10 hover:text-gold shadow-sm hover:shadow-elegant'
               }`}
             >
               <item.icon className={`w-5 h-5 mb-1 ${isActiveRoute(item.href) ? 'drop-shadow-sm' : ''}`} />
