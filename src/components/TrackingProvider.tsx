@@ -1,6 +1,5 @@
-
 import { useEffect } from 'react';
-import { useAuth } from '@/contexts/AuthContext';
+import { useSecureAuth } from '@/contexts/SecureAuthContext';
 
 declare global {
   interface Window {
@@ -11,7 +10,7 @@ declare global {
 }
 
 const TrackingProvider = ({ children }: { children: React.ReactNode }) => {
-  const { user } = useAuth();
+  const { user } = useSecureAuth();
 
   useEffect(() => {
     // Inicializar Facebook Pixel
