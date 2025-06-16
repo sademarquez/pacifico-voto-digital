@@ -1,3 +1,4 @@
+
 import React, { createContext, useContext, useState, ReactNode, useEffect } from 'react';
 import { supabase } from '@/integrations/supabase/client';
 import { User as SupabaseUser, Session } from '@supabase/supabase-js';
@@ -29,48 +30,25 @@ export const AuthProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
     console.log('🔧 AuthProvider inicializando...');
     
     let mounted = true;
-    let loadingTimeout: NodeJS.Timeout;
 
-    // Timeout de seguridad para evitar loading infinito
-    const setLoadingTimeout = () => {
-      loadingTimeout = setTimeout(() => {
-        if (mounted) {
-          console.log('⏱️ Timeout de loading alcanzado, desactivando loading');
-          setIsLoading(false);
-        }
-      }, 5000); // 5 segundos máximo de loading
-    };
-
-    // Función para cargar perfil del usuario con timeout
     const loadUserProfile = async (supabaseUser: SupabaseUser): Promise<void> => {
       try {
         console.log('👤 Cargando perfil para:', supabaseUser.id);
         
-        // Timeout para la consulta del perfil
-        const profilePromise = supabase
+        const { data: profile, error } = await supabase
           .from('profiles')
           .select('id, name, role')
           .eq('id', supabaseUser.id)
           .maybeSingle();
 
-        const timeoutPromise = new Promise((_, reject) => {
-          setTimeout(() => reject(new Error('Profile query timeout')), 3000);
-        });
-
-        const { data: profile, error } = await Promise.race([
-          profilePromise,
-          timeoutPromise
-        ]) as any;
-
         if (!mounted) return;
 
         if (error) {
           console.error('❌ Error consultando perfil:', error);
-          // Si hay error, crear usuario básico
           const basicUser: User = {
             id: supabaseUser.id,
             name: supabaseUser.email || 'Usuario',
-            role: 'votante',
+            role: 'visitante',
             email: supabaseUser.email || '',
           };
           setUser(basicUser);
@@ -81,19 +59,32 @@ export const AuthProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
           const userData: User = {
             id: profile.id,
             name: profile.name || supabaseUser.email || 'Usuario',
-            role: profile.role || 'votante',
+            role: profile.role || 'visitante',
             email: supabaseUser.email || '',
           };
 
           console.log('✅ Perfil cargado:', userData.name, userData.role);
           setUser(userData);
         } else {
-          console.log('⚠️ Perfil no encontrado, usando datos básicos');
+          console.log('⚠️ Perfil no encontrado, creando perfil de visitante');
           
+          // Crear perfil de visitante si no existe
+          const { error: insertError } = await supabase
+            .from('profiles')
+            .insert({
+              id: supabaseUser.id,
+              name: supabaseUser.email || 'Visitante',
+              role: 'visitante'
+            });
+
+          if (insertError) {
+            console.error('Error creando perfil:', insertError);
+          }
+
           const basicUser: User = {
             id: supabaseUser.id,
-            name: supabaseUser.email || 'Usuario',
-            role: 'votante',
+            name: supabaseUser.email || 'Visitante',
+            role: 'visitante',
             email: supabaseUser.email || '',
           };
           setUser(basicUser);
@@ -101,11 +92,10 @@ export const AuthProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
       } catch (error) {
         console.error('💥 Error en loadUserProfile:', error);
         if (mounted) {
-          // En caso de error, crear usuario básico para no bloquear la app
           const basicUser: User = {
             id: supabaseUser.id,
-            name: supabaseUser.email || 'Usuario',
-            role: 'votante',
+            name: supabaseUser.email || 'Visitante',
+            role: 'visitante',
             email: supabaseUser.email || '',
           };
           setUser(basicUser);
@@ -113,51 +103,30 @@ export const AuthProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
       }
     };
 
-    // Configurar listener de cambios de auth
     const { data: { subscription } } = supabase.auth.onAuthStateChange(async (event, newSession) => {
       if (!mounted) return;
       
       console.log('🔄 Auth state changed:', event, newSession?.user?.email || 'No user');
       
-      // Limpiar timeout anterior
-      if (loadingTimeout) {
-        clearTimeout(loadingTimeout);
-      }
-      
       setSession(newSession);
       
       if (newSession?.user && event !== 'SIGNED_OUT') {
-        setLoadingTimeout(); // Iniciar timeout de seguridad
         await loadUserProfile(newSession.user);
       } else {
         console.log('🚪 Usuario desconectado');
         setUser(null);
       }
       
-      // Desactivar loading después de procesar el cambio
       if (mounted) {
         setIsLoading(false);
-        if (loadingTimeout) {
-          clearTimeout(loadingTimeout);
-        }
       }
     });
 
-    // Verificar sesión inicial con timeout
     const initializeAuth = async () => {
       try {
         console.log('🔍 Verificando sesión inicial...');
-        setLoadingTimeout(); // Iniciar timeout de seguridad
         
-        const sessionPromise = supabase.auth.getSession();
-        const timeoutPromise = new Promise((_, reject) => {
-          setTimeout(() => reject(new Error('Session query timeout')), 3000);
-        });
-
-        const { data: { session: initialSession }, error } = await Promise.race([
-          sessionPromise,
-          timeoutPromise
-        ]) as any;
+        const { data: { session: initialSession }, error } = await supabase.auth.getSession();
         
         if (!mounted) return;
         
@@ -175,9 +144,6 @@ export const AuthProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
       } finally {
         if (mounted) {
           setIsLoading(false);
-          if (loadingTimeout) {
-            clearTimeout(loadingTimeout);
-          }
         }
       }
     };
@@ -186,9 +152,6 @@ export const AuthProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
 
     return () => {
       mounted = false;
-      if (loadingTimeout) {
-        clearTimeout(loadingTimeout);
-      }
       console.log('🧹 Limpiando AuthProvider');
       subscription.unsubscribe();
     };
@@ -222,7 +185,6 @@ export const AuthProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
 
       if (data.user && data.session) {
         console.log('✅ Login exitoso para:', data.user.email);
-        // No desactivar loading aquí, se hará en onAuthStateChange
         return { success: true };
       }
 
@@ -261,15 +223,6 @@ export const AuthProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
     isAuthenticated: !!user && !!session,
     isLoading,
   };
-
-  console.log('📊 Estado actual AuthContext:', {
-    hasUser: !!user,
-    hasSession: !!session,
-    isAuthenticated: !!user && !!session,
-    isLoading,
-    userName: user?.name,
-    userRole: user?.role
-  });
 
   return (
     <AuthContext.Provider value={value}>

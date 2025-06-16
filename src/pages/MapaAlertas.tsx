@@ -5,7 +5,10 @@ import { supabase } from "@/integrations/supabase/client";
 import { GoogleMap, LoadScript, Marker } from '@react-google-maps/api';
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
-import { Circle } from 'lucide-react';
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
+import { Circle, MapPin, AlertTriangle } from 'lucide-react';
+import { useAuth } from "@/contexts/AuthContext";
+import VisitorSession from "@/components/VisitorSession";
 
 interface Alert {
   id: string;
@@ -23,12 +26,50 @@ interface Alert {
 }
 
 const MapaAlertas = () => {
-  const [mapCenter, setMapCenter] = useState({ lat: 4.60971, lng: -74.08175 }); // Centro de Colombia
+  const { user, isAuthenticated } = useAuth();
+  const [mapCenter, setMapCenter] = useState({ lat: 4.60971, lng: -74.08175 });
   const [zoomLevel, setZoomLevel] = useState(6);
+  const [selectedTerritory, setSelectedTerritory] = useState("");
 
-  const { data: alerts = [], isLoading } = useQuery({
+  // Datos simulados para visitantes si no hay sesión autenticada
+  const mockAlerts: Alert[] = [
+    {
+      id: '1',
+      title: 'Reunión Comunitaria',
+      description: 'Invitación a la reunión mensual de la comunidad para tratar temas importantes del barrio.',
+      type: 'social',
+      status: 'active',
+      priority: 'medium',
+      created_at: new Date().toISOString(),
+      territory: {
+        id: '1',
+        name: 'Chapinero',
+        coordinates: { lat: 4.6097, lng: -74.0817 }
+      }
+    },
+    {
+      id: '2',
+      title: 'Mejoras en Seguridad',
+      description: 'Instalación de nuevas cámaras de seguridad en el sector.',
+      type: 'security',
+      status: 'active',
+      priority: 'high',
+      created_at: new Date().toISOString(),
+      territory: {
+        id: '2',
+        name: 'Suba',
+        coordinates: { lat: 4.7588, lng: -74.0608 }
+      }
+    }
+  ];
+
+  const { data: alerts = mockAlerts, isLoading } = useQuery({
     queryKey: ['alerts-map'],
     queryFn: async (): Promise<Alert[]> => {
+      if (!isAuthenticated) {
+        return mockAlerts;
+      }
+
       let { data, error } = await supabase
         .from('alerts')
         .select(`
@@ -48,10 +89,9 @@ const MapaAlertas = () => {
       
       if (error) {
         console.error("Error fetching alerts for map:", error);
-        return [];
+        return mockAlerts;
       }
 
-      // Filtrar alertas que no tienen territorio o coordenadas
       const validAlerts = data.filter(alert => 
         alert.territory && 
         alert.territory.coordinates &&
@@ -63,6 +103,14 @@ const MapaAlertas = () => {
     },
     refetchOnWindowFocus: false,
   });
+
+  const territories = [
+    { id: "chapinero", name: "Chapinero" },
+    { id: "suba", name: "Suba" },
+    { id: "usaquen", name: "Usaquén" },
+    { id: "kennedy", name: "Kennedy" },
+    { id: "engativa", name: "Engativá" }
+  ];
 
   const getAlertTypeColor = (type: string) => {
     switch (type) {
@@ -84,15 +132,48 @@ const MapaAlertas = () => {
   };
 
   const mapStyles = {
-    height: '600px',
+    height: '500px',
     width: '100%'
-  }
+  };
 
   return (
-    <div className="container mx-auto p-4">
+    <div className="container mx-auto p-4 space-y-6">
+      {/* Sesión de Visitante */}
+      {(!isAuthenticated || user?.role === 'visitante') && (
+        <VisitorSession />
+      )}
+
+      {/* Selector de Territorio */}
       <Card>
         <CardHeader>
-          <CardTitle>Mapa de Alertas</CardTitle>
+          <CardTitle className="flex items-center gap-2">
+            <MapPin className="w-5 h-5 text-blue-600" />
+            Selecciona tu Zona
+          </CardTitle>
+        </CardHeader>
+        <CardContent>
+          <Select value={selectedTerritory} onValueChange={setSelectedTerritory}>
+            <SelectTrigger className="w-full">
+              <SelectValue placeholder="Selecciona tu barrio o zona..." />
+            </SelectTrigger>
+            <SelectContent>
+              {territories.map((territory) => (
+                <SelectItem key={territory.id} value={territory.id}>
+                  {territory.name}
+                </SelectItem>
+              ))}
+            </SelectContent>
+          </Select>
+        </CardContent>
+      </Card>
+
+      {/* Mapa Interactivo */}
+      <Card>
+        <CardHeader>
+          <CardTitle className="flex items-center gap-2">
+            <AlertTriangle className="w-5 h-5 text-orange-600" />
+            Mapa de Alertas Comunitarias
+          </CardTitle>
         </CardHeader>
         <CardContent>
           <LoadScript googleMapsApiKey={import.meta.env.VITE_GOOGLE_MAPS_API_KEY || ''}>
@@ -116,37 +197,44 @@ const MapaAlertas = () => {
         </CardContent>
       </Card>
 
-      <div className="mt-4">
-        <h2 className="text-xl font-semibold mb-2">Listado de Alertas</h2>
-        {isLoading ? (
-          <div>Cargando alertas...</div>
-        ) : (
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
-            {alerts.map((alert) => (
-              <Card key={alert.id}>
-                <CardHeader>
-                  <CardTitle>{alert.title}</CardTitle>
-                </CardHeader>
-                <CardContent>
-                  <p className="text-sm text-gray-500">{alert.description}</p>
-                  <div className="mt-2">
-                    <Badge className={getAlertTypeColor(alert.type)}>
-                      {alert.type}
-                    </Badge>
-                    <div className="flex items-center gap-2 mt-1">
-                      <Circle className={`w-3 h-3 ${getAlertPriorityColor(alert.priority)}`} />
-                      Prioridad: {alert.priority}
+      {/* Lista de Alertas */}
+      <Card>
+        <CardHeader>
+          <CardTitle>Información de tu Comunidad</CardTitle>
+        </CardHeader>
+        <CardContent>
+          {isLoading ? (
+            <div className="text-center py-8">
+              <div className="animate-spin w-8 h-8 border-4 border-blue-600 border-t-transparent rounded-full mx-auto mb-4"></div>
+              <p className="text-gray-600">Cargando información...</p>
+            </div>
+          ) : (
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+              {alerts.map((alert) => (
+                <Card key={alert.id} className="border hover:shadow-md transition-shadow">
+                  <CardContent className="p-4">
+                    <div className="space-y-2">
+                      <h3 className="font-semibold text-gray-900">{alert.title}</h3>
+                      <p className="text-sm text-gray-600">{alert.description}</p>
+                      <div className="flex items-center justify-between">
+                        <Badge className={getAlertTypeColor(alert.type)}>
+                          {alert.type}
+                        </Badge>
+                        <div className="flex items-center gap-2">
+                          <Circle className={`w-3 h-3 ${getAlertPriorityColor(alert.priority)}`} />
+                          <span className="text-xs text-gray-500">
+                            {alert.territory?.name}
+                          </span>
+                        </div>
+                      </div>
                     </div>
-                  </div>
-                  <p className="text-xs text-gray-400 mt-2">
-                    Creado: {new Date(alert.created_at).toLocaleDateString()}
-                  </p>
-                </CardContent>
-              </Card>
-            ))}
-          </div>
-        )}
-      </div>
+                  </CardContent>
+                </Card>
+              ))}
+            </div>
+          )}
+        </CardContent>
+      </Card>
     </div>
   );
 };
