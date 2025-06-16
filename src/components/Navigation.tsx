@@ -4,14 +4,12 @@ import { Button } from "@/components/ui/button";
 import { Sheet, SheetContent, SheetTrigger } from "@/components/ui/sheet";
 import { Menu, Users, MapPin, User, BarChart3, Network, LogOut, FileText, Shield, Zap } from "lucide-react";
 import { Link, useLocation, useNavigate } from "react-router-dom";
-// Fix: Import correcto del contexto de autenticación
 import { useSimpleAuth } from "@/contexts/SimpleAuthContext";
 import ModernMobileNavigation from "./ModernMobileNavigation";
 
 const Navigation = () => {
   const [isOpen, setIsOpen] = useState(false);
   const location = useLocation();
-  // Fix: Usar el contexto correcto
   const { user, logout } = useSimpleAuth();
   const navigate = useNavigate();
 
