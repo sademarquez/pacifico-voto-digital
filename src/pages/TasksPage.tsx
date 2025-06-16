@@ -1,10 +1,9 @@
-
-import { useSecureAuth } from "../contexts/SecureAuthContext";
 import Navigation from "../components/Navigation";
+import { useSimpleAuth } from "../contexts/SimpleAuthContext";
 import TaskManager from "../components/dashboard/TaskManager";
 
 const TasksPage = () => {
-  const { user } = useSecureAuth();
+  const { user } = useSimpleAuth();
 
   if (!user) {
     return <div>Cargando...</div>;
@@ -16,10 +15,10 @@ const TasksPage = () => {
       <div className="container mx-auto px-4 py-6">
         <div className="mb-6">
           <h1 className="text-3xl font-bold text-blue-800 mb-2">
-            Gestión de Tareas
+            Mis Tareas
           </h1>
           <p className="text-gray-600">
-            Administra todas tus actividades y contribuciones a la campaña
+            Gestiona tus tareas y contribuye al éxito de la campaña
           </p>
         </div>
         <TaskManager />
