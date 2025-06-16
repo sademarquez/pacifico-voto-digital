@@ -28,7 +28,6 @@ interface AlertData {
   visible_to_voters: boolean;
 }
 
-// Sistema de logging integrado para auditoría
 interface SystemLog {
   timestamp: string;
   level: 'info' | 'warning' | 'error' | 'critical';
@@ -63,7 +62,9 @@ const MapaAlertas = () => {
     location_lng: 0
   });
 
-  // Sistema de logging para auditoría
+  // Configuración de Gemini AI
+  const GEMINI_API_KEY = "AIzaSyB0EL5it0LTQOHChULpQSa7BGvdPQPzNkY";
+
   const logSystem = (level: SystemLog['level'], category: string, message: string, details?: any) => {
     const log: SystemLog = {
       timestamp: new Date().toISOString(),
@@ -73,10 +74,9 @@ const MapaAlertas = () => {
       details
     };
     
-    setSystemLogs(prev => [...prev.slice(-99), log]); // Mantener últimos 100 logs
+    setSystemLogs(prev => [...prev.slice(-99), log]);
     console.log(`[AUDIT-${level.toUpperCase()}] ${category}: ${message}`, details);
     
-    // Contar errores para métricas
     if (level === 'error' || level === 'critical') {
       setPerformanceMetrics(prev => ({
         ...prev,
@@ -86,7 +86,45 @@ const MapaAlertas = () => {
     }
   };
 
-  // Cargar alertas con auditoría completa
+  // Función para obtener sugerencias inteligentes usando Gemini
+  const getGeminiSuggestions = async (alertTitle: string, alertDescription: string) => {
+    try {
+      const response = await fetch(`https://generativelanguage.googleapis.com/v1beta/models/gemini-pro:generateContent?key=${GEMINI_API_KEY}`, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({
+          contents: [{
+            parts: [{
+              text: `Como experto en gestión de campañas políticas, analiza esta alerta y proporciona sugerencias estratégicas:
+              
+              Título: ${alertTitle}
+              Descripción: ${alertDescription}
+              Contexto: Sistema de campaña política "MI CAMPAÑA 2025 - Transparencia y Honestidad"
+              
+              Proporciona:
+              1. Nivel de prioridad recomendado (low/medium/high/urgent)
+              2. Tipo de alerta más apropiado (security/logistics/political/emergency/information)
+              3. Acciones inmediatas recomendadas (máximo 3)
+              4. Impacto potencial en la campaña
+              
+              Responde en formato JSON estructurado.`
+            }]
+          }]
+        })
+      });
+
+      if (response.ok) {
+        const data = await response.json();
+        return data.candidates[0]?.content?.parts[0]?.text;
+      }
+    } catch (error) {
+      logSystem('error', 'ai', 'Error obteniendo sugerencias de Gemini', error);
+    }
+    return null;
+  };
+
   useEffect(() => {
     const fetchAlerts = async () => {
       const startTime = performance.now();
@@ -136,12 +174,12 @@ const MapaAlertas = () => {
       fetchAlerts();
     }
 
-    // Suscripción a cambios en tiempo real con auditoría
+    // Suscripción corregida para real-time
     const subscription = supabase
       .channel('alerts-changes')
       .on('postgres_changes', 
         { event: '*', schema: 'public', table: 'alerts' },
-        (payload: { eventType: string; new?: AlertData; old?: AlertData }) => {
+        (payload: any) => {
           logSystem('info', 'realtime', 'Cambio detectado en alertas', { 
             event: payload.eventType,
             recordId: payload.new?.id || payload.old?.id 
@@ -157,7 +195,6 @@ const MapaAlertas = () => {
     };
   }, [user]);
 
-  // Crear nueva alerta con validación exhaustiva
   const handleCreateAlert = async () => {
     logSystem('info', 'user_action', 'Intento de crear nueva alerta', { 
       title: newAlert.title,
@@ -165,7 +202,6 @@ const MapaAlertas = () => {
       priority: newAlert.priority 
     });
 
-    // Validaciones de seguridad
     if (!newAlert.title.trim()) {
       logSystem('warning', 'validation', 'Intento de crear alerta sin título');
       return;
@@ -176,12 +212,17 @@ const MapaAlertas = () => {
       return;
     }
 
-    // Validación de longitud de título
     if (newAlert.title.length > 255) {
       logSystem('warning', 'validation', 'Título de alerta excede límite de caracteres', { 
         length: newAlert.title.length 
       });
       return;
+    }
+
+    // Obtener sugerencias de Gemini antes de crear la alerta
+    const suggestions = await getGeminiSuggestions(newAlert.title, newAlert.description);
+    if (suggestions) {
+      logSystem('info', 'ai', 'Sugerencias obtenidas de Gemini', { suggestions });
     }
 
     try {
@@ -208,7 +249,6 @@ const MapaAlertas = () => {
         return;
       }
 
-      // Resetear formulario
       setNewAlert({
         title: "",
         description: "",

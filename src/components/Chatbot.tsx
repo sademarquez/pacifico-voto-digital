@@ -1,4 +1,3 @@
-
 import { useState, useRef, useEffect } from "react";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
@@ -13,13 +12,13 @@ import {
   User,
   Loader2,
   Minimize2,
-  Maximize2,
   X,
   Crown,
   Building2,
   Users,
   UserCheck,
-  Star
+  Star,
+  Sparkles
 } from "lucide-react";
 
 interface Message {
@@ -41,46 +40,46 @@ const Chatbot = ({ isMinimized = false, onToggleMinimize, onClose }: ChatbotProp
   const [messages, setMessages] = useState<Message[]>([]);
   const [inputMessage, setInputMessage] = useState('');
   const [isLoading, setIsLoading] = useState(false);
-  const [apiKey, setApiKey] = useState(localStorage.getItem('gemini-api-key') || '');
   const messagesEndRef = useRef<HTMLDivElement>(null);
 
-  // Mensajes de bienvenida personalizados por rol
+  // API Key de Gemini configurada
+  const GEMINI_API_KEY = "AIzaSyB0EL5it0LTQOHChULpQSa7BGvdPQPzNkY";
+
   const getWelcomeMessage = () => {
-    const baseMessage = '¡Hola! Soy tu asistente inteligente de MI CAMPAÑA 2025.';
+    const baseMessage = '🚀 ¡Hola! Soy tu asistente IA especializado de MI CAMPAÑA 2025. Powered by Gemini AI.';
     
     switch (user?.role) {
       case 'desarrollador':
-        return `${baseMessage} Como desarrollador, puedo ayudarte con aspectos técnicos del sistema, configuraciones N8N, análisis de datos y optimización del ecosistema de campaña.`;
+        return `${baseMessage} Como desarrollador, tengo acceso completo a análisis técnicos, configuraciones N8N, optimización del ecosistema y diagnósticos avanzados.`;
       case 'master':
-        return `${baseMessage} Como Master de Campaña, tengo acceso completo a estadísticas estratégicas, análisis de rendimiento territorial, coordinación de candidatos y métricas de engagement. ¿En qué estrategia te puedo asesorar?`;
+        return `${baseMessage} Como Master de Campaña, manejo estadísticas estratégicas completas, análisis de rendimiento territorial, coordinación de candidatos y métricas de engagement en tiempo real.`;
       case 'candidato':
-        return `${baseMessage} Como candidato, puedo ayudarte con estrategias de comunicación, análisis de tu territorio, coordinación con líderes, preparación de eventos y seguimiento de objetivos de campaña.`;
+        return `${baseMessage} Como candidato, te apoyo con estrategias de comunicación inteligente, análisis de territorio, coordinación con líderes, preparación de eventos y seguimiento de objetivos.`;
       case 'lider':
-        return `${baseMessage} Como líder territorial, puedo asistirte con gestión de votantes, organización de actividades locales, reportes de progreso y coordinación con tu candidato.`;
+        return `${baseMessage} Como líder territorial, te asisto con gestión inteligente de votantes, organización de actividades locales, reportes automatizados y coordinación estratégica.`;
       case 'votante':
-        return `${baseMessage} Como votante activo, puedo ayudarte con tus tareas de campaña, eventos próximos, formas de participar más activamente y conectarte con tu comunidad.`;
+        return `${baseMessage} Como votante activo, te guío con tus tareas personalizadas, eventos próximos, formas de participar más efectivamente y conexión con tu comunidad.`;
       default:
-        return `${baseMessage} Estoy aquí para ayudarte con información sobre nuestras propuestas, transparencia y honestidad. ¿En qué puedo ayudarte?`;
+        return `${baseMessage} Estoy aquí para ayudarte con información sobre nuestras propuestas, transparencia y honestidad. ¿En qué puedo apoyarte?`;
     }
   };
 
-  // Quick replies personalizados por rol
   const getQuickReplies = () => {
-    const baseReplies = ["Propuestas de campaña", "Información del candidato"];
+    const baseReplies = ["💡 Propuestas de campaña", "👤 Información del candidato"];
     
     switch (user?.role) {
       case 'desarrollador':
-        return [...baseReplies, "Estado del sistema", "Configurar N8N", "Analytics técnicos"];
+        return [...baseReplies, "⚡ Estado del sistema", "🔧 Configurar N8N", "📊 Analytics técnicos", "🔍 Debug avanzado"];
       case 'master':
-        return [...baseReplies, "Estrategia general", "Métricas de candidatos", "ROI de campaña", "Análisis territorial"];
+        return [...baseReplies, "🎯 Estrategia general", "📈 Métricas de candidatos", "💰 ROI de campaña", "🗺️ Análisis territorial"];
       case 'candidato':
-        return [...baseReplies, "Mi equipo territorial", "Próximos eventos", "Estrategia local", "Reportes de progreso"];
+        return [...baseReplies, "👥 Mi equipo territorial", "📅 Próximos eventos", "🎯 Estrategia local", "📊 Reportes de progreso"];
       case 'lider':
-        return [...baseReplies, "Gestionar votantes", "Organizar evento", "Reportar actividades", "Contactar candidato"];
+        return [...baseReplies, "🗳️ Gestionar votantes", "🎪 Organizar evento", "📝 Reportar actividades", "📞 Contactar candidato"];
       case 'votante':
-        return [...baseReplies, "Mis tareas", "Eventos próximos", "Cómo ayudar más", "Mi progreso"];
+        return [...baseReplies, "✅ Mis tareas", "📅 Eventos próximos", "🤝 Cómo ayudar más", "🏆 Mi progreso"];
       default:
-        return [...baseReplies, "Cómo puedo ayudar", "Eventos próximos", "Denuncias y reportes"];
+        return [...baseReplies, "❓ Cómo puedo ayudar", "📅 Eventos próximos", "🚨 Denuncias y reportes"];
     }
   };
 
@@ -108,12 +107,12 @@ const Chatbot = ({ isMinimized = false, onToggleMinimize, onClose }: ChatbotProp
 
   const getRoleTitle = () => {
     switch (user?.role) {
-      case 'desarrollador': return 'Asistente Técnico';
-      case 'master': return 'Asistente Estratégico Master';
-      case 'candidato': return 'Asistente de Candidato';
-      case 'lider': return 'Asistente Territorial';
-      case 'votante': return 'Asistente Personal';
-      default: return 'Asistente MI CAMPAÑA';
+      case 'desarrollador': return 'Asistente IA Técnico';
+      case 'master': return 'Asistente IA Estratégico Master';
+      case 'candidato': return 'Asistente IA de Candidato';
+      case 'lider': return 'Asistente IA Territorial';
+      case 'votante': return 'Asistente IA Personal';
+      default: return 'Asistente IA MI CAMPAÑA';
     }
   };
 
@@ -137,47 +136,40 @@ const Chatbot = ({ isMinimized = false, onToggleMinimize, onClose }: ChatbotProp
     scrollToBottom();
   }, [messages]);
 
-  const saveApiKey = (key: string) => {
-    localStorage.setItem('gemini-api-key', key);
-    setApiKey(key);
-  };
-
   const generateBotResponse = async (userMessage: string): Promise<string> => {
-    if (!apiKey) {
-      return "Para usar el chatbot necesitas configurar tu API key de Google Gemini. Es gratuita y puedes obtenerla en https://aistudio.google.com/app/apikey";
-    }
-
     try {
       const roleContext = {
-        desarrollador: "Eres un asistente técnico especializado en sistemas de campaña, N8N, análisis de datos y optimización técnica.",
-        master: "Eres un asistente estratégico de alta gerencia, especializado en análisis territorial, coordinación de candidatos, métricas de campaña y ROI político.",
-        candidato: "Eres un asistente de candidato, especializado en estrategia local, comunicación política, gestión de equipo territorial y eventos de campaña.",
-        lider: "Eres un asistente territorial, especializado en gestión de votantes, organización comunitaria, reportes locales y coordinación con candidatos.",
-        votante: "Eres un asistente personal de campaña, especializado en motivar participación, explicar tareas, conectar con la comunidad y gamificación."
+        desarrollador: "Eres un asistente IA técnico especializado en sistemas de campaña, N8N, análisis de datos, optimización técnica y diagnósticos avanzados.",
+        master: "Eres un asistente IA estratégico de alta gerencia, especializado en análisis territorial, coordinación de candidatos, métricas de campaña, ROI político y gestión estratégica.",
+        candidato: "Eres un asistente IA de candidato, especializado en estrategia local inteligente, comunicación política, gestión de equipo territorial y eventos de campaña.",
+        lider: "Eres un asistente IA territorial, especializado en gestión inteligente de votantes, organización comunitaria, reportes locales automatizados y coordinación con candidatos.",
+        votante: "Eres un asistente IA personal de campaña, especializado en motivar participación, explicar tareas, conectar con la comunidad, gamificación y engagement."
       };
 
       const prompt = `${roleContext[user?.role as keyof typeof roleContext] || roleContext.votante}
       
-      Contexto de la campaña:
+      Contexto de MI CAMPAÑA 2025:
       - Usuario actual: ${user?.name} (${user?.role})
       - Lema: "MI CAMPAÑA 2025 - Transparencia y Honestidad"
-      - Sistema integrado con N8N para automatización
+      - Sistema integrado con IA Gemini para análisis inteligente
       - Enfoque en datos en tiempo real y métricas estratégicas
       - Ecosistema completo: Master > Candidatos > Líderes > Votantes
+      - Colores serios y opacos con fondo blanco
+      - Publicidad no intrusiva y práctica útil
       
-      Información adicional por rol:
-      - Desarrollador: Acceso total al sistema, configuración N8N, análisis técnico
-      - Master: Visión estratégica completa, métricas de todos los candidatos, ROI
-      - Candidato: Gestión de territorio específico, equipo de líderes, eventos locales
-      - Líder: Base de datos de votantes, actividades territoriales, reportes
-      - Votante: Tareas personales, eventos próximos, progreso individual
+      Información por rol:
+      - Desarrollador: Acceso total al sistema, configuración N8N, análisis técnico con IA
+      - Master: Visión estratégica completa, métricas de todos los candidatos, ROI inteligente
+      - Candidato: Gestión de territorio específico, equipo de líderes, eventos locales con IA
+      - Líder: Base de datos de votantes, actividades territoriales, reportes automáticos
+      - Votante: Tareas personalizadas, eventos próximos, progreso individual gamificado
       
-      Responde como el asistente especializado para este rol específico.
+      Responde como el asistente IA especializado para este rol específico.
       Pregunta del usuario: ${userMessage}
       
-      Responde máximo en 150 palabras con un enfoque profesional pero motivador:`;
+      Responde máximo en 150 palabras con un enfoque profesional, motivador y estratégico, usando emojis apropiados:`;
 
-      const response = await fetch(`https://generativelanguage.googleapis.com/v1beta/models/gemini-2.0-flash:generateContent?key=${apiKey}`, {
+      const response = await fetch(`https://generativelanguage.googleapis.com/v1beta/models/gemini-pro:generateContent?key=${GEMINI_API_KEY}`, {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
@@ -194,11 +186,6 @@ const Chatbot = ({ isMinimized = false, onToggleMinimize, onClose }: ChatbotProp
       if (!response.ok) {
         const errorData = await response.json();
         console.error('Gemini API Error:', errorData);
-        
-        if (response.status === 400) {
-          return "Tu API key parece ser inválida. Por favor verifica que esté correcta en https://aistudio.google.com/app/apikey";
-        }
-        
         throw new Error(`Error ${response.status}: ${errorData.error?.message || 'Error desconocido'}`);
       }
 
@@ -208,14 +195,11 @@ const Chatbot = ({ isMinimized = false, onToggleMinimize, onClose }: ChatbotProp
         return data.candidates[0].content.parts[0].text;
       } else {
         console.error('Respuesta inesperada de Gemini:', data);
-        return "Disculpa, no pude procesar tu mensaje. ¿Puedes intentar de nuevo?";
+        return "🤖 Disculpa, estoy procesando tu mensaje. ¿Puedes intentar de nuevo?";
       }
     } catch (error) {
       console.error('Error calling Gemini API:', error);
-      if (error instanceof Error) {
-        return `Error técnico: ${error.message}. Verifica tu conexión y API key.`;
-      }
-      return "Hubo un problema técnico. Por favor intenta más tarde o verifica tu conexión.";
+      return "⚠️ Temporalmente tengo dificultades técnicas. MI CAMPAÑA 2025 sigue activa y transparente. ¿Puedes intentar más tarde?";
     }
   };
 
@@ -248,7 +232,7 @@ const Chatbot = ({ isMinimized = false, onToggleMinimize, onClose }: ChatbotProp
       console.error('Error generating response:', error);
       const errorMessage: Message = {
         id: (Date.now() + 1).toString(),
-        content: "Hubo un error al generar la respuesta. Por favor intenta de nuevo.",
+        content: "🔧 Hubo un error al generar la respuesta. MI CAMPAÑA 2025 sigue funcionando. Por favor intenta de nuevo.",
         sender: 'bot',
         timestamp: new Date()
       };
@@ -266,20 +250,22 @@ const Chatbot = ({ isMinimized = false, onToggleMinimize, onClose }: ChatbotProp
 
   if (isMinimized) {
     return (
-      <Card className={`fixed bottom-4 right-4 w-16 h-16 cursor-pointer shadow-2xl hover:shadow-3xl transition-all duration-300 transform hover:scale-105`} onClick={onToggleMinimize}>
-        <CardContent className={`p-0 h-full flex items-center justify-center bg-gradient-to-r ${getRoleColor()} rounded-lg`}>
+      <Card className={`fixed bottom-4 right-4 w-16 h-16 cursor-pointer shadow-2xl hover:shadow-3xl transition-all duration-300 transform hover:scale-105 bg-white`} onClick={onToggleMinimize}>
+        <CardContent className={`p-0 h-full flex items-center justify-center bg-gradient-to-r ${getRoleColor()} rounded-lg relative`}>
           <RoleIcon className="w-8 h-8 text-white" />
+          <Sparkles className="w-4 h-4 text-yellow-300 absolute -top-1 -right-1 animate-pulse" />
         </CardContent>
       </Card>
     );
   }
 
   return (
-    <Card className="fixed bottom-4 right-4 w-96 h-[500px] shadow-2xl border-blue-200 bg-white z-50">
+    <Card className="fixed bottom-4 right-4 w-96 h-[500px] shadow-2xl border-slate-200 bg-white z-50">
       <CardHeader className={`bg-gradient-to-r ${getRoleColor()} text-white rounded-t-lg p-4`}>
         <div className="flex items-center justify-between">
           <div className="flex items-center space-x-2">
             <RoleIcon className="w-6 h-6" />
+            <Sparkles className="w-4 h-4 text-yellow-300 animate-pulse" />
             <div>
               <CardTitle className="text-lg">{getRoleTitle()}</CardTitle>
               <p className="text-xs opacity-90">{user?.name}</p>
@@ -305,37 +291,11 @@ const Chatbot = ({ isMinimized = false, onToggleMinimize, onClose }: ChatbotProp
           </div>
         </div>
         <Badge className="bg-white/20 text-white w-fit">
-          Transparencia y Honestidad 2025
+          🚀 Transparencia y Honestidad 2025 | Powered by Gemini AI
         </Badge>
       </CardHeader>
 
-      <CardContent className="p-0 flex flex-col h-[400px]">
-        {!apiKey && (
-          <div className="p-4 bg-blue-50 border-b border-blue-200">
-            <p className="text-sm text-blue-800 mb-2">
-              Configura tu API Key de Google Gemini (gratuita):
-            </p>
-            <div className="flex space-x-2">
-              <Input
-                placeholder="Ingresa tu API Key"
-                value={apiKey}
-                onChange={(e) => setApiKey(e.target.value)}
-                className="text-xs"
-              />
-              <Button
-                size="sm"
-                onClick={() => saveApiKey(apiKey)}
-                className={`bg-gradient-to-r ${getRoleColor()}`}
-              >
-                Guardar
-              </Button>
-            </div>
-            <p className="text-xs text-blue-600 mt-1">
-              Obtén tu API key en: https://aistudio.google.com/app/apikey
-            </p>
-          </div>
-        )}
-
+      <CardContent className="p-0 flex flex-col h-[400px] bg-white">
         <ScrollArea className="flex-1 p-4">
           <div className="space-y-4">
             {messages.map((message) => (
@@ -347,11 +307,11 @@ const Chatbot = ({ isMinimized = false, onToggleMinimize, onClose }: ChatbotProp
                   className={`max-w-[80%] p-3 rounded-lg ${
                     message.sender === 'user'
                       ? `bg-gradient-to-r ${getRoleColor()} text-white`
-                      : 'bg-gray-100 text-gray-800'
+                      : 'bg-slate-100 text-slate-800'
                   } shadow-sm`}
                 >
                   <div className="flex items-start space-x-2">
-                    {message.sender === 'bot' && <RoleIcon className="w-4 h-4 mt-1 text-gray-600" />}
+                    {message.sender === 'bot' && <RoleIcon className="w-4 h-4 mt-1 text-slate-600" />}
                     {message.sender === 'user' && <User className="w-4 h-4 mt-1 text-white" />}
                     <p className="text-sm">{message.content}</p>
                   </div>
@@ -364,11 +324,11 @@ const Chatbot = ({ isMinimized = false, onToggleMinimize, onClose }: ChatbotProp
             
             {isLoading && (
               <div className="flex justify-start">
-                <div className="bg-gray-100 p-3 rounded-lg shadow-sm">
+                <div className="bg-slate-100 p-3 rounded-lg shadow-sm">
                   <div className="flex items-center space-x-2">
-                    <RoleIcon className="w-4 h-4 text-gray-600" />
-                    <Loader2 className="w-4 h-4 animate-spin text-gray-600" />
-                    <span className="text-sm text-gray-600">Analizando...</span>
+                    <RoleIcon className="w-4 h-4 text-slate-600" />
+                    <Sparkles className="w-4 h-4 animate-spin text-blue-600" />
+                    <span className="text-sm text-slate-600">Analizando con IA...</span>
                   </div>
                 </div>
               </div>
@@ -377,7 +337,7 @@ const Chatbot = ({ isMinimized = false, onToggleMinimize, onClose }: ChatbotProp
           <div ref={messagesEndRef} />
         </ScrollArea>
 
-        <div className="p-4 border-t border-gray-200">
+        <div className="p-4 border-t border-slate-200 bg-white">
           <div className="flex flex-wrap gap-2 mb-3">
             {getQuickReplies().map((reply, index) => (
               <Button
@@ -385,7 +345,7 @@ const Chatbot = ({ isMinimized = false, onToggleMinimize, onClose }: ChatbotProp
                 variant="outline"
                 size="sm"
                 onClick={() => handleQuickReply(reply)}
-                className={`text-xs border-blue-300 text-blue-700 hover:bg-gradient-to-r hover:${getRoleColor()} hover:text-white`}
+                className={`text-xs border-slate-300 text-slate-700 hover:bg-gradient-to-r hover:${getRoleColor()} hover:text-white`}
               >
                 {reply}
               </Button>
@@ -399,6 +359,7 @@ const Chatbot = ({ isMinimized = false, onToggleMinimize, onClose }: ChatbotProp
               placeholder="Escribe tu mensaje..."
               onKeyPress={(e) => e.key === 'Enter' && handleSendMessage()}
               disabled={isLoading}
+              className="border-slate-300 focus:border-slate-500"
             />
             <Button
               onClick={() => handleSendMessage()}
