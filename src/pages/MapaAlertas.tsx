@@ -1,4 +1,3 @@
-
 import { useState, useEffect } from "react";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
@@ -15,7 +14,7 @@ interface AlertData {
   title: string;
   description: string;
   priority: 'low' | 'medium' | 'high' | 'urgent';
-  status: 'active' | 'resolved' | 'investigating';
+  status: 'active' | 'resolved' | 'dismissed';
   type: 'security' | 'logistics' | 'political' | 'emergency' | 'information';
   location_lat?: number;
   location_lng?: number;
@@ -147,7 +146,7 @@ const MapaAlertas = () => {
     switch (status) {
       case 'active': return <AlertTriangle className="w-4 h-4 text-red-500" />;
       case 'resolved': return <CheckCircle className="w-4 h-4 text-green-500" />;
-      case 'investigating': return <Search className="w-4 h-4 text-yellow-500" />;
+      case 'dismissed': return <Search className="w-4 h-4 text-gray-500" />;
       default: return <MapPin className="w-4 h-4 text-slate-500" />;
     }
   };
