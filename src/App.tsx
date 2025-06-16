@@ -57,16 +57,16 @@ function App() {
               <EnhancedMobileNavigation />
               
               <Routes>
-                {/* Ruta raíz redirige a login */}
+                {/* Ruta raíz redirige directamente a login */}
                 <Route path="/" element={<Navigate to="/login" replace />} />
                 
-                {/* Páginas públicas */}
+                {/* Páginas públicas - sin protección */}
                 <Route path="/login" element={<Login />} />
                 <Route path="/index" element={<Index />} />
                 <Route path="/visitor-funnel" element={<VisitorFunnelPage />} />
                 <Route path="/mobile-audit" element={<MobileAuditPage />} />
                 
-                {/* Páginas protegidas */}
+                {/* Páginas protegidas - requieren autenticación */}
                 <Route path="/dashboard" element={
                   <ProtectedRoute>
                     <Dashboard />

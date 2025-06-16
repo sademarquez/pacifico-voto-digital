@@ -1,3 +1,4 @@
+
 /*
  * Copyright © 2025 sademarquezDLL. Todos los derechos reservados.
  */
@@ -79,7 +80,7 @@ export const SecureAuthProvider: React.FC<{ children: ReactNode }> = ({ children
     }
   }, [logWarning, logError, logInfo]);
 
-  const loadUserProfile = async (supabaseUser: SupabaseUser) => {
+  const loadUserProfile = useCallback(async (supabaseUser: SupabaseUser) => {
     try {
       logInfo('auth', 'Cargando perfil de usuario', { userId: supabaseUser.id });
       
@@ -89,21 +90,9 @@ export const SecureAuthProvider: React.FC<{ children: ReactNode }> = ({ children
         .eq('id', supabaseUser.id)
         .maybeSingle();
 
-      if (error) {
-        logWarning('auth', 'Error cargando perfil, usando datos base', { error: error.message });
-        
-        const fallbackUser: User = {
-          id: supabaseUser.id,
-          name: supabaseUser.email?.split('@')[0] || 'Usuario',
-          role: 'visitante',
-          email: supabaseUser.email || '',
-          isDemoUser: true,
-          territory: 'DEMO'
-        };
-        
-        setUser(fallbackUser);
-        setAuthError(null);
-        return;
+      if (error && error.code !== 'PGRST116') {
+        logError('auth', 'Error cargando perfil de base de datos', error);
+        throw error;
       }
 
       if (profile) {
@@ -112,8 +101,8 @@ export const SecureAuthProvider: React.FC<{ children: ReactNode }> = ({ children
 
         const userData: User = {
           id: profile.id,
-          name: profile.name || supabaseUser.email?.split('@')[0] || 'Usuario',
-          role: profile.role as User['role'] || 'visitante',
+          name: profile.name || 'Usuario Demo',
+          role: profile.role as User['role'] || 'votante',
           email: supabaseUser.email || '',
           isDemoUser,
           territory: isDemoUser ? 'DEMO' : 'NACIONAL'
@@ -122,105 +111,40 @@ export const SecureAuthProvider: React.FC<{ children: ReactNode }> = ({ children
         setUser(userData);
         setAuthError(null);
         
-        logInfo('auth', 'Perfil cargado exitosamente', {
+        logInfo('auth', 'Perfil cargado exitosamente desde BD', {
           userId: userData.id,
           role: userData.role,
           name: userData.name,
           isDemoUser: userData.isDemoUser
         });
       } else {
-        const newProfile = {
+        // Si no existe perfil, crear uno básico
+        const fallbackUser: User = {
           id: supabaseUser.id,
-          name: supabaseUser.email?.split('@')[0] || 'Usuario',
-          role: 'visitante' as const
-        };
-
-        const { error: insertError } = await supabase
-          .from('profiles')
-          .insert([newProfile]);
-
-        if (insertError) {
-          logWarning('auth', 'No se pudo crear perfil automático', { error: insertError.message });
-        } else {
-          logInfo('auth', 'Perfil creado automáticamente');
-        }
-
-        const userData: User = {
-          id: newProfile.id,
-          name: newProfile.name,
-          role: newProfile.role,
+          name: supabaseUser.email?.split('@')[0] || 'Usuario Demo',
+          role: 'votante',
           email: supabaseUser.email || '',
           isDemoUser: true,
           territory: 'DEMO'
         };
-
-        setUser(userData);
+        
+        setUser(fallbackUser);
         setAuthError(null);
+        
+        logInfo('auth', 'Usuario sin perfil en BD, usando datos básicos', {
+          userId: fallbackUser.id,
+          email: fallbackUser.email
+        });
       }
     } catch (error) {
       const errorMsg = `Error cargando perfil: ${(error as Error).message}`;
       setAuthError(errorMsg);
       logError('auth', 'Error crítico cargando perfil', error as Error);
     }
-  };
-
-  useEffect(() => {
-    logInfo('auth', 'Inicializando SecureAuthProvider v5.1 - Sistema Corregido');
-    
-    detectDatabaseMode();
-    checkSystemHealth();
-
-    const { data: authListener } = supabase.auth.onAuthStateChange(async (event, session) => {
-      logInfo('auth', `Evento: ${event}`, { 
-        hasSession: !!session,
-        userEmail: session?.user?.email 
-      });
-
-      setIsLoading(true);
-
-      if (session?.user) {
-        setSession(session);
-        try {
-          await loadUserProfile(session.user);
-        } catch (error) {
-          handleError(error as Error, 'Carga de perfil', { category: 'auth' });
-        }
-      } else {
-        setUser(null);
-        setSession(null);
-        logInfo('auth', 'Usuario desconectado');
-      }
-      
-      setIsLoading(false);
-    });
-
-    const initializeAuth = async () => {
-      try {
-        const { data: { session }, error } = await supabase.auth.getSession();
-        
-        if (error) {
-          logError('auth', 'Error obteniendo sesión inicial', error);
-        } else if (session?.user) {
-          setSession(session);
-          await loadUserProfile(session.user);
-          logInfo('auth', 'Sesión inicial restaurada');
-        }
-      } catch (error) {
-        logError('auth', 'Error en inicialización', error as Error);
-      } finally {
-        setIsLoading(false);
-      }
-    };
-
-    initializeAuth();
-
-    return () => {
-      authListener?.subscription.unsubscribe();
-      logInfo('auth', 'SecureAuthProvider limpiado');
-    };
-  }, [detectDatabaseMode, checkSystemHealth, handleError, logInfo, logError]);
+  }, [databaseMode, logInfo, logError]);
 
   const login = async (email: string, password: string): Promise<boolean> => {
+    console.log('🔐 INICIANDO LOGIN DEMO:', { email, password: password ? '[PRESENTE]' : '[VACÍO]' });
     logInfo('auth', 'Intento de login iniciado', { email });
     setAuthError(null);
     setIsLoading(true);
@@ -231,18 +155,18 @@ export const SecureAuthProvider: React.FC<{ children: ReactNode }> = ({ children
       
       const { data, error } = await supabase.auth.signInWithPassword({
         email: email.trim(),
-        password: password,
+        password: password.trim(),
       });
 
       if (error) {
-        let errorMsg = 'Error de autenticación: ';
+        let errorMsg = '❌ Error de autenticación: ';
         
         if (error.message.includes('Invalid login credentials')) {
-          errorMsg = '❌ Credenciales incorrectas. Verifica email y contraseña.\n🔑 Usa: dev@demo.com / 12345678';
+          errorMsg = '❌ Credenciales incorrectas.\n🔑 Verifica: dev@demo.com / 12345678';
         } else if (error.message.includes('Email not confirmed')) {
-          errorMsg = 'Por favor confirma tu email antes de iniciar sesión.';
+          errorMsg = '📧 Email no confirmado. Usando modo demo.';
         } else if (error.message.includes('Too many requests')) {
-          errorMsg = 'Demasiados intentos. Espera un momento e intenta de nuevo.';
+          errorMsg = '⏱️ Demasiados intentos. Espera un momento.';
         } else {
           errorMsg += error.message;
         }
@@ -254,11 +178,18 @@ export const SecureAuthProvider: React.FC<{ children: ReactNode }> = ({ children
       }
 
       if (data.user && data.session) {
+        console.log('✅ LOGIN EXITOSO:', { 
+          userId: data.user.id,
+          email: data.user.email,
+          hasSession: !!data.session 
+        });
+        
         logInfo('auth', 'Login exitoso', { 
           userId: data.user.id,
           email: data.user.email
         });
-        // No setear isLoading aquí - se hará en onAuthStateChange
+        
+        // El perfil se cargará automáticamente en onAuthStateChange
         return true;
       }
 
@@ -292,6 +223,83 @@ export const SecureAuthProvider: React.FC<{ children: ReactNode }> = ({ children
       logError('auth', 'Error crítico en logout', error as Error);
     }
   };
+
+  useEffect(() => {
+    console.log('🚀 INICIALIZANDO SECURE AUTH PROVIDER v6.0');
+    logInfo('auth', 'Inicializando SecureAuthProvider v6.0 - Sistema Demo Mejorado');
+    
+    detectDatabaseMode();
+    checkSystemHealth();
+
+    const { data: authListener } = supabase.auth.onAuthStateChange(async (event, session) => {
+      console.log(`🔔 AUTH EVENT: ${event}`, { 
+        hasSession: !!session,
+        userEmail: session?.user?.email,
+        userId: session?.user?.id
+      });
+      
+      logInfo('auth', `Evento de autenticación: ${event}`, { 
+        hasSession: !!session,
+        userEmail: session?.user?.email 
+      });
+
+      setIsLoading(true);
+
+      if (session?.user && event !== 'SIGNED_OUT') {
+        setSession(session);
+        
+        // Cargar perfil del usuario
+        try {
+          await loadUserProfile(session.user);
+          console.log('✅ PERFIL CARGADO CORRECTAMENTE');
+        } catch (error) {
+          console.error('❌ ERROR CARGANDO PERFIL:', error);
+          handleError(error as Error, 'Carga de perfil', { category: 'auth' });
+        }
+      } else {
+        setUser(null);
+        setSession(null);
+        console.log('👋 USUARIO DESCONECTADO');
+        logInfo('auth', 'Usuario desconectado');
+      }
+      
+      setIsLoading(false);
+    });
+
+    const initializeAuth = async () => {
+      try {
+        console.log('🔍 VERIFICANDO SESIÓN INICIAL...');
+        const { data: { session }, error } = await supabase.auth.getSession();
+        
+        if (error) {
+          console.error('❌ ERROR SESIÓN INICIAL:', error);
+          logError('auth', 'Error obteniendo sesión inicial', error);
+        } else if (session?.user) {
+          console.log('✅ SESIÓN INICIAL ENCONTRADA:', { 
+            userId: session.user.id,
+            email: session.user.email 
+          });
+          setSession(session);
+          await loadUserProfile(session.user);
+          logInfo('auth', 'Sesión inicial restaurada');
+        } else {
+          console.log('ℹ️ NO HAY SESIÓN INICIAL');
+        }
+      } catch (error) {
+        console.error('❌ ERROR INICIALIZACIÓN:', error);
+        logError('auth', 'Error en inicialización', error as Error);
+      } finally {
+        setIsLoading(false);
+      }
+    };
+
+    initializeAuth();
+
+    return () => {
+      authListener?.subscription.unsubscribe();
+      logInfo('auth', 'SecureAuthProvider limpiado');
+    };
+  }, [detectDatabaseMode, checkSystemHealth, handleError, logInfo, logError, loadUserProfile]);
 
   const value = {
     user,
