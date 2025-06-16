@@ -132,13 +132,15 @@ export const AccessibilityProvider = ({ children }: AccessibilityProviderProps) 
     }, 1000);
   };
 
+  const value = {
+    settings,
+    updateSetting,
+    announceToScreenReader,
+    isKeyboardUser
+  };
+
   return (
-    <AccessibilityContext.Provider value={{
-      settings,
-      updateSetting,
-      announceToScreenReader,
-      isKeyboardUser
-    }}>
+    <AccessibilityContext.Provider value={value}>
       {children}
     </AccessibilityContext.Provider>
   );
