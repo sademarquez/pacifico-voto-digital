@@ -1,4 +1,3 @@
-
 import { createContext, useContext, useState, useEffect, ReactNode } from 'react';
 
 interface AccessibilitySettings {
@@ -25,8 +24,7 @@ interface AccessibilityProviderProps {
 
 const AccessibilityContext = createContext<AccessibilityContextType | undefined>(undefined);
 
-// Fix: Properly typed React.FC component
-export const AccessibilityProvider: React.FC<AccessibilityProviderProps> = ({ children }) => {
+export const AccessibilityProvider = ({ children }: AccessibilityProviderProps) => {
   const [settings, setSettings] = useState<AccessibilitySettings>({
     highContrast: false,
     largeText: false,
