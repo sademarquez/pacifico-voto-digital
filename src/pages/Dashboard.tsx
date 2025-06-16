@@ -1,5 +1,5 @@
 import { useState, useEffect } from "react";
-import { useAuth } from "../contexts/AuthContext";
+import { useSecureAuth } from "../contexts/SecureAuthContext";
 import { useSearchParams } from "react-router-dom";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import MasterDashboard from "../components/MasterDashboard";
@@ -21,7 +21,7 @@ import {
 import DashboardVisitante from "../components/DashboardVisitante";
 
 const Dashboard = () => {
-  const { user } = useAuth();
+  const { user } = useSecureAuth();
   const [searchParams] = useSearchParams();
   const [activeTab, setActiveTab] = useState("overview");
 
