@@ -3,87 +3,97 @@
 @tailwind components;
 @tailwind utilities;
 
-/* Sistema de diseño sobrio y profesional para política transparente */
+/* Plataforma Zona Segura - Identidad de Marca Elegante */
+/* Paleta: Azules premium + Dorado opaco (oro) */
 
 @layer base {
   :root {
-    --background: 0 0% 100%;
-    --foreground: 210 15% 25%;
+    /* Colores base actualizados con nueva paleta */
+    --background: 248 250 252;
+    --foreground: 30 41 59;
 
-    --card: 0 0% 100%;
-    --card-foreground: 210 15% 25%;
+    --card: 255 255 255;
+    --card-foreground: 30 41 59;
 
-    --popover: 0 0% 100%;
-    --popover-foreground: 210 15% 25%;
+    --popover: 255 255 255;
+    --popover-foreground: 30 41 59;
 
-    --primary: 210 45% 35%;
-    --primary-foreground: 0 0% 100%;
+    /* Paleta principal - Azules elegantes */
+    --primary: 30 58 138; /* Blue-800 */
+    --primary-foreground: 255 255 255;
 
-    --secondary: 210 10% 95%;
-    --secondary-foreground: 210 15% 25%;
+    --secondary: 241 245 249; /* Slate-100 */
+    --secondary-foreground: 30 41 59;
 
-    --muted: 210 8% 96%;
-    --muted-foreground: 210 10% 50%;
+    --muted: 248 250 252; /* Slate-50 */
+    --muted-foreground: 100 116 139;
 
-    --accent: 210 20% 85%;
-    --accent-foreground: 210 15% 25%;
+    --accent: 219 234 254; /* Blue-100 */
+    --accent-foreground: 30 41 59;
 
-    --destructive: 0 70% 55%;
-    --destructive-foreground: 0 0% 100%;
+    --destructive: 220 38 38;
+    --destructive-foreground: 255 255 255;
 
-    --border: 210 10% 88%;
-    --input: 210 10% 90%;
-    --ring: 210 45% 35%;
+    --border: 226 232 240; /* Slate-200 */
+    --input: 241 245 249; /* Slate-100 */
+    --ring: 30 58 138; /* Blue-800 */
 
-    --radius: 0.5rem;
+    --radius: 0.75rem;
 
-    --sidebar-background: 210 8% 98%;
-    --sidebar-foreground: 210 15% 30%;
-    --sidebar-primary: 210 45% 35%;
-    --sidebar-primary-foreground: 0 0% 100%;
-    --sidebar-accent: 210 10% 92%;
-    --sidebar-accent-foreground: 210 15% 25%;
-    --sidebar-border: 210 10% 85%;
-    --sidebar-ring: 210 45% 35%;
+    /* Colores personalizados para la marca */
+    --gold: 212 175 55; /* Dorado opaco elegante */
+    --blue-primary: 30 58 138; /* Azul principal */
+    --blue-secondary: 59 130 246; /* Azul secundario */
+    --blue-light: 219 234 254; /* Azul claro */
+    --slate-elegant: 51 65 85; /* Slate-700 para textos */
+
+    --sidebar-background: 248 250 252;
+    --sidebar-foreground: 51 65 85;
+    --sidebar-primary: 30 58 138;
+    --sidebar-primary-foreground: 255 255 255;
+    --sidebar-accent: 241 245 249;
+    --sidebar-accent-foreground: 30 41 59;
+    --sidebar-border: 226 232 240;
+    --sidebar-ring: 30 58 138;
   }
 
   .dark {
-    --background: 210 20% 8%;
-    --foreground: 210 25% 95%;
+    --background: 15 23 42; /* Slate-900 */
+    --foreground: 248 250 252;
 
-    --card: 210 20% 10%;
-    --card-foreground: 210 25% 95%;
+    --card: 30 41 59; /* Slate-800 */
+    --card-foreground: 248 250 252;
 
-    --popover: 210 20% 10%;
-    --popover-foreground: 210 25% 95%;
+    --popover: 30 41 59;
+    --popover-foreground: 248 250 252;
 
-    --primary: 210 50% 65%;
-    --primary-foreground: 210 20% 8%;
+    --primary: 59 130 246; /* Blue-500 más claro para dark */
+    --primary-foreground: 15 23 42;
 
-    --secondary: 210 15% 15%;
-    --secondary-foreground: 210 25% 95%;
+    --secondary: 51 65 85; /* Slate-700 */
+    --secondary-foreground: 248 250 252;
 
-    --muted: 210 15% 15%;
-    --muted-foreground: 210 15% 70%;
+    --muted: 51 65 85;
+    --muted-foreground: 148 163 184;
 
-    --accent: 210 30% 20%;
-    --accent-foreground: 210 25% 95%;
+    --accent: 30 58 138; /* Blue-800 */
+    --accent-foreground: 248 250 252;
 
-    --destructive: 0 60% 50%;
-    --destructive-foreground: 210 25% 95%;
+    --destructive: 239 68 68;
+    --destructive-foreground: 248 250 252;
 
-    --border: 210 15% 20%;
-    --input: 210 15% 20%;
-    --ring: 210 50% 65%;
+    --border: 51 65 85;
+    --input: 51 65 85;
+    --ring: 59 130 246;
 
-    --sidebar-background: 210 20% 6%;
-    --sidebar-foreground: 210 20% 85%;
-    --sidebar-primary: 210 50% 65%;
-    --sidebar-primary-foreground: 210 20% 8%;
-    --sidebar-accent: 210 15% 12%;
-    --sidebar-accent-foreground: 210 20% 85%;
-    --sidebar-border: 210 15% 18%;
-    --sidebar-ring: 210 50% 65%;
+    --sidebar-background: 15 23 42;
+    --sidebar-foreground: 203 213 225;
+    --sidebar-primary: 59 130 246;
+    --sidebar-primary-foreground: 15 23 42;
+    --sidebar-accent: 30 41 59;
+    --sidebar-accent-foreground: 203 213 225;
+    --sidebar-border: 51 65 85;
+    --sidebar-ring: 59 130 246;
   }
 }
 
@@ -93,88 +103,184 @@
   }
 
   body {
-    @apply bg-background text-foreground;
+    @apply bg-background text-foreground font-inter;
+  }
+
+  /* Tipografía elegante */
+  h1, h2, h3, h4, h5, h6 {
+    @apply font-bold tracking-tight;
+  }
+
+  h1 {
+    @apply text-4xl lg:text-5xl;
+  }
+
+  h2 {
+    @apply text-3xl lg:text-4xl;
+  }
+
+  h3 {
+    @apply text-2xl lg:text-3xl;
   }
 }
 
-/* Gradientes sobrios y profesionales */
+/* Gradientes elegantes de marca */
+.gradient-elegant {
+  background: linear-gradient(135deg, 
+    rgb(15 23 42) 0%,     /* slate-900 */
+    rgb(30 58 138) 35%,   /* blue-800 */
+    rgb(59 130 246) 65%,  /* blue-500 */
+    rgb(219 234 254) 100% /* blue-100 */
+  );
+}
+
 .gradient-primary {
-  background: linear-gradient(135deg, #374151 0%, #6b7280 50%, #f9fafb 100%);
+  background: linear-gradient(135deg, 
+    rgb(30 58 138) 0%,    /* blue-800 */
+    rgb(59 130 246) 50%,  /* blue-500 */
+    rgb(147 197 253) 100% /* blue-300 */
+  );
 }
 
 .gradient-secondary {
-  background: linear-gradient(135deg, #f3f4f6 0%, #ffffff 50%, #ffffff 100%);
+  background: linear-gradient(135deg, 
+    rgb(248 250 252) 0%,  /* slate-50 */
+    rgb(241 245 249) 50%, /* slate-100 */
+    rgb(226 232 240) 100% /* slate-200 */
+  );
 }
 
-.gradient-accent {
-  background: linear-gradient(135deg, #4b5563 0%, #9ca3af 50%, #f8fafc 100%);
+.gradient-gold {
+  background: linear-gradient(135deg, 
+    rgb(212 175 55) 0%,   /* gold */
+    rgb(234 179 8) 50%,   /* yellow-500 */
+    rgb(252 211 77) 100%  /* yellow-300 */
+  );
 }
 
-/* Efectos 3D y sombras personalizadas */
-.shadow-3d {
+/* Sombras elegantes con marca */
+.shadow-elegant {
   box-shadow: 
-    0 1px 3px rgba(0, 0, 0, 0.12),
-    0 1px 2px rgba(0, 0, 0, 0.24),
-    0 4px 8px rgba(0, 0, 0, 0.1);
+    0 4px 6px -1px rgba(30, 58, 138, 0.1),
+    0 2px 4px -2px rgba(30, 58, 138, 0.1),
+    0 10px 15px -3px rgba(0, 0, 0, 0.05);
 }
 
-.shadow-3d-hover {
+.shadow-gold {
   box-shadow: 
-    0 4px 6px rgba(0, 0, 0, 0.07),
-    0 10px 20px rgba(0, 0, 0, 0.15),
-    0 2px 6px rgba(0, 0, 0, 0.1);
+    0 4px 6px -1px rgba(212, 175, 55, 0.2),
+    0 2px 4px -2px rgba(212, 175, 55, 0.15),
+    0 10px 15px -3px rgba(212, 175, 55, 0.1);
 }
 
-.card-3d {
+.shadow-3d-elegant {
+  box-shadow: 
+    0 4px 6px rgba(30, 58, 138, 0.07),
+    0 10px 20px rgba(30, 58, 138, 0.15),
+    0 2px 6px rgba(212, 175, 55, 0.1);
+}
+
+.shadow-hover-elegant {
+  box-shadow: 
+    0 10px 25px rgba(30, 58, 138, 0.15),
+    0 20px 40px rgba(30, 58, 138, 0.1),
+    0 4px 12px rgba(212, 175, 55, 0.15);
+}
+
+/* Componentes de marca elegantes */
+.card-elegant {
+  @apply bg-white/95 backdrop-blur-lg rounded-2xl border border-slate-200/50;
   transform: perspective(1000px) rotateX(0deg);
-  transition: all 0.3s cubic-bezier(0.25, 0.8, 0.25, 1);
+  transition: all 0.4s cubic-bezier(0.25, 0.8, 0.25, 1);
 }
 
-.card-3d:hover {
-  transform: perspective(1000px) rotateX(2deg) translateY(-8px);
+.card-elegant:hover {
+  @apply shadow-hover-elegant;
+  transform: perspective(1000px) rotateX(1deg) translateY(-8px);
 }
 
-/* Mejoras responsivas para móvil */
-@media (max-width: 768px) {
-  .container {
-    @apply px-3;
-  }
-  
-  .card {
-    @apply shadow-md;
-  }
-  
-  .text-3xl {
-    @apply text-2xl;
-  }
-  
-  .text-2xl {
-    @apply text-xl;
-  }
-  
-  .py-8 {
-    @apply py-4;
-  }
-  
-  .py-6 {
-    @apply py-3;
-  }
-
-  /* Espaciado adicional para la navegación inferior */
-  body {
-    @apply pb-20;
-  }
+.btn-primary {
+  @apply bg-gradient-primary text-white font-bold border-0 rounded-xl;
+  @apply shadow-elegant hover:shadow-gold;
+  @apply transition-all duration-300 hover:scale-105;
 }
 
-/* Animaciones suaves */
-.animate-fade-in {
-  animation: fadeIn 0.5s ease-in-out;
+.btn-secondary {
+  @apply bg-slate-700 hover:bg-slate-800 text-white font-semibold;
+  @apply border-0 rounded-xl shadow-elegant;
+  @apply transition-all duration-300 hover:scale-105;
 }
 
-@keyframes fadeIn {
+.btn-outline-elegant {
+  @apply border-2 border-slate-300 hover:border-blue-500 text-slate-700;
+  @apply hover:bg-blue-50 rounded-lg;
+  @apply transition-all duration-300;
+}
+
+.input-elegant {
+  @apply bg-slate-50/50 border-2 border-slate-200/50;
+  @apply focus:border-blue-500 focus:bg-white;
+  @apply rounded-xl transition-all duration-300;
+  @apply shadow-sm focus:shadow-elegant;
+}
+
+.alert-elegant {
+  @apply rounded-xl border-l-4 border-l-red-500;
+  @apply bg-red-50/50 backdrop-blur;
+}
+
+/* Colores de utilidad */
+.text-gold {
+  color: rgb(212 175 55);
+}
+
+.bg-gold {
+  background-color: rgb(212 175 55);
+}
+
+.border-gold {
+  border-color: rgb(212 175 55);
+}
+
+/* Animaciones elegantes mejoradas */
+.animate-elegant-fade-in {
+  animation: elegantFadeIn 0.6s cubic-bezier(0.25, 0.8, 0.25, 1);
+}
+
+.animate-elegant-scale-in {
+  animation: elegantScaleIn 0.4s cubic-bezier(0.25, 0.8, 0.25, 1);
+}
+
+.animate-elegant-slide-up {
+  animation: elegantSlideUp 0.5s cubic-bezier(0.25, 0.8, 0.25, 1);
+}
+
+@keyframes elegantFadeIn {
   from {
     opacity: 0;
-    transform: translateY(20px);
+    transform: translateY(30px) scale(0.95);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0) scale(1);
+  }
+}
+
+@keyframes elegantScaleIn {
+  from {
+    opacity: 0;
+    transform: scale(0.9) rotateX(10deg);
+  }
+  to {
+    opacity: 1;
+    transform: scale(1) rotateX(0deg);
+  }
+}
+
+@keyframes elegantSlideUp {
+  from {
+    opacity: 0;
+    transform: translateY(40px);
   }
   to {
     opacity: 1;
@@ -182,17 +288,92 @@
   }
 }
 
-.animate-scale-in {
-  animation: scaleIn 0.3s ease-out;
+/* Efectos de hover elegantes */
+.hover-lift {
+  @apply transition-all duration-300;
 }
 
-@keyframes scaleIn {
-  from {
-    opacity: 0;
-    transform: scale(0.9);
+.hover-lift:hover {
+  @apply transform -translate-y-2 shadow-hover-elegant;
+}
+
+.hover-glow {
+  @apply transition-all duration-300;
+}
+
+.hover-glow:hover {
+  @apply shadow-gold;
+  filter: drop-shadow(0 0 8px rgba(212, 175, 55, 0.3));
+}
+
+/* Mejoras responsivas elegantes */
+@media (max-width: 768px) {
+  .container {
+    @apply px-4;
   }
-  to {
-    opacity: 1;
-    transform: scale(1);
+  
+  .card-elegant {
+    @apply rounded-xl;
+  }
+  
+  .shadow-elegant {
+    box-shadow: 
+      0 2px 4px rgba(30, 58, 138, 0.1),
+      0 4px 6px rgba(0, 0, 0, 0.05);
+  }
+  
+  .text-4xl {
+    @apply text-3xl;
+  }
+  
+  .text-3xl {
+    @apply text-2xl;
+  }
+
+  /* Espaciado adicional para navegación móvil */
+  body {
+    @apply pb-20;
+  }
+}
+
+/* Elementos decorativos de marca */
+.decorative-dots {
+  background-image: radial-gradient(circle, rgba(212, 175, 55, 0.2) 1px, transparent 1px);
+  background-size: 20px 20px;
+}
+
+.decorative-lines {
+  background-image: 
+    linear-gradient(45deg, rgba(30, 58, 138, 0.1) 25%, transparent 25%),
+    linear-gradient(-45deg, rgba(30, 58, 138, 0.1) 25%, transparent 25%);
+  background-size: 40px 40px;
+}
+
+/* Estados de loading elegantes */
+.loading-elegant {
+  @apply relative overflow-hidden;
+}
+
+.loading-elegant::before {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: -100%;
+  width: 100%;
+  height: 100%;
+  background: linear-gradient(90deg, 
+    transparent, 
+    rgba(212, 175, 55, 0.4), 
+    transparent
+  );
+  animation: shimmer 2s infinite;
+}
+
+@keyframes shimmer {
+  0% {
+    left: -100%;
+  }
+  100% {
+    left: 100%;
   }
 }
