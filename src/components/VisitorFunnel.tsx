@@ -4,8 +4,6 @@ import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
-import { supabase } from '@/integrations/supabase/client';
-import { useQuery } from '@tanstack/react-query';
 import { 
   MapPin, 
   AlertTriangle, 
@@ -51,86 +49,102 @@ interface Candidate {
   vote_count: number;
 }
 
+// Mock data para demo (simulando la base de datos demo)
+const mockTerritories: Territory[] = [
+  { id: '1', name: 'Cundinamarca', type: 'departamento', coordinates: { lat: 4.7110, lng: -74.0721 }, population: 2919060 },
+  { id: '2', name: 'Bogotá', type: 'ciudad', coordinates: { lat: 4.7110, lng: -74.0721 }, population: 7412566 },
+  { id: '3', name: 'Chapinero', type: 'barrio', coordinates: { lat: 4.6731, lng: -74.0479 }, population: 32000 },
+  { id: '4', name: 'Suba', type: 'barrio', coordinates: { lat: 4.7590, lng: -74.0890 }, population: 67000 },
+  { id: '5', name: 'Usaquén', type: 'barrio', coordinates: { lat: 4.6946, lng: -74.0309 }, population: 28000 },
+  { id: '6', name: 'Kennedy', type: 'barrio', coordinates: { lat: 4.6280, lng: -74.1472 }, population: 89000 },
+  { id: '7', name: 'Engativá', type: 'barrio', coordinates: { lat: 4.7547, lng: -74.1134 }, population: 52000 },
+  { id: '8', name: 'Centro', type: 'barrio', coordinates: { lat: 4.5981, lng: -74.0758 }, population: 45000 }
+];
+
+const mockAlerts: { [key: string]: Alert[] } = {
+  '3': [
+    {
+      id: '1',
+      title: 'Mejoras en el Parque Simón Bolívar',
+      description: 'Se están realizando mejoras en la infraestructura del parque principal',
+      type: 'infrastructure',
+      priority: 'medium',
+      coordinates: { lat: 4.6731, lng: -74.0479 },
+      created_at: new Date().toISOString()
+    }
+  ],
+  '4': [
+    {
+      id: '2',
+      title: 'Evento Cultural en la Plaza',
+      description: 'Gran evento cultural este fin de semana con artistas locales',
+      type: 'event',
+      priority: 'high',
+      coordinates: { lat: 4.7590, lng: -74.0890 },
+      created_at: new Date().toISOString()
+    }
+  ],
+  '6': [
+    {
+      id: '3',
+      title: 'Campaña de Vacunación',
+      description: 'Jornada de vacunación gratuita en el centro de salud local',
+      type: 'campaign',
+      priority: 'high',
+      coordinates: { lat: 4.6280, lng: -74.1472 },
+      created_at: new Date().toISOString()
+    }
+  ]
+};
+
+const mockCandidates: { [key: string]: Candidate[] } = {
+  '2': [
+    {
+      id: '1',
+      user_name: 'María González',
+      position: 'alcalde',
+      photo_url: '/lovable-uploads/83527a7a-6d3b-4edb-bdfc-312894177818.png',
+      slogan: '¡Juntos por el Cambio Real!',
+      proposals: ['🏥 Salud gratuita para todos', '🎓 Educación de calidad', '🚌 Transporte público eficiente', '🌳 Espacios verdes en cada barrio', '💼 Empleos dignos para jóvenes'],
+      vote_count: 15420
+    }
+  ],
+  '3': [
+    {
+      id: '2',
+      user_name: 'Juan Martínez',
+      position: 'concejal',
+      photo_url: '/lovable-uploads/83527a7a-6d3b-4edb-bdfc-312894177818.png',
+      slogan: 'Chapinero Progresista',
+      proposals: ['🏢 Desarrollo urbano sostenible', '🎭 Cultura y arte para todos', '🚴 Ciclovías seguras', '📚 Bibliotecas comunitarias'],
+      vote_count: 8932
+    }
+  ],
+  '4': [
+    {
+      id: '3',
+      user_name: 'Ana Rodríguez',
+      position: 'concejal',
+      photo_url: '/lovable-uploads/83527a7a-6d3b-4edb-bdfc-312894177818.png',
+      slogan: 'Suba Unida y Fuerte',
+      proposals: ['🏠 Vivienda digna', '🚌 Mejor transporte', '⚽ Deportes para la juventud', '👵 Atención al adulto mayor'],
+      vote_count: 12156
+    }
+  ]
+};
+
 const VisitorFunnel = () => {
   const [selectedTerritory, setSelectedTerritory] = useState<string>('');
   const [sessionId] = useState(() => `visitor_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`);
   const [showCandidateInfo, setShowCandidateInfo] = useState(false);
   const [voteIntention, setVoteIntention] = useState<string>('');
+  const [alertsLoading, setAlertsLoading] = useState(false);
 
-  // Query para territorios demo
-  const { data: territories = [] } = useQuery({
-    queryKey: ['demo-territories'],
-    queryFn: async () => {
-      const { data, error } = await supabase
-        .from('demo.territories')
-        .select('*')
-        .order('type', { ascending: true });
-      
-      if (error) {
-        console.error('Error fetching territories:', error);
-        return [];
-      }
-      return data as Territory[];
-    }
-  });
+  const territories = mockTerritories;
+  const alerts = selectedTerritory ? mockAlerts[selectedTerritory] || [] : [];
+  const candidates = selectedTerritory ? mockCandidates[selectedTerritory] || [] : [];
 
-  // Query para alertas según territorio seleccionado
-  const { data: alerts = [], isLoading: alertsLoading } = useQuery({
-    queryKey: ['demo-alerts', selectedTerritory],
-    queryFn: async () => {
-      if (!selectedTerritory) return [];
-      
-      const { data, error } = await supabase
-        .from('demo.alerts')
-        .select('*')
-        .eq('territory_id', selectedTerritory)
-        .eq('status', 'active')
-        .order('priority', { ascending: false });
-
-      if (error) {
-        console.error('Error fetching alerts:', error);
-        return [];
-      }
-      return data as Alert[];
-    },
-    enabled: !!selectedTerritory
-  });
-
-  // Query para candidatos del territorio
-  const { data: candidates = [] } = useQuery({
-    queryKey: ['demo-candidates', selectedTerritory],
-    queryFn: async () => {
-      if (!selectedTerritory) return [];
-      
-      const { data, error } = await supabase
-        .from('demo.candidates')
-        .select(`
-          id,
-          position,
-          photo_url,
-          slogan,
-          proposals,
-          vote_count,
-          user:demo.users!demo_candidates_user_id_fkey(name)
-        `)
-        .eq('territory_id', selectedTerritory)
-        .order('vote_count', { ascending: false });
-
-      if (error) {
-        console.error('Error fetching candidates:', error);
-        return [];
-      }
-      
-      return data.map(c => ({
-        ...c,
-        user_name: c.user?.name || 'Candidato',
-        proposals: Array.isArray(c.proposals) ? c.proposals : []
-      })) as Candidate[];
-    },
-    enabled: !!selectedTerritory
-  });
-
-  // Función para registrar interacciones con Gemini
+  // Función para registrar interacciones con Gemini (simulada)
   const logInteraction = async (type: string, data: any = {}) => {
     try {
       // Análisis básico con Gemini (simulado por simplicidad)
@@ -147,18 +161,8 @@ const VisitorFunnel = () => {
         }
       };
 
-      await supabase
-        .from('demo.visitor_interactions')
-        .insert({
-          session_id: sessionId,
-          territory_id: selectedTerritory,
-          interaction_type: type,
-          data: data,
-          gemini_analysis: geminiAnalysis,
-          n8n_workflow_id: `workflow_${type}_${Date.now()}`
-        });
-
       console.log(`📊 Interaction logged: ${type}`, { data, geminiAnalysis });
+      console.log(`🤖 N8N Workflow triggered: workflow_${type}_${Date.now()}`);
     } catch (error) {
       console.error('Error logging interaction:', error);
     }
@@ -173,11 +177,19 @@ const VisitorFunnel = () => {
       }, 5000);
       return () => clearTimeout(timer);
     }
-  }, [selectedTerritory, alerts, showCandidateInfo]);
+  }, [selectedTerritory, alerts.length, showCandidateInfo]); // Fixed dependencies
 
   // Manejar selección de territorio
   const handleTerritorySelect = (territoryId: string) => {
     setSelectedTerritory(territoryId);
+    setShowCandidateInfo(false); // Reset candidate info when territory changes
+    setAlertsLoading(true);
+    
+    // Simulate loading
+    setTimeout(() => {
+      setAlertsLoading(false);
+    }, 1000);
+    
     logInteraction('map_view', { territory_id: territoryId });
   };
 
@@ -192,7 +204,7 @@ const VisitorFunnel = () => {
 
   // Manejar intención de voto
   const handleVoteIntention = async (candidateId: string, intention: string) => {
-    setVoteIntention(intention);
+    setVoteIntention(`${intention}_${candidateId}`);
     await logInteraction('vote_intention', { 
       candidate_id: candidateId, 
       intention: intention 
