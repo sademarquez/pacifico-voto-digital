@@ -1,3 +1,4 @@
+
 import { useState, useEffect } from 'react';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { supabase } from '@/integrations/supabase/client';
@@ -8,15 +9,15 @@ import { Label } from '@/components/ui/label';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Textarea } from '@/components/ui/textarea';
 import { Badge } from '@/components/ui/badge';
-import { MapPin, Users, Plus, Edit, Trash2 } from 'lucide-react';
+import { MapPin, Users, Plus, Settings, AlertTriangle } from 'lucide-react';
 import { useSimpleAuth } from '../contexts/SimpleAuthContext';
 import { useDataSegregation } from '../hooks/useDataSegregation';
-import { toast } from 'sonner';
+import { useToast } from '@/hooks/use-toast';
 
 interface Territory {
   id: string;
   name: string;
-  description: string | null;
+  type: 'barrio' | 'departamento' | 'municipio' | 'corregimiento' | 'vereda' | 'sector';
   responsible_user_id: string | null;
   created_by: string | null;
   created_at: string;
@@ -26,11 +27,12 @@ const TerritoryManager = () => {
   const { user } = useSimpleAuth();
   const { getTerritoryFilter, canCreateTerritory, canManageUsers } = useDataSegregation();
   const queryClient = useQueryClient();
+  const { toast } = useToast();
 
   const [showNewTerritory, setShowNewTerritory] = useState(false);
   const [newTerritory, setNewTerritory] = useState({
     name: '',
-    description: '',
+    type: 'barrio' as const,
     responsible_user_id: user?.id || ''
   });
   const [selectedTerritory, setSelectedTerritory] = useState<Territory | null>(null);
@@ -85,7 +87,7 @@ const TerritoryManager = () => {
         .from('territories')
         .insert({
           name: territoryData.name,
-          description: territoryData.description || null,
+          type: territoryData.type,
           responsible_user_id: territoryData.responsible_user_id,
           created_by: user.id
         })
@@ -103,7 +105,7 @@ const TerritoryManager = () => {
       queryClient.invalidateQueries({ queryKey: ['territories'] });
       setNewTerritory({
         name: '',
-        description: '',
+        type: 'barrio' as const,
         responsible_user_id: user?.id || ''
       });
       setShowNewTerritory(false);
@@ -126,7 +128,7 @@ const TerritoryManager = () => {
         .from('territories')
         .update({
           name: territoryData.name,
-          description: territoryData.description || null,
+          type: territoryData.type,
           responsible_user_id: territoryData.responsible_user_id
         })
         .eq('id', territoryData.id);
@@ -203,7 +205,6 @@ const TerritoryManager = () => {
 
   return (
     <div className="space-y-6">
-      {/* Header con botón nuevo territorio */}
       <div className="flex justify-between items-center">
         <div>
           <h2 className="text-2xl font-bold text-slate-800">Gestión de Territorios</h2>
@@ -220,7 +221,6 @@ const TerritoryManager = () => {
         )}
       </div>
 
-      {/* Formulario nuevo territorio */}
       {showNewTerritory && (
         <Card>
           <CardHeader>
@@ -240,13 +240,23 @@ const TerritoryManager = () => {
             </div>
             
             <div>
-              <Label className="block text-sm font-medium mb-2">Descripción (Opcional)</Label>
-              <Textarea
-                placeholder="Descripción detallada del territorio..."
-                rows={3}
-                value={newTerritory.description}
-                onChange={(e) => setNewTerritory(prev => ({ ...prev, description: e.target.value }))}
-              />
+              <Label className="block text-sm font-medium mb-2">Tipo de Territorio</Label>
+              <Select 
+                value={newTerritory.type} 
+                onValueChange={(value: any) => setNewTerritory(prev => ({ ...prev, type: value }))}
+              >
+                <SelectTrigger>
+                  <SelectValue placeholder="Selecciona el tipo..." />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="barrio">Barrio</SelectItem>
+                  <SelectItem value="municipio">Municipio</SelectItem>
+                  <SelectItem value="departamento">Departamento</SelectItem>
+                  <SelectItem value="corregimiento">Corregimiento</SelectItem>
+                  <SelectItem value="vereda">Vereda</SelectItem>
+                  <SelectItem value="sector">Sector</SelectItem>
+                </SelectContent>
+              </Select>
             </div>
 
             {canManageUsers && (
@@ -287,7 +297,6 @@ const TerritoryManager = () => {
         </Card>
       )}
 
-      {/* Lista de territorios */}
       <Card>
         <CardHeader>
           <CardTitle className="flex items-center gap-2">
@@ -323,8 +332,8 @@ const TerritoryManager = () => {
                         </Badge>
                       )}
                     </div>
-                    <p className="text-sm text-slate-600 line-clamp-2">
-                      {territory.description || 'Sin descripción'}
+                    <p className="text-sm text-slate-600">
+                      Tipo: {territory.type}
                     </p>
                     <p className="text-xs text-slate-500 mt-2">
                       Creado: {new Date(territory.created_at).toLocaleDateString()}
@@ -337,12 +346,11 @@ const TerritoryManager = () => {
         </CardContent>
       </Card>
 
-      {/* Formulario editar territorio */}
       {selectedTerritory && (
         <Card>
           <CardHeader>
             <CardTitle className="flex items-center gap-2">
-              <Edit className="w-5 h-5" />
+              <Settings className="w-5 h-5" />
               Editar Territorio
             </CardTitle>
           </CardHeader>
@@ -357,20 +365,30 @@ const TerritoryManager = () => {
             </div>
             
             <div>
-              <Label className="block text-sm font-medium mb-2">Descripción (Opcional)</Label>
-              <Textarea
-                placeholder="Descripción detallada del territorio..."
-                rows={3}
-                value={selectedTerritory.description || ''}
-                onChange={(e) => setSelectedTerritory(prev => prev ? ({ ...prev, description: e.target.value }) : null)}
-              />
+              <Label className="block text-sm font-medium mb-2">Tipo de Territorio</Label>
+              <Select 
+                value={selectedTerritory.type} 
+                onValueChange={(value: any) => setSelectedTerritory(prev => prev ? ({ ...prev, type: value }) : null)}
+              >
+                <SelectTrigger>
+                  <SelectValue placeholder="Selecciona el tipo..." />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="barrio">Barrio</SelectItem>
+                  <SelectItem value="municipio">Municipio</SelectItem>
+                  <SelectItem value="departamento">Departamento</SelectItem>
+                  <SelectItem value="corregimiento">Corregimiento</SelectItem>
+                  <SelectItem value="vereda">Vereda</SelectItem>
+                  <SelectItem value="sector">Sector</SelectItem>
+                </SelectContent>
+              </Select>
             </div>
 
             {canManageUsers && (
               <div>
                 <Label className="block text-sm font-medium mb-2">Responsable del Territorio</Label>
                 <Select 
-                  value={selectedTerritory.responsible_user_id} 
+                  value={selectedTerritory.responsible_user_id || ''} 
                   onValueChange={(value) => setSelectedTerritory(prev => prev ? ({ ...prev, responsible_user_id: value }) : null)}
                 >
                   <SelectTrigger>
@@ -393,7 +411,7 @@ const TerritoryManager = () => {
               >
                 {deleteTerritoryMutation.isPending ? "Eliminando..." : (
                   <>
-                    <Trash2 className="w-4 h-4 mr-2" />
+                    <AlertTriangle className="w-4 h-4 mr-2" />
                     Eliminar
                   </>
                 )}

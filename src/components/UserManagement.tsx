@@ -1,3 +1,4 @@
+
 import { useState, useEffect } from 'react';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { supabase } from '@/integrations/supabase/client';
@@ -7,16 +8,17 @@ import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Badge } from '@/components/ui/badge';
-import { Trash2, Edit, Plus, User, Crown } from 'lucide-react';
+import { AlertTriangle, Settings, Plus, User, UserPlus } from 'lucide-react';
 import { useSimpleAuth } from '../contexts/SimpleAuthContext';
 import { useDataSegregation } from '../hooks/useDataSegregation';
-import { toast } from 'sonner';
+import { useToast } from '@/hooks/use-toast';
+
+type UserRole = 'votante' | 'desarrollador' | 'master' | 'candidato' | 'lider' | 'visitante';
 
 interface UserProfile {
   id: string;
   name: string;
-  email: string;
-  role: string;
+  role: UserRole;
   created_at: string;
 }
 
@@ -24,18 +26,19 @@ const UserManagement = () => {
   const { user } = useSimpleAuth();
   const { canCreateDesarrollador, canCreateMaster, canCreateCandidatos, canCreateLideres, canCreateVotantes, canManageUsers } = useDataSegregation();
   const queryClient = useQueryClient();
+  const { toast } = useToast();
   const [isCreating, setIsCreating] = useState(false);
   const [newUser, setNewUser] = useState({
     name: '',
     email: '',
     password: '',
-    role: 'votante'
+    role: 'votante' as UserRole
   });
   const [editingUser, setEditingUser] = useState<UserProfile | null>(null);
   const [editedUser, setEditedUser] = useState({
     id: '',
     name: '',
-    role: ''
+    role: 'votante' as UserRole
   });
 
   // Fetch users
@@ -96,14 +99,21 @@ const UserManagement = () => {
       return authData;
     },
     onSuccess: () => {
-      toast.success('Usuario creado exitosamente');
+      toast({
+        title: 'Usuario creado exitosamente',
+        description: 'El usuario ha sido registrado correctamente.',
+      });
       setIsCreating(false);
       setNewUser({ name: '', email: '', password: '', role: 'votante' });
       queryClient.invalidateQueries({ queryKey: ['users'] });
     },
     onError: (error: any) => {
       console.error('Error creating user:', error);
-      toast.error(`Error al crear usuario: ${error.message}`);
+      toast({
+        title: 'Error al crear usuario',
+        description: error.message,
+        variant: 'destructive',
+      });
     }
   });
 
@@ -126,14 +136,21 @@ const UserManagement = () => {
       }
     },
     onSuccess: () => {
-      toast.success('Usuario actualizado exitosamente');
+      toast({
+        title: 'Usuario actualizado',
+        description: 'Los datos del usuario han sido modificados.',
+      });
       setEditingUser(null);
-      setEditedUser({ id: '', name: '', role: '' });
+      setEditedUser({ id: '', name: '', role: 'votante' });
       queryClient.invalidateQueries({ queryKey: ['users'] });
     },
     onError: (error: any) => {
       console.error('Error updating user:', error);
-      toast.error(`Error al actualizar usuario: ${error.message}`);
+      toast({
+        title: 'Error al actualizar',
+        description: error.message,
+        variant: 'destructive',
+      });
     }
   });
 
@@ -153,18 +170,29 @@ const UserManagement = () => {
       }
     },
     onSuccess: () => {
-      toast.success('Usuario eliminado exitosamente');
+      toast({
+        title: 'Usuario eliminado',
+        description: 'El usuario ha sido removido del sistema.',
+      });
       queryClient.invalidateQueries({ queryKey: ['users'] });
     },
     onError: (error: any) => {
       console.error('Error deleting user:', error);
-      toast.error(`Error al eliminar usuario: ${error.message}`);
+      toast({
+        title: 'Error al eliminar',
+        description: error.message,
+        variant: 'destructive',
+      });
     }
   });
 
   const handleCreateUser = async () => {
     if (!newUser.name || !newUser.email || !newUser.password) {
-      toast.error('Por favor, complete todos los campos.');
+      toast({
+        title: 'Campos requeridos',
+        description: 'Por favor, complete todos los campos.',
+        variant: 'destructive',
+      });
       return;
     }
 
@@ -173,7 +201,11 @@ const UserManagement = () => {
 
   const handleUpdateUser = async () => {
     if (!editedUser.name || !editedUser.role) {
-      toast.error('Por favor, complete todos los campos.');
+      toast({
+        title: 'Campos requeridos',
+        description: 'Por favor, complete todos los campos.',
+        variant: 'destructive',
+      });
       return;
     }
 
@@ -223,7 +255,6 @@ const UserManagement = () => {
 
   return (
     <div className="space-y-6">
-      {/* Header with create user button */}
       <div className="flex justify-between items-center">
         <h2 className="text-2xl font-bold text-gray-800">Gestión de Usuarios</h2>
         <Button onClick={() => setIsCreating(true)} disabled={!canCreateDesarrollador && !canCreateMaster && !canCreateCandidatos && !canCreateLideres && !canCreateVotantes}>
@@ -232,7 +263,6 @@ const UserManagement = () => {
         </Button>
       </div>
 
-      {/* Create user form */}
       {isCreating && (
         <Card>
           <CardHeader>
@@ -270,7 +300,7 @@ const UserManagement = () => {
             </div>
             <div>
               <Label htmlFor="role">Rol</Label>
-              <Select value={newUser.role} onValueChange={(value) => setNewUser({ ...newUser, role: value })}>
+              <Select value={newUser.role} onValueChange={(value: UserRole) => setNewUser({ ...newUser, role: value })}>
                 <SelectTrigger className="w-full">
                   <SelectValue placeholder="Selecciona un rol" />
                 </SelectTrigger>
@@ -295,7 +325,6 @@ const UserManagement = () => {
         </Card>
       )}
 
-      {/* User list */}
       <Card>
         <CardHeader>
           <CardTitle>Lista de Usuarios</CardTitle>
@@ -310,9 +339,6 @@ const UserManagement = () => {
                   <tr>
                     <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
                       Nombre
-                    </th>
-                    <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                      Email
                     </th>
                     <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
                       Rol
@@ -332,9 +358,6 @@ const UserManagement = () => {
                         {userProfile.name}
                       </td>
                       <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
-                        {userProfile.email}
-                      </td>
-                      <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
                         <Badge className={getRoleBadgeColor(userProfile.role)}>{userProfile.role}</Badge>
                       </td>
                       <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
@@ -349,15 +372,15 @@ const UserManagement = () => {
                             setEditedUser({ id: userProfile.id, name: userProfile.name, role: userProfile.role });
                           }}
                         >
-                          <Edit className="w-4 h-4" />
+                          <Settings className="w-4 h-4" />
                         </Button>
                         <Button
                           variant="destructive"
                           size="icon"
                           onClick={() => handleDeleteUser(userProfile.id)}
-                          disabled={deleteUserMutation.isLoading}
+                          disabled={deleteUserMutation.isPending}
                         >
-                          <Trash2 className="w-4 h-4" />
+                          <AlertTriangle className="w-4 h-4" />
                         </Button>
                       </td>
                     </tr>
@@ -369,7 +392,6 @@ const UserManagement = () => {
         </CardContent>
       </Card>
 
-      {/* Edit user form */}
       {editingUser && (
         <Card>
           <CardHeader>
@@ -387,7 +409,7 @@ const UserManagement = () => {
             </div>
             <div>
               <Label htmlFor="role">Rol</Label>
-              <Select value={editedUser.role} onValueChange={(value) => setEditedUser({ ...editedUser, role: value })}>
+              <Select value={editedUser.role} onValueChange={(value: UserRole) => setEditedUser({ ...editedUser, role: value })}>
                 <SelectTrigger className="w-full">
                   <SelectValue placeholder="Selecciona un rol" />
                 </SelectTrigger>

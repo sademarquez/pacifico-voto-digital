@@ -12,6 +12,7 @@ import {
   MessageCircle,
   Clock,
   CheckCircle,
+  AlertTriangle,
 } from "lucide-react";
 import { geminiService } from "../services/geminiService";
 import { geminiMCPService } from "../services/geminiMCPService";
@@ -28,7 +29,7 @@ interface TerritoryData {
 
 const EnhancedInteractiveMapFunnel = () => {
   const { user } = useSimpleAuth();
-  const [territoryData, setTerritoryData] = useState<TerritoryData | null>(null);
+  const [territoryData, setTerritoryData] = useState<any>(null);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [insights, setInsights] = useState<string[]>([]);
@@ -43,10 +44,9 @@ const EnhancedInteractiveMapFunnel = () => {
       setError(null);
 
       try {
-        // Simular carga de datos del territorio
         await new Promise((resolve) => setTimeout(resolve, 1000));
 
-        const mockTerritoryData: TerritoryData = {
+        const mockTerritoryData = {
           id: "territory-001",
           name: "Distrito Electoral #7",
           description: "Zona urbana con alta densidad de votantes jóvenes",
@@ -68,13 +68,11 @@ const EnhancedInteractiveMapFunnel = () => {
 
         setTerritoryData(mockTerritoryData);
 
-        // Inicializar Gemini MCP Service
         const initResult = await geminiMCPService.initialize();
         if (!initResult.success) {
           throw new Error(initResult.message);
         }
 
-        // Analizar datos electorales con IA
         const analysisResult = await geminiMCPService.analyzeElectoralData({
           territory: mockTerritoryData.name,
           demographics: mockTerritoryData.demographics,
@@ -87,7 +85,6 @@ const EnhancedInteractiveMapFunnel = () => {
         setProjections(analysisResult.projections);
         setRiskFactors(analysisResult.riskFactors);
 
-        // Generar mensaje de bienvenida
         const welcomeMsg = await geminiService.generateWelcomeMessage();
         setWelcomeMessage(welcomeMsg);
       } catch (err: any) {

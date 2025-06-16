@@ -1,10 +1,11 @@
+
 import { useState, useEffect } from 'react';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { supabase } from '@/integrations/supabase/client';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
-import { AlertTriangle, CheckCircle, Clock, Eye, EyeOff } from 'lucide-react';
+import { AlertTriangle, CheckCircle, Clock, Eye, Settings } from 'lucide-react';
 import { useSimpleAuth } from '../contexts/SimpleAuthContext';
 import { useToast } from '@/hooks/use-toast';
 
@@ -99,7 +100,6 @@ const AlertSystem = () => {
 
   return (
     <div className="space-y-6">
-      {/* Header con switch de visibilidad */}
       <div className="flex justify-between items-center">
         <div>
           <h2 className="text-2xl font-bold text-gray-800">Sistema de Alertas</h2>
@@ -119,7 +119,7 @@ const AlertSystem = () => {
               </>
             ) : (
               <>
-                <EyeOff className="w-4 h-4 mr-2" />
+                <Settings className="w-4 h-4 mr-2" />
                 Solo Visibles
               </>
             )}
@@ -127,7 +127,6 @@ const AlertSystem = () => {
         </div>
       </div>
 
-      {/* Lista de alertas */}
       <Card>
         <CardHeader>
           <CardTitle className="flex items-center gap-2">
@@ -170,7 +169,7 @@ const AlertSystem = () => {
                       {alert.status === 'active' && (
                         <Button
                           onClick={() => resolveAlertMutation.mutate(alert.id)}
-                          disabled={resolveAlertMutation.isLoading}
+                          disabled={resolveAlertMutation.isPending}
                           size="sm"
                           className="bg-green-600 hover:bg-green-700 text-white"
                         >
