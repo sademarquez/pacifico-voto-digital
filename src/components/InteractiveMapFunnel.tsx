@@ -58,6 +58,7 @@ interface UserLocation {
 }
 
 interface VoterProfile {
+  nombre?: string;
   age_range?: string;
   political_interest?: string;
   engagement_level?: string;
@@ -211,6 +212,7 @@ const InteractiveMapFunnel = () => {
 
   const captureInteraction = async (type: string, data: any = {}) => {
     const voterProfile: VoterProfile = {
+      nombre: 'Visitante',
       age_range: '25-54',
       political_interest: 'high',
       engagement_level: leadData.engagementScore > 50 ? 'high' : 'medium',
@@ -247,17 +249,12 @@ const InteractiveMapFunnel = () => {
   const analyzeWithGemini = async (interactionType: string, interactionData: any) => {
     setIsAnalyzing(true);
     try {
-      const context = `
-        Usuario interactuando en mapa electoral:
-        - Ubicación actual: ${currentLevel?.name || 'No definida'}
-        - Nivel de zoom: ${zoomLevel}
-        - Tipo de interacción: ${interactionType}
-        - Engagement: ${leadData.engagementScore}%
-        - Población del área: ${currentLevel?.population || 0}
-        - Alertas visibles: ${currentLevel?.alerts.length || 0}
-      `;
+      const voterProfile: VoterProfile = {
+        nombre: 'Visitante',
+        location: currentLevel?.name || 'No definida'
+      };
 
-      const insight = await geminiService.generateWelcomeMessage(context);
+      const insight = await geminiService.generateWelcomeMessage(voterProfile);
       setGeminiInsights(insight);
       
       console.log('🤖 Gemini Analysis:', insight);
