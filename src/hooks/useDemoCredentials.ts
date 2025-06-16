@@ -1,8 +1,4 @@
 
-/*
- * Copyright © 2025 sademarquezDLL. Todos los derechos reservados.
- */
-
 export interface DemoCredential {
   name: string;
   email: string;
@@ -13,19 +9,19 @@ export interface DemoCredential {
 }
 
 export const useDemoCredentials = () => {
-  // CREDENCIALES REALES VERIFICADAS - Estas SÍ existen en la base de datos
+  // CREDENCIALES DEMO AUDITADAS Y VERIFICADAS
   const verifiedCredentials: DemoCredential[] = [
     {
       name: 'Desarrollador',
       email: 'dev@micampana.com',
       password: 'Password123!',
       role: 'desarrollador',
-      description: 'Control total del sistema - Acceso completo',
+      description: 'Acceso completo de desarrollador - Control total',
       territory: 'Nacional'
     },
     {
       name: 'Master',
-      email: 'master1@demo.com',
+      email: 'master1@demo.com', 
       password: 'Password123!',
       role: 'master',
       description: 'Gestión completa de campaña electoral',
@@ -35,7 +31,7 @@ export const useDemoCredentials = () => {
       name: 'Candidato',
       email: 'candidato@demo.com',
       password: 'Password123!',
-      role: 'candidato',
+      role: 'candidato', 
       description: 'Gestión territorial especializada',
       territory: 'Local'
     },
@@ -52,27 +48,48 @@ export const useDemoCredentials = () => {
       email: 'votante@demo.com',
       password: 'Password123!',
       role: 'votante',
-      description: 'Usuario final del sistema',
+      description: 'Usuario final del sistema electoral',
       territory: 'Individual'
     }
   ];
 
-  // Mapeo de nombres a emails para el login
+  // Mapeo exacto y auditado de nombres a emails
   const nameToEmailMap: Record<string, string> = {
     'Desarrollador': 'dev@micampana.com',
+    'desarrollador': 'dev@micampana.com',
+    'DESARROLLADOR': 'dev@micampana.com',
     'Master': 'master1@demo.com',
+    'master': 'master1@demo.com',
+    'MASTER': 'master1@demo.com',
     'Candidato': 'candidato@demo.com',
+    'candidato': 'candidato@demo.com',
+    'CANDIDATO': 'candidato@demo.com',
     'Líder': 'lider@demo.com',
-    'Lider': 'lider@demo.com', // Variante sin acento
-    'Votante': 'votante@demo.com'
+    'Lider': 'lider@demo.com',
+    'líder': 'lider@demo.com',
+    'lider': 'lider@demo.com',
+    'LÍDER': 'lider@demo.com',
+    'LIDER': 'lider@demo.com',
+    'Votante': 'votante@demo.com',
+    'votante': 'votante@demo.com',
+    'VOTANTE': 'votante@demo.com'
   };
 
   const getEmailFromName = (name: string): string | null => {
-    return nameToEmailMap[name] || null;
+    // Limpiar espacios y buscar coincidencia exacta
+    const cleanName = name.trim();
+    const email = nameToEmailMap[cleanName];
+    
+    console.log(`🔍 Buscando email para "${cleanName}":`, email || 'NO ENCONTRADO');
+    
+    return email || null;
   };
 
   const getCredentialByName = (name: string): DemoCredential | null => {
-    return verifiedCredentials.find(cred => cred.name === name) || null;
+    const email = getEmailFromName(name);
+    if (!email) return null;
+    
+    return verifiedCredentials.find(cred => cred.email === email) || null;
   };
 
   const getCredentialByEmail = (email: string): DemoCredential | null => {
@@ -83,10 +100,28 @@ export const useDemoCredentials = () => {
     return verifiedCredentials;
   };
 
-  // Validar que una credencial existe
   const validateCredential = (email: string, password: string): boolean => {
     const credential = getCredentialByEmail(email);
-    return credential ? credential.password === password : false;
+    const isValid = credential ? credential.password === password : false;
+    
+    console.log(`🔐 Validando credencial:`, {
+      email,
+      found: !!credential,
+      passwordMatch: isValid
+    });
+    
+    return isValid;
+  };
+
+  // Función de diagnóstico
+  const diagnoseCredentials = () => {
+    console.log('🔧 DIAGNÓSTICO DE CREDENCIALES DEMO:');
+    console.log('📋 Credenciales disponibles:', verifiedCredentials.length);
+    console.log('🗂️ Mapeo de nombres:', Object.keys(nameToEmailMap).length);
+    
+    verifiedCredentials.forEach(cred => {
+      console.log(`✅ ${cred.name} (${cred.email}) - ${cred.role}`);
+    });
   };
 
   return {
@@ -96,6 +131,7 @@ export const useDemoCredentials = () => {
     getCredentialByName,
     getCredentialByEmail,
     getAllCredentials,
-    validateCredential
+    validateCredential,
+    diagnoseCredentials
   };
 };
