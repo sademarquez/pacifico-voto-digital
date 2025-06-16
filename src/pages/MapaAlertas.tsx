@@ -1,4 +1,3 @@
-
 import { useState, useEffect } from "react";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
@@ -142,7 +141,7 @@ const MapaAlertas = () => {
       .channel('alerts-changes')
       .on('postgres_changes', 
         { event: '*', schema: 'public', table: 'alerts' },
-        (payload) => {
+        (payload: { eventType: string; new?: AlertData; old?: AlertData }) => {
           logSystem('info', 'realtime', 'Cambio detectado en alertas', { 
             event: payload.eventType,
             recordId: payload.new?.id || payload.old?.id 
@@ -230,7 +229,6 @@ const MapaAlertas = () => {
     }
   };
 
-  // Filtrar alertas con logging de performance
   const filteredAlerts = alerts.filter(alert => {
     const matchesSearch = alert.title.toLowerCase().includes(searchTerm.toLowerCase()) ||
                          alert.description?.toLowerCase().includes(searchTerm.toLowerCase() || '');
