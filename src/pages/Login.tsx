@@ -1,6 +1,6 @@
 
 import { useState } from 'react';
-import { useAuth } from '@/contexts/AuthContext';
+import { useSecureAuth } from '@/contexts/SecureAuthContext';
 import { useNavigate } from 'react-router-dom';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
@@ -15,7 +15,7 @@ const Login = () => {
   const [showPassword, setShowPassword] = useState(false);
   const [error, setError] = useState('');
   const [isLoading, setIsLoading] = useState(false);
-  const { login, isAuthenticated } = useAuth();
+  const { login, isAuthenticated } = useSecureAuth();
   const navigate = useNavigate();
 
   // Redirigir si ya está autenticado
@@ -32,11 +32,11 @@ const Login = () => {
     try {
       const result = await login(email, password);
       
-      if (result.success) {
+      if (result) {
         console.log('✅ Login exitoso, redirigiendo...');
         navigate('/dashboard');
       } else {
-        setError(result.error || 'Error desconocido en el login');
+        setError('Error de autenticación. Verifica tus credenciales.');
       }
     } catch (error) {
       console.error('💥 Error crítico en handleSubmit:', error);
