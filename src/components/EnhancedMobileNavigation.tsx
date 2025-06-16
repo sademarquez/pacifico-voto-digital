@@ -1,299 +1,348 @@
 
-import { useState, useEffect } from "react";
-import { Link, useLocation, useNavigate } from "react-router-dom";
-import { useSecureAuth } from "../contexts/SecureAuthContext";
-import { Button } from "@/components/ui/button";
-import { Badge } from "@/components/ui/badge";
+import { useState, useEffect } from 'react';
+import { useLocation, useNavigate } from 'react-router-dom';
+import { useSecureAuth } from '@/contexts/SecureAuthContext';
+import { Badge } from '@/components/ui/badge';
+import { Button } from '@/components/ui/button';
 import { 
   Home, 
-  Users, 
-  MapPin, 
   BarChart3, 
+  MapPin, 
+  Users, 
+  MessageSquare,
+  Bell,
   Settings,
-  LogOut,
+  Calendar,
+  ClipboardList,
+  Zap,
+  Eye,
+  Target,
+  TrendingUp,
+  Smartphone,
   Menu,
   X,
-  Zap,
-  Target,
-  MessageSquare,
-  Calendar,
+  ChevronRight,
   Shield,
-  Bell,
-  Search,
-  Plus,
-  Activity
-} from "lucide-react";
+  Database,
+  Wifi,
+  Battery
+} from 'lucide-react';
+
+interface NavItem {
+  path: string;
+  label: string;
+  icon: any;
+  roles: string[];
+  badge?: number;
+  category: 'main' | 'tools' | 'reports' | 'admin';
+}
 
 const EnhancedMobileNavigation = () => {
-  const { user, logout } = useSecureAuth();
+  const [isOpen, setIsOpen] = useState(false);
+  const [activeCategory, setActiveCategory] = useState<string>('main');
+  const [notifications, setNotifications] = useState(12);
+  const [isOnline, setIsOnline] = useState(navigator.onLine);
+  const [batteryLevel, setBatteryLevel] = useState<number | null>(null);
+  
   const location = useLocation();
   const navigate = useNavigate();
-  const [showMenu, setShowMenu] = useState(false);
-  const [notifications, setNotifications] = useState(3);
+  const { user, isAuthenticated, systemHealth } = useSecureAuth();
 
+  const navItems: NavItem[] = [
+    // Navegación Principal
+    { path: '/dashboard', label: 'Dashboard', icon: Home, roles: ['all'], category: 'main' },
+    { path: '/mapa-alertas', label: 'Mapa Electoral', icon: MapPin, roles: ['all'], category: 'main' },
+    { path: '/registro', label: 'Registro Votantes', icon: Users, roles: ['all'], category: 'main' },
+    { path: '/liderazgo', label: 'Liderazgo', icon: Target, roles: ['desarrollador', 'master', 'candidato'], category: 'main' },
+    
+    // Herramientas Operativas
+    { path: '/tareas', label: 'Tareas', icon: ClipboardList, roles: ['all'], badge: 5, category: 'tools' },
+    { path: '/eventos', label: 'Eventos', icon: Calendar, roles: ['all'], badge: 3, category: 'tools' },
+    { path: '/acciones-rapidas', label: 'Acciones Rápidas', icon: Zap, roles: ['all'], category: 'tools' },
+    { path: '/red-ayudantes', label: 'Red Ayudantes', icon: MessageSquare, roles: ['desarrollador', 'master'], category: 'tools' },
+    
+    // Informes y Analytics
+    { path: '/informes', label: 'Informes', icon: BarChart3, roles: ['all'], category: 'reports' },
+    { path: '/visitor-funnel', label: 'Análisis Visitantes', icon: TrendingUp, roles: ['all'], category: 'reports' },
+    { path: '/mobile-audit', label: 'Auditoría Móvil', icon: Smartphone, roles: ['desarrollador', 'master'], category: 'reports' },
+    
+    // Administración
+    { path: '/configuracion', label: 'Configuración', icon: Settings, roles: ['desarrollador', 'master'], category: 'admin' }
+  ];
+
+  const categories = [
+    { id: 'main', label: 'Principal', icon: Home },
+    { id: 'tools', label: 'Herramientas', icon: Zap },
+    { id: 'reports', label: 'Informes', icon: BarChart3 },
+    { id: 'admin', label: 'Admin', icon: Settings }
+  ];
+
+  const filteredItems = navItems.filter(item => {
+    if (!isAuthenticated && !['/', '/login', '/visitor-funnel', '/mobile-audit'].includes(item.path)) {
+      return false;
+    }
+    
+    if (item.category !== activeCategory) return false;
+    
+    if (item.roles.includes('all')) return true;
+    
+    return user?.role && item.roles.includes(user.role);
+  });
+
+  // Monitoreo de conectividad y batería
   useEffect(() => {
-    setShowMenu(false);
+    const handleOnline = () => setIsOnline(true);
+    const handleOffline = () => setIsOnline(false);
+    
+    window.addEventListener('online', handleOnline);
+    window.addEventListener('offline', handleOffline);
+    
+    // API de batería (si está disponible)
+    if ('getBattery' in navigator) {
+      (navigator as any).getBattery().then((battery: any) => {
+        setBatteryLevel(Math.round(battery.level * 100));
+        
+        battery.addEventListener('levelchange', () => {
+          setBatteryLevel(Math.round(battery.level * 100));
+        });
+      });
+    }
+    
+    return () => {
+      window.removeEventListener('online', handleOnline);
+      window.removeEventListener('offline', handleOffline);
+    };
+  }, []);
+
+  // Cierre automático al navegar
+  useEffect(() => {
+    setIsOpen(false);
   }, [location.pathname]);
 
-  const handleLogout = async () => {
-    await logout();
-    navigate("/login");
+  const handleNavigation = (path: string) => {
+    navigate(path);
+    setIsOpen(false);
   };
 
-  const getNavigationItems = () => {
-    const baseItems = [
-      { href: "/dashboard", label: "Inicio", icon: Home, priority: 1, color: "text-blue-600" },
-    ];
-
-    if (user?.role === 'master' || user?.role === 'desarrollador') {
-      return [
-        ...baseItems,
-        { href: "/dashboard?tab=electoral", label: "IA", icon: Zap, priority: 1, color: "text-purple-600" },
-        { href: "/dashboard?tab=visitor", label: "Visitantes", icon: Users, priority: 1, color: "text-green-600" },
-        { href: "/mapa-alertas", label: "Mapa", icon: MapPin, priority: 1, color: "text-red-600" }
-      ];
+  const getHealthColor = () => {
+    switch (systemHealth) {
+      case 'healthy': return 'bg-green-500';
+      case 'warning': return 'bg-yellow-500';
+      case 'error': return 'bg-red-500';
+      default: return 'bg-gray-500';
     }
-
-    if (user?.role === 'candidato') {
-      return [
-        ...baseItems,
-        { href: "/dashboard?tab=electoral", label: "IA", icon: Zap, priority: 1, color: "text-purple-600" },
-        { href: "/dashboard?tab=visitor", label: "Visitantes", icon: Users, priority: 1, color: "text-green-600" },
-        { href: "/liderazgo", label: "Liderazgo", icon: Target, priority: 1, color: "text-orange-600" }
-      ];
-    }
-
-    if (user?.role === 'lider') {
-      return [
-        ...baseItems,
-        { href: "/dashboard?tab=electoral", label: "IA", icon: Zap, priority: 1, color: "text-purple-600" },
-        { href: "/mapa-alertas", label: "Territorio", icon: MapPin, priority: 1, color: "text-red-600" },
-        { href: "/registro", label: "Registro", icon: Users, priority: 1, color: "text-green-600" }
-      ];
-    }
-
-    if (user?.role === 'votante') {
-      return [
-        ...baseItems,
-        { href: "/dashboard?tab=visitor", label: "Participar", icon: Users, priority: 1, color: "text-green-600" },
-        { href: "/mapa-alertas", label: "Mapa", icon: MapPin, priority: 1, color: "text-red-600" },
-        { href: "/mensajes", label: "Mensajes", icon: MessageSquare, priority: 1, color: "text-blue-600" }
-      ];
-    }
-
-    return baseItems;
   };
 
-  const navigationItems = getNavigationItems();
-  const primaryItems = navigationItems.filter(item => item.priority === 1).slice(0, 4);
-
-  const isActiveRoute = (href: string) => {
-    if (href.includes('?tab=')) {
-      const [path, query] = href.split('?');
-      const params = new URLSearchParams(query);
-      const tab = params.get('tab');
-      return location.pathname === path && new URLSearchParams(location.search).get('tab') === tab;
-    }
-    return location.pathname === href;
-  };
-
-  if (!user) return null;
+  // Solo mostrar en móvil y tablets
+  if (typeof window !== 'undefined' && window.innerWidth > 1024) {
+    return null;
+  }
 
   return (
     <>
-      {/* Header móvil ultra moderno */}
-      <div className="md:hidden sticky top-0 z-50 bg-white/95 backdrop-blur-lg border-b border-gray-200/50 shadow-sm">
+      {/* Barra Superior Fija */}
+      <div className="fixed top-0 left-0 right-0 z-50 bg-gradient-to-r from-blue-900 via-purple-900 to-indigo-900 border-b border-white/20 backdrop-blur-lg">
         <div className="flex items-center justify-between px-4 py-3">
+          {/* Logo y Estado */}
           <div className="flex items-center gap-3">
-            <div className="w-10 h-10 bg-gradient-primary rounded-2xl flex items-center justify-center shadow-lg animate-pulse-glow">
-              <Shield className="w-5 h-5 text-white" />
-            </div>
-            <div>
-              <h1 className="text-lg font-bold text-gradient-primary">MI CAMPAÑA</h1>
-              <p className="text-xs text-gray-500">2025 • IA Avanzada</p>
-            </div>
-          </div>
-          
-          <div className="flex items-center gap-2">
-            <Button variant="ghost" size="sm" className="relative p-2">
-              <Bell className="w-5 h-5 text-gray-600" />
-              {notifications > 0 && (
-                <Badge className="absolute -top-1 -right-1 bg-red-500 text-white text-xs min-w-5 h-5 flex items-center justify-center rounded-full">
-                  {notifications}
-                </Badge>
-              )}
-            </Button>
-            <Button variant="ghost" size="sm" className="p-2">
-              <Search className="w-5 h-5 text-gray-600" />
-            </Button>
             <Button
               variant="ghost"
               size="sm"
-              onClick={() => setShowMenu(!showMenu)}
-              className="relative p-2"
+              onClick={() => setIsOpen(true)}
+              className="text-white hover:bg-white/20 p-2"
+              aria-label="Abrir menú de navegación"
             >
-              {showMenu ? <X className="w-5 h-5" /> : <Menu className="w-5 h-5" />}
+              <Menu className="w-5 h-5" />
+            </Button>
+            
+            <div className="flex items-center gap-2">
+              <Shield className="w-5 h-5 text-white" />
+              <span className="text-white font-bold text-sm">MI CAMPAÑA</span>
+            </div>
+          </div>
+
+          {/* Indicadores de Estado */}
+          <div className="flex items-center gap-2">
+            {/* Estado de Conectividad */}
+            <div className={`w-2 h-2 rounded-full ${isOnline ? 'bg-green-400' : 'bg-red-400'}`}
+                 title={isOnline ? 'En línea' : 'Sin conexión'} />
+            
+            {/* Estado del Sistema */}
+            <div className={`w-2 h-2 rounded-full ${getHealthColor()}`}
+                 title={`Sistema: ${systemHealth}`} />
+            
+            {/* Batería */}
+            {batteryLevel !== null && (
+              <div className="flex items-center gap-1 text-white text-xs">
+                <Battery className="w-3 h-3" />
+                <span>{batteryLevel}%</span>
+              </div>
+            )}
+            
+            {/* Notificaciones */}
+            <Button
+              variant="ghost"
+              size="sm"
+              className="text-white hover:bg-white/20 relative p-2"
+              aria-label={`${notifications} notificaciones`}
+            >
+              <Bell className="w-4 h-4" />
+              {notifications > 0 && (
+                <Badge className="absolute -top-1 -right-1 bg-red-500 text-white text-xs min-w-[1.2rem] h-5 flex items-center justify-center p-0">
+                  {notifications > 99 ? '99+' : notifications}
+                </Badge>
+              )}
             </Button>
           </div>
         </div>
       </div>
 
-      {/* Menú lateral ultra moderno */}
-      {showMenu && (
-        <div className="fixed inset-0 z-50 md:hidden">
-          <div 
-            className="absolute inset-0 bg-black/50 backdrop-blur-sm"
-            onClick={() => setShowMenu(false)}
-          />
-          <div className="absolute top-0 right-0 w-80 h-full bg-white/95 backdrop-blur-xl shadow-2xl animate-slide-elegant">
-            <div className="p-6 space-y-6">
-              {/* Header del menú */}
-              <div className="flex items-center justify-between">
-                <div className="flex items-center gap-3">
-                  <div className="w-12 h-12 bg-gradient-primary rounded-2xl flex items-center justify-center shadow-lg">
-                    <span className="text-white font-bold">
-                      {user.name?.split(' ').map(n => n[0]).join('').slice(0, 2)}
-                    </span>
-                  </div>
-                  <div>
-                    <h3 className="font-bold text-gray-900">{user.name}</h3>
-                    <Badge className="bg-gradient-accent text-white text-xs">
-                      {user.role.toUpperCase()}
-                    </Badge>
-                  </div>
-                </div>
-                <Button
-                  variant="ghost"
-                  size="sm"
-                  onClick={() => setShowMenu(false)}
-                  className="p-2 hover:bg-gray-100 rounded-xl"
-                >
-                  <X className="w-5 h-5" />
-                </Button>
-              </div>
-
-              {/* Estadísticas rápidas */}
-              <div className="grid grid-cols-3 gap-3">
-                <div className="text-center p-3 bg-gradient-surface rounded-xl">
-                  <Activity className="w-5 h-5 text-blue-500 mx-auto mb-1" />
-                  <div className="text-lg font-bold text-gray-900">85%</div>
-                  <div className="text-xs text-gray-600">Actividad</div>
-                </div>
-                <div className="text-center p-3 bg-gradient-surface rounded-xl">
-                  <Target className="w-5 h-5 text-green-500 mx-auto mb-1" />
-                  <div className="text-lg font-bold text-gray-900">247</div>
-                  <div className="text-xs text-gray-600">Conexiones</div>
-                </div>
-                <div className="text-center p-3 bg-gradient-surface rounded-xl">
-                  <BarChart3 className="w-5 h-5 text-purple-500 mx-auto mb-1" />
-                  <div className="text-lg font-bold text-gray-900">92%</div>
-                  <div className="text-xs text-gray-600">Impacto</div>
-                </div>
-              </div>
-
-              {/* Navegación principal */}
-              <div className="space-y-2">
-                <h4 className="font-semibold text-gray-700 text-sm uppercase tracking-wide">Navegación</h4>
-                {navigationItems.map((item) => {
-                  const Icon = item.icon;
-                  const active = isActiveRoute(item.href);
-                  
-                  return (
-                    <Link
-                      key={item.href}
-                      to={item.href}
-                      className={`flex items-center gap-3 p-3 rounded-xl transition-all duration-300 group ${
-                        active
-                          ? 'bg-gradient-primary text-white shadow-lg'
-                          : 'hover:bg-gray-50 text-gray-700'
-                      }`}
-                    >
-                      <div className={`w-10 h-10 rounded-xl flex items-center justify-center transition-colors ${
-                        active 
-                          ? 'bg-white/20' 
-                          : 'bg-gray-100 group-hover:bg-gray-200'
-                      }`}>
-                        <Icon className={`w-5 h-5 ${active ? 'text-white' : item.color}`} />
-                      </div>
-                      <div className="flex-1">
-                        <span className="font-medium">{item.label}</span>
-                        {active && (
-                          <div className="text-xs opacity-80">Activo</div>
-                        )}
-                      </div>
-                      {active && (
-                        <div className="w-2 h-2 bg-white rounded-full animate-pulse"></div>
-                      )}
-                    </Link>
-                  );
-                })}
-              </div>
-
-              {/* Acciones rápidas */}
-              <div className="space-y-2">
-                <h4 className="font-semibold text-gray-700 text-sm uppercase tracking-wide">Acciones</h4>
-                <Button className="w-full justify-start modern-interactive-button">
-                  <Plus className="w-4 h-4 mr-3" />
-                  Nueva Acción
-                </Button>
-                <Link
-                  to="/configuracion"
-                  className="flex items-center gap-3 p-3 rounded-xl text-gray-700 hover:bg-gray-50 transition-all duration-300"
-                >
-                  <Settings className="w-5 h-5" />
-                  <span className="font-medium">Configuración</span>
-                </Link>
-              </div>
-
-              {/* Cerrar sesión */}
-              <div className="pt-6 border-t border-gray-200">
-                <Button
-                  onClick={handleLogout}
-                  className="w-full bg-red-50 hover:bg-red-100 text-red-600 border border-red-200 justify-start"
-                  variant="ghost"
-                >
-                  <LogOut className="w-4 h-4 mr-3" />
-                  Cerrar Sesión
-                </Button>
-              </div>
-            </div>
-          </div>
-        </div>
+      {/* Overlay */}
+      {isOpen && (
+        <div 
+          className="fixed inset-0 bg-black/50 z-40 backdrop-blur-sm"
+          onClick={() => setIsOpen(false)}
+          aria-hidden="true"
+        />
       )}
 
-      {/* Navegación inferior ultra moderna */}
-      <div className="md:hidden fixed bottom-0 left-0 right-0 z-40 bg-white/95 backdrop-blur-xl border-t border-gray-200/50 shadow-lg">
-        <div className="grid grid-cols-4 gap-1 p-2">
-          {primaryItems.map((item) => {
-            const Icon = item.icon;
-            const active = isActiveRoute(item.href);
+      {/* Panel de Navegación Deslizante */}
+      <div className={`
+        fixed top-0 left-0 bottom-0 w-80 max-w-[85vw] bg-white z-50 shadow-2xl transform transition-transform duration-300 ease-in-out
+        ${isOpen ? 'translate-x-0' : '-translate-x-full'}
+      `}>
+        {/* Header del Panel */}
+        <div className="bg-gradient-to-r from-blue-900 to-purple-900 p-4 text-white">
+          <div className="flex items-center justify-between mb-4">
+            <div className="flex items-center gap-3">
+              <Shield className="w-6 h-6" />
+              <div>
+                <h2 className="font-bold text-lg">MI CAMPAÑA 2025</h2>
+                <p className="text-blue-200 text-sm">Sistema Electoral</p>
+              </div>
+            </div>
             
-            return (
-              <Link
-                key={item.href}
-                to={item.href}
-                className={`flex flex-col items-center justify-center p-3 rounded-xl transition-all duration-300 relative ${
-                  active 
-                    ? 'bg-gradient-primary text-white shadow-lg transform -translate-y-1' 
-                    : 'text-gray-600 hover:bg-gray-50 hover:text-gray-900'
-                }`}
-              >
-                {active && (
-                  <div className="absolute -top-1 left-1/2 transform -translate-x-1/2 w-2 h-2 bg-white rounded-full animate-pulse"></div>
-                )}
-                <Icon className="w-5 h-5 mb-1" />
-                <span className="text-xs font-medium truncate">{item.label}</span>
-                {active && (
-                  <div className="absolute inset-0 bg-white/10 rounded-xl animate-pulse"></div>
-                )}
-              </Link>
-            );
-          })}
+            <Button
+              variant="ghost"
+              size="sm"
+              onClick={() => setIsOpen(false)}
+              className="text-white hover:bg-white/20 p-2"
+              aria-label="Cerrar menú"
+            >
+              <X className="w-5 h-5" />
+            </Button>
+          </div>
+
+          {/* Información del Usuario */}
+          {isAuthenticated && user && (
+            <div className="bg-white/10 rounded-lg p-3 backdrop-blur">
+              <div className="flex items-center gap-3">
+                <div className="w-10 h-10 bg-gradient-to-br from-yellow-400 to-orange-500 rounded-full flex items-center justify-center">
+                  <span className="text-white font-bold text-sm">
+                    {user.name?.charAt(0) || 'U'}
+                  </span>
+                </div>
+                <div className="min-w-0 flex-1">
+                  <p className="font-medium text-white truncate">{user.name}</p>
+                  <p className="text-blue-200 text-xs capitalize">{user.role}</p>
+                  {user.territory && (
+                    <p className="text-blue-300 text-xs">{user.territory}</p>
+                  )}
+                </div>
+              </div>
+            </div>
+          )}
+        </div>
+
+        {/* Categorías de Navegación */}
+        <div className="border-b border-gray-200">
+          <div className="flex overflow-x-auto scrollbar-hide">
+            {categories.map((category) => {
+              const Icon = category.icon;
+              const isActive = activeCategory === category.id;
+              
+              return (
+                <button
+                  key={category.id}
+                  onClick={() => setActiveCategory(category.id)}
+                  className={`
+                    flex items-center gap-2 px-4 py-3 text-sm font-medium whitespace-nowrap border-b-2 transition-colors
+                    ${isActive 
+                      ? 'text-blue-600 border-blue-600 bg-blue-50' 
+                      : 'text-gray-600 border-transparent hover:text-blue-600 hover:bg-gray-50'
+                    }
+                  `}
+                  aria-pressed={isActive}
+                >
+                  <Icon className="w-4 h-4" />
+                  {category.label}
+                </button>
+              );
+            })}
+          </div>
+        </div>
+
+        {/* Lista de Navegación */}
+        <div className="flex-1 overflow-y-auto">
+          <nav className="p-2" role="navigation" aria-label="Navegación principal">
+            {filteredItems.map((item) => {
+              const Icon = item.icon;
+              const isActive = location.pathname === item.path;
+              
+              return (
+                <button
+                  key={item.path}
+                  onClick={() => handleNavigation(item.path)}
+                  className={`
+                    w-full flex items-center justify-between p-3 rounded-lg text-left transition-all duration-200 group
+                    ${isActive 
+                      ? 'bg-blue-600 text-white shadow-lg transform scale-[1.02]' 
+                      : 'text-gray-700 hover:bg-blue-50 hover:text-blue-600'
+                    }
+                  `}
+                  aria-current={isActive ? 'page' : undefined}
+                >
+                  <div className="flex items-center gap-3">
+                    <Icon className={`w-5 h-5 ${isActive ? 'text-white' : 'text-gray-600 group-hover:text-blue-600'}`} />
+                    <span className="font-medium">{item.label}</span>
+                  </div>
+                  
+                  <div className="flex items-center gap-2">
+                    {item.badge && item.badge > 0 && (
+                      <Badge className={`text-xs ${isActive ? 'bg-white text-blue-600' : 'bg-red-500 text-white'}`}>
+                        {item.badge}
+                      </Badge>
+                    )}
+                    <ChevronRight className={`w-4 h-4 transition-transform group-hover:translate-x-1 ${isActive ? 'text-white' : 'text-gray-400'}`} />
+                  </div>
+                </button>
+              );
+            })}
+          </nav>
+        </div>
+
+        {/* Footer del Panel */}
+        <div className="border-t border-gray-200 p-4 bg-gray-50">
+          <div className="flex items-center justify-between text-xs text-gray-600">
+            <div className="flex items-center gap-2">
+              <Database className="w-3 h-3" />
+              <span>BD: {isOnline ? 'Conectada' : 'Offline'}</span>
+            </div>
+            
+            <div className="flex items-center gap-2">
+              <Wifi className="w-3 h-3" />
+              <span>{isOnline ? 'En línea' : 'Sin conexión'}</span>
+            </div>
+          </div>
+          
+          <div className="mt-2 text-center">
+            <p className="text-xs text-gray-500">© 2025 sademarquezDLL</p>
+          </div>
         </div>
       </div>
 
-      {/* Espaciado para navegación inferior */}
-      <div className="h-20 md:hidden"></div>
+      {/* Espaciador para el contenido */}
+      <div className="h-16" />
     </>
   );
 };
