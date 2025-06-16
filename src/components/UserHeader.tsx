@@ -1,5 +1,4 @@
-
-import { useAuth } from "../contexts/AuthContext";
+import { useSecureAuth } from "../contexts/SecureAuthContext";
 import { Badge } from "@/components/ui/badge";
 import { Card, CardContent } from "@/components/ui/card";
 import { 
@@ -12,7 +11,7 @@ import {
 } from "lucide-react";
 
 const UserHeader = () => {
-  const { user } = useAuth();
+  const { user } = useSecureAuth();
 
   if (!user) return null;
 
