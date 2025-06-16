@@ -2,7 +2,7 @@
 import { useState } from "react";
 import { Button } from "@/components/ui/button";
 import { Sheet, SheetContent, SheetTrigger } from "@/components/ui/sheet";
-import { Menu, Users, MapPin, User, Home, Shield, BarChart3, Network, LogOut } from "lucide-react";
+import { Menu, Users, MapPin, User, Home, Shield, BarChart3, Network, LogOut, FileText } from "lucide-react";
 import { Link, useLocation, useNavigate } from "react-router-dom";
 import { useSecureAuth } from "../contexts/SecureAuthContext";
 
@@ -17,6 +17,7 @@ const Navigation = () => {
     { href: "/dashboard", label: "Dashboard", icon: BarChart3 },
     { href: "/registro", label: "Registro", icon: User },
     { href: "/mapa-alertas", label: "Mapa", icon: MapPin },
+    { href: "/informes", label: "Informes", icon: FileText },
     { href: "/liderazgo", label: "Liderazgo", icon: Users },
     { href: "/red-ayudantes", label: "Red Ayudantes", icon: Network }
   ];
@@ -37,11 +38,11 @@ const Navigation = () => {
 
   return (
     <>
-      {/* Navegación superior con nueva paleta */}
+      {/* Navegación superior */}
       <nav className="sticky top-0 z-50 nav-ecosystem">
         <div className="container mx-auto px-4">
           <div className="flex items-center justify-between h-16">
-            {/* Logo con nueva paleta */}
+            {/* Logo */}
             <Link to="/" className="flex items-center space-x-3">
               <div className="w-10 h-10 rounded-lg overflow-hidden shadow-ecosystem-soft bg-blue-ecosystem-primary p-2">
                 <img 
