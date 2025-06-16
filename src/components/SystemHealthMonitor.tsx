@@ -74,20 +74,27 @@ export const SystemHealthMonitor = () => {
       });
     }
 
-    // 3. Tables Accessibility
-    const tables = ['profiles', 'territories', 'voters', 'alerts', 'messages'];
-    for (const table of tables) {
+    // 3. Tables Accessibility - Using literal table names
+    const tableChecks = [
+      { name: 'profiles', label: 'Tabla profiles' },
+      { name: 'territories', label: 'Tabla territories' },
+      { name: 'voters', label: 'Tabla voters' },
+      { name: 'alerts', label: 'Tabla alerts' },
+      { name: 'messages', label: 'Tabla messages' }
+    ];
+
+    for (const table of tableChecks) {
       try {
-        const { data, error } = await supabase.from(table).select('*').limit(1);
+        const { data, error } = await supabase.from(table.name as any).select('*').limit(1);
         checks.push({
-          component: `Tabla ${table}`,
+          component: table.label,
           status: error ? 'error' : 'healthy',
           message: error ? `Error: ${error.message}` : 'Accesible',
           lastCheck: new Date()
         });
       } catch (error) {
         checks.push({
-          component: `Tabla ${table}`,
+          component: table.label,
           status: 'error',
           message: `Error crítico: ${error}`,
           lastCheck: new Date()
