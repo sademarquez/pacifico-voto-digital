@@ -18,12 +18,14 @@ interface AccessibilityContextType {
   isKeyboardUser: boolean;
 }
 
-interface AccessibilityProviderProps {
+// Fix: Explicitly define and export the props interface
+export interface AccessibilityProviderProps {
   children: ReactNode;
 }
 
 const AccessibilityContext = createContext<AccessibilityContextType | undefined>(undefined);
 
+// Fix: Proper component definition with explicit prop typing
 export const AccessibilityProvider = ({ children }: AccessibilityProviderProps) => {
   const [settings, setSettings] = useState<AccessibilitySettings>({
     highContrast: false,
