@@ -1,3 +1,4 @@
+
 import { useState } from "react";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
@@ -13,7 +14,7 @@ import { useToast } from "@/hooks/use-toast";
 
 interface Event {
   id: string;
-  name: string;
+  title: string;
   description: string | null;
   location: string | null;
   start_date: string | null;
@@ -27,7 +28,7 @@ const EventsManager = () => {
   const queryClient = useQueryClient();
 
   const [newEvent, setNewEvent] = useState({
-    name: '',
+    title: '',
     description: '',
     location: '',
     start_date: '',
@@ -64,7 +65,7 @@ const EventsManager = () => {
       const { data, error } = await supabase
         .from('events')
         .insert({
-          name: eventData.name,
+          title: eventData.title,
           description: eventData.description || null,
           location: eventData.location || null,
           start_date: eventData.start_date || null,
@@ -84,7 +85,7 @@ const EventsManager = () => {
       });
       queryClient.invalidateQueries({ queryKey: ['events'] });
       setNewEvent({
-        name: '',
+        title: '',
         description: '',
         location: '',
         start_date: '',
@@ -129,10 +130,10 @@ const EventsManager = () => {
   });
 
   const handleCreateEvent = () => {
-    if (!newEvent.name || !newEvent.start_date || !newEvent.end_date) {
+    if (!newEvent.title || !newEvent.start_date || !newEvent.end_date) {
       toast({
         title: "Error",
-        description: "Por favor completa el nombre, fecha de inicio y fecha de fin del evento",
+        description: "Por favor completa el título, fecha de inicio y fecha de fin del evento",
         variant: "destructive"
       });
       return;
@@ -156,11 +157,11 @@ const EventsManager = () => {
         </CardHeader>
         <CardContent className="space-y-4 pt-6">
           <div className="space-y-2">
-            <Label htmlFor="name" className="text-gray-700 font-medium">Nombre del Evento *</Label>
+            <Label htmlFor="title" className="text-gray-700 font-medium">Título del Evento *</Label>
             <Input
-              id="name"
-              value={newEvent.name}
-              onChange={(e) => setNewEvent({...newEvent, name: e.target.value})}
+              id="title"
+              value={newEvent.title}
+              onChange={(e) => setNewEvent({...newEvent, title: e.target.value})}
               placeholder="Ej: Reunión vecinal en la plaza central"
               className="border-gray-300 focus:border-green-500"
             />
@@ -241,7 +242,7 @@ const EventsManager = () => {
               {events.map((event) => (
                 <div key={event.id} className="border border-gray-200 rounded-lg p-4 hover:shadow-md transition-shadow">
                   <div className="flex items-start justify-between mb-2">
-                    <h3 className="font-semibold text-lg text-gray-800">{event.name}</h3>
+                    <h3 className="font-semibold text-lg text-gray-800">{event.title}</h3>
                     <Button
                       onClick={() => handleDeleteEvent(event.id)}
                       disabled={deleteEventMutation.isPending}
@@ -273,8 +274,6 @@ const EventsManager = () => {
                     </div>
                     <div className="flex items-center gap-1">
                       <Users className="w-4 h-4" />
-                      {/* Aquí podrías mostrar la cantidad de usuarios inscritos */}
-                      {/* Por ahora, un valor estático */}
                       50+
                     </div>
                   </div>

@@ -1,3 +1,4 @@
+
 import { useState } from "react";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
@@ -62,7 +63,7 @@ const QuickActions = () => {
           { title: 'Eventos de Campaña', description: 'Programar actividades públicas', icon: Calendar, href: '/dashboard?tab=events', color: 'bg-green-600', urgent: false },
           { title: 'Reportes de Progreso', description: 'Analytics y métricas de campaña', icon: BarChart3, href: '/informes', color: 'bg-orange-600', urgent: false },
           { title: 'Comunicación Directa', description: 'Mensajes a líderes y votantes', icon: MessageSquare, href: '/mensajes', color: 'bg-purple-600', urgent: false },
-          { title: 'Reporte de Publicidad', description: 'Gestionar contenido y medios', icon: Megaphone, href: '/reporte-publicidad', color: 'bg-pink-600', urgent: false }
+          { title: 'Reporte de Publicidad', description: 'Gestionar contenido y medios', icon: Mail, href: '/reporte-publicidad', color: 'bg-pink-600', urgent: false }
         ];
         
       case 'lider':
