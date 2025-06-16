@@ -9,7 +9,7 @@ import { Label } from "@/components/ui/label";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Badge } from "@/components/ui/badge";
 import { MapPin, Plus, Users, BarChart3 } from "lucide-react";
-import { useAuth } from "../contexts/AuthContext";
+import { useSecureAuth } from "../contexts/SecureAuthContext";
 import { useDataSegregation } from "../hooks/useDataSegregation";
 import { useToast } from "@/hooks/use-toast";
 
@@ -39,7 +39,7 @@ interface User {
 }
 
 const TerritoryManager = () => {
-  const { user } = useAuth();
+  const { user } = useSecureAuth();
   const { getTerritoryFilter, canCreateTerritory } = useDataSegregation();
   const { toast } = useToast();
   const queryClient = useQueryClient();
