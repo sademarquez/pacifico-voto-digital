@@ -22,8 +22,8 @@ const queryClient = new QueryClient()
 function App() {
   return (
     <QueryClientProvider client={queryClient}>
-      <TrackingProvider>
-        <SecureAuthProvider>
+      <SecureAuthProvider>
+        <TrackingProvider>
           <BrowserRouter>
             <Routes>
               <Route path="/" element={<Login />} />
@@ -36,8 +36,8 @@ function App() {
             <ChatbotManager />
             <Toaster />
           </BrowserRouter>
-        </SecureAuthProvider>
-      </TrackingProvider>
+        </TrackingProvider>
+      </SecureAuthProvider>
     </QueryClientProvider>
   );
 }
