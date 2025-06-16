@@ -1,7 +1,7 @@
-
 import { useState, useEffect } from "react";
 import { Link, useLocation, useNavigate } from "react-router-dom";
-import { useSecureAuth } from "../contexts/SecureAuthContext";
+// Fix: Import correcto del contexto
+import { useSimpleAuth } from "@/contexts/SimpleAuthContext";
 import { 
   Home, 
   Users, 
@@ -21,7 +21,8 @@ import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 
 const ModernMobileNavigation = () => {
-  const { user, logout } = useSecureAuth();
+  // Fix: Usar el contexto correcto
+  const { user, logout } = useSimpleAuth();
   const location = useLocation();
   const navigate = useNavigate();
   const [showMenu, setShowMenu] = useState(false);
@@ -32,8 +33,12 @@ const ModernMobileNavigation = () => {
   }, [location.pathname]);
 
   const handleLogout = async () => {
-    await logout();
-    navigate("/login");
+    try {
+      await logout();
+      navigate("/simple-login");
+    } catch (error) {
+      console.error('Error during logout:', error);
+    }
   };
 
   const getNavigationItems = () => {

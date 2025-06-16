@@ -1,3 +1,4 @@
+
 import { createContext, useContext, useState, useEffect, ReactNode } from 'react';
 
 interface AccessibilitySettings {
@@ -24,6 +25,7 @@ interface AccessibilityProviderProps {
 
 const AccessibilityContext = createContext<AccessibilityContextType | undefined>(undefined);
 
+// Fix: Properly typed React.FC component
 export const AccessibilityProvider: React.FC<AccessibilityProviderProps> = ({ children }) => {
   const [settings, setSettings] = useState<AccessibilitySettings>({
     highContrast: false,
@@ -39,23 +41,26 @@ export const AccessibilityProvider: React.FC<AccessibilityProviderProps> = ({ ch
   const [isKeyboardUser, setIsKeyboardUser] = useState(false);
 
   useEffect(() => {
-    // Cargar configuraciones guardadas
-    const savedSettings = localStorage.getItem('accessibility-settings');
-    if (savedSettings) {
-      setSettings(JSON.parse(savedSettings));
+    // Cargar configuraciones guardadas con manejo de errores
+    try {
+      const savedSettings = localStorage.getItem('accessibility-settings');
+      if (savedSettings) {
+        const parsed = JSON.parse(savedSettings);
+        setSettings(prev => ({ ...prev, ...parsed }));
+      }
+    } catch (error) {
+      console.warn('Error loading accessibility settings:', error);
     }
 
     // Detectar preferencias del sistema
     const prefersReducedMotion = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
     const prefersHighContrast = window.matchMedia('(prefers-contrast: high)').matches;
-    const prefersLargeText = window.matchMedia('(prefers-reduced-data: reduce)').matches;
 
-    if (prefersReducedMotion || prefersHighContrast || prefersLargeText) {
+    if (prefersReducedMotion || prefersHighContrast) {
       setSettings(prev => ({
         ...prev,
         reduceMotion: prefersReducedMotion,
         highContrast: prefersHighContrast,
-        largeText: prefersLargeText
       }));
     }
 
@@ -89,32 +94,26 @@ export const AccessibilityProvider: React.FC<AccessibilityProviderProps> = ({ ch
       Object.values(settings).some(setting => setting === true)
     );
     
-    // Alto contraste
+    // Aplicar clases específicas
     root.classList.toggle('high-contrast', settings.highContrast);
-    
-    // Texto grande
     root.classList.toggle('large-text', settings.largeText);
-    
-    // Reducir movimiento
     root.classList.toggle('reduce-motion', settings.reduceMotion);
-    
-    // Navegación por teclado
     root.classList.toggle('keyboard-navigation', settings.keyboardNavigation);
     
-    // Tamaño de fuente
+    // Atributos de configuración
     root.setAttribute('data-font-size', settings.fontSize);
-    
-    // Tema de color
     root.setAttribute('data-color-theme', settings.colorTheme);
 
-    // Guardar configuraciones
-    localStorage.setItem('accessibility-settings', JSON.stringify(settings));
+    // Guardar configuraciones con manejo de errores
+    try {
+      localStorage.setItem('accessibility-settings', JSON.stringify(settings));
+    } catch (error) {
+      console.warn('Error saving accessibility settings:', error);
+    }
   }, [settings]);
 
   const updateSetting = (key: keyof AccessibilitySettings, value: any) => {
     setSettings(prev => ({ ...prev, [key]: value }));
-    
-    // Anunciar cambios importantes
     announceToScreenReader(`Configuración de accesibilidad actualizada: ${key}`);
   };
 
@@ -128,7 +127,9 @@ export const AccessibilityProvider: React.FC<AccessibilityProviderProps> = ({ ch
     document.body.appendChild(announcement);
     
     setTimeout(() => {
-      document.body.removeChild(announcement);
+      if (document.body.contains(announcement)) {
+        document.body.removeChild(announcement);
+      }
     }, 1000);
   };
 
