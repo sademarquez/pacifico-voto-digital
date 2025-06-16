@@ -53,30 +53,38 @@ const DatabaseManager = () => {
     mapping_config: {}
   });
 
-  // Fetch user databases usando SQL directo
-  const { data: databases, isLoading, refetch } = useQuery({
+  // Fetch user databases with proper error handling
+  const { data: databases = [], isLoading, refetch } = useQuery({
     queryKey: ['user-databases', user?.id],
-    queryFn: async () => {
+    queryFn: async (): Promise<UserDatabase[]> => {
       if (!user?.id) return [];
 
-      const { data, error } = await supabase
-        .rpc('get_user_databases', { p_user_id: user.id });
+      try {
+        // Try using the SQL function first
+        const { data: functionData, error: functionError } = await supabase
+          .rpc('get_user_databases', { p_user_id: user.id });
 
-      if (error) {
-        console.error('Error fetching databases:', error);
-        // Fallback: consulta directa sin tipos
+        if (!functionError && functionData) {
+          return functionData;
+        }
+
+        // Fallback to direct table query
         const { data: fallbackData, error: fallbackError } = await supabase
           .from('user_databases' as any)
           .select('*')
-          .eq('user_id', user.id);
+          .eq('user_id', user.id)
+          .order('created_at', { ascending: false });
         
         if (fallbackError) {
-          console.error('Fallback error:', fallbackError);
+          console.error('Database query error:', fallbackError);
           return [];
         }
+        
         return fallbackData || [];
+      } catch (error) {
+        console.error('Error fetching databases:', error);
+        return [];
       }
-      return data || [];
     },
     enabled: !!user?.id
   });
@@ -235,7 +243,7 @@ const DatabaseManager = () => {
 
       {/* Lista de bases de datos */}
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
-        {databases?.map((db: UserDatabase) => (
+        {Array.isArray(databases) && databases.map((db: UserDatabase) => (
           <Card key={db.id} className="border-2">
             <CardHeader className="pb-3">
               <div className="flex items-center justify-between">
@@ -396,7 +404,7 @@ const DatabaseManager = () => {
                   <SelectValue placeholder="Selecciona una base de datos" />
                 </SelectTrigger>
                 <SelectContent>
-                  {databases?.map((db: UserDatabase) => (
+                  {Array.isArray(databases) && databases.map((db: UserDatabase) => (
                     <SelectItem key={db.id} value={db.id}>{db.name}</SelectItem>
                   ))}
                 </SelectContent>
@@ -451,7 +459,7 @@ const DatabaseManager = () => {
       )}
 
       {/* Estado vacío */}
-      {!isLoading && databases?.length === 0 && (
+      {!isLoading && (!databases || (Array.isArray(databases) && databases.length === 0)) && (
         <Card>
           <CardContent className="text-center py-12">
             <Database className="w-16 h-16 mx-auto mb-4 text-gray-400" />

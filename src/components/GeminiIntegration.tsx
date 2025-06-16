@@ -36,23 +36,38 @@ const GeminiIntegration = () => {
   const [currentMessage, setCurrentMessage] = useState('');
   const [isProcessing, setIsProcessing] = useState(false);
 
-  // Fetch Gemini configuration usando consulta directa
+  // Fetch Gemini configuration with proper error handling
   const { data: geminiConfig, isLoading } = useQuery({
     queryKey: ['gemini-config', user?.id],
-    queryFn: async () => {
+    queryFn: async (): Promise<GeminiConfig | null> => {
       if (!user?.id) return null;
 
-      const { data, error } = await supabase
-        .from('gemini_configs' as any)
-        .select('*')
-        .eq('user_id', user.id)
-        .single();
+      try {
+        // Try using the SQL function first
+        const { data: functionData, error: functionError } = await supabase
+          .rpc('get_user_gemini_config', { p_user_id: user.id });
 
-      if (error && error.code !== 'PGRST116') {
+        if (!functionError && functionData && functionData.length > 0) {
+          return functionData[0];
+        }
+
+        // Fallback to direct table query
+        const { data: fallbackData, error: fallbackError } = await supabase
+          .from('gemini_configs' as any)
+          .select('*')
+          .eq('user_id', user.id)
+          .single();
+
+        if (fallbackError && fallbackError.code !== 'PGRST116') {
+          console.error('Error fetching Gemini config:', fallbackError);
+          return null;
+        }
+        
+        return fallbackData;
+      } catch (error) {
         console.error('Error fetching Gemini config:', error);
         return null;
       }
-      return data;
     },
     enabled: !!user?.id
   });
@@ -320,7 +335,7 @@ Soy tu asistente electoral con Gemini 2.0 Flash. Estoy aquí para ayudarte con:
                 <div className="space-y-2 text-sm">
                   <div className="flex justify-between">
                     <span className="text-gray-500">Modelo:</span>
-                    <span className="font-medium">{geminiConfig?.model_preference}</span>
+                    <span className="font-medium">{geminiConfig?.model_preference || 'gemini-2.0-flash'}</span>
                   </div>
                   <div className="flex justify-between">
                     <span className="text-gray-500">Límite diario:</span>
