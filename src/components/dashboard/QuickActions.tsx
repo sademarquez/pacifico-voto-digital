@@ -25,6 +25,7 @@ import { useToast } from "@/hooks/use-toast";
 
 type ActionType = 'alert' | 'task' | 'event' | 'message';
 type Priority = 'low' | 'medium' | 'high' | 'urgent';
+type AlertType = 'security' | 'logistics' | 'political' | 'emergency' | 'information';
 
 const QuickActions = () => {
   const { user } = useSecureAuth();
@@ -33,10 +34,9 @@ const QuickActions = () => {
 
   const [activeAction, setActiveAction] = useState<ActionType | null>(null);
   const [quickAlert, setQuickAlert] = useState({
-    title: '',
     description: '',
     priority: 'medium' as Priority,
-    type: 'information'
+    type: 'information' as AlertType
   });
 
   const [quickTask, setQuickTask] = useState({
@@ -62,7 +62,6 @@ const QuickActions = () => {
       const { data, error } = await supabase
         .from('alerts')
         .insert({
-          title: alertData.title,
           description: alertData.description,
           type: alertData.type,
           priority: alertData.priority,
@@ -81,7 +80,7 @@ const QuickActions = () => {
         description: "Tu alerta rápida ha sido enviada al equipo.",
       });
       queryClient.invalidateQueries({ queryKey: ['alerts'] });
-      setQuickAlert({ title: '', description: '', priority: 'medium', type: 'information' });
+      setQuickAlert({ description: '', priority: 'medium', type: 'information' });
       setActiveAction(null);
     }
   });
@@ -252,13 +251,22 @@ const QuickActions = () => {
           <CardContent className="space-y-4 pt-6">
             <div className="grid md:grid-cols-2 gap-4">
               <div className="space-y-2">
-                <Label htmlFor="alert-title">Título de la Alerta</Label>
-                <Input
-                  id="alert-title"
-                  value={quickAlert.title}
-                  onChange={(e) => setQuickAlert({...quickAlert, title: e.target.value})}
-                  placeholder="Ej: Problema en mesa de votación #12"
-                />
+                <Label>Tipo de Alerta</Label>
+                <Select 
+                  value={quickAlert.type} 
+                  onValueChange={(value: AlertType) => setQuickAlert({...quickAlert, type: value})}
+                >
+                  <SelectTrigger>
+                    <SelectValue />
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="information">Información</SelectItem>
+                    <SelectItem value="security">Seguridad</SelectItem>
+                    <SelectItem value="logistics">Logística</SelectItem>
+                    <SelectItem value="political">Política</SelectItem>
+                    <SelectItem value="emergency">Emergencia</SelectItem>
+                  </SelectContent>
+                </Select>
               </div>
               <div className="space-y-2">
                 <Label>Prioridad</Label>
@@ -280,7 +288,7 @@ const QuickActions = () => {
             </div>
             
             <div className="space-y-2">
-              <Label htmlFor="alert-description">Descripción</Label>
+              <Label htmlFor="alert-description">Descripción de la Alerta</Label>
               <Textarea
                 id="alert-description"
                 value={quickAlert.description}
@@ -293,7 +301,7 @@ const QuickActions = () => {
             <div className="flex gap-2">
               <Button 
                 onClick={() => createQuickAlertMutation.mutate(quickAlert)}
-                disabled={!quickAlert.title || createQuickAlertMutation.isPending}
+                disabled={!quickAlert.description || createQuickAlertMutation.isPending}
                 className="bg-red-600 hover:bg-red-700"
               >
                 <Send className="w-4 h-4 mr-2" />

@@ -12,6 +12,8 @@ import { User, Plus, Shield, Mail, Calendar } from "lucide-react";
 import { useSecureAuth } from "../contexts/SecureAuthContext";
 import { useToast } from "@/hooks/use-toast";
 
+type UserRole = 'desarrollador' | 'master' | 'candidato' | 'lider' | 'votante' | 'visitante';
+
 const UserManagement = () => {
   const { user } = useSecureAuth();
   const { toast } = useToast();
@@ -21,7 +23,7 @@ const UserManagement = () => {
     email: '',
     password: '',
     name: '',
-    role: 'votante'
+    role: 'votante' as UserRole
   });
 
   // Query para obtener usuarios
@@ -185,7 +187,7 @@ const UserManagement = () => {
               <Label className="text-gray-700 font-medium">Rol del Usuario</Label>
               <Select 
                 value={newUser.role} 
-                onValueChange={(value) => setNewUser({...newUser, role: value})}
+                onValueChange={(value: UserRole) => setNewUser({...newUser, role: value})}
               >
                 <SelectTrigger className="border-gray-300 focus:border-blue-500">
                   <SelectValue />

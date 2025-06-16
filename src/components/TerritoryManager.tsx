@@ -12,6 +12,8 @@ import { MapPin, Plus, Users, BarChart3 } from "lucide-react";
 import { useSecureAuth } from "../contexts/SecureAuthContext";
 import { useToast } from "@/hooks/use-toast";
 
+type TerritoryType = 'barrio' | 'departamento' | 'municipio' | 'corregimiento' | 'vereda' | 'sector';
+
 const TerritoryManager = () => {
   const { user } = useSecureAuth();
   const { toast } = useToast();
@@ -19,7 +21,7 @@ const TerritoryManager = () => {
 
   const [newTerritory, setNewTerritory] = useState({
     name: '',
-    type: 'barrio',
+    type: 'barrio' as TerritoryType,
     population_estimate: '',
     voter_estimate: ''
   });
@@ -103,11 +105,12 @@ const TerritoryManager = () => {
 
   const getTypeColor = (type: string) => {
     switch (type) {
-      case 'ciudad': return 'bg-blue-100 text-blue-800';
+      case 'departamento': return 'bg-blue-100 text-blue-800';
       case 'municipio': return 'bg-green-100 text-green-800';
-      case 'comuna': return 'bg-purple-100 text-purple-800';
+      case 'corregimiento': return 'bg-purple-100 text-purple-800';
       case 'barrio': return 'bg-yellow-100 text-yellow-800';
       case 'sector': return 'bg-orange-100 text-orange-800';
+      case 'vereda': return 'bg-pink-100 text-pink-800';
       default: return 'bg-gray-100 text-gray-800';
     }
   };
@@ -138,16 +141,17 @@ const TerritoryManager = () => {
               <Label className="text-gray-700 font-medium">Tipo de Territorio</Label>
               <Select 
                 value={newTerritory.type} 
-                onValueChange={(value) => setNewTerritory({...newTerritory, type: value})}
+                onValueChange={(value: TerritoryType) => setNewTerritory({...newTerritory, type: value})}
               >
                 <SelectTrigger className="border-gray-300 focus:border-blue-500">
                   <SelectValue />
                 </SelectTrigger>
                 <SelectContent>
-                  <SelectItem value="ciudad">Ciudad</SelectItem>
+                  <SelectItem value="departamento">Departamento</SelectItem>
                   <SelectItem value="municipio">Municipio</SelectItem>
-                  <SelectItem value="comuna">Comuna</SelectItem>
+                  <SelectItem value="corregimiento">Corregimiento</SelectItem>
                   <SelectItem value="barrio">Barrio</SelectItem>
+                  <SelectItem value="vereda">Vereda</SelectItem>
                   <SelectItem value="sector">Sector</SelectItem>
                 </SelectContent>
               </Select>

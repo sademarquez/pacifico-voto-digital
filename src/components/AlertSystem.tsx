@@ -13,12 +13,14 @@ import { AlertTriangle, CheckCircle, Clock, User, Plus } from "lucide-react";
 import { useSecureAuth } from "../contexts/SecureAuthContext";
 import { useToast } from "@/hooks/use-toast";
 
+type AlertType = 'security' | 'logistics' | 'political' | 'emergency' | 'information';
+type AlertPriority = 'low' | 'medium' | 'high' | 'urgent';
+
 interface Alert {
   id: string;
-  title: string;
   description: string | null;
-  type: string;
-  priority: 'low' | 'medium' | 'high' | 'urgent';
+  type: AlertType;
+  priority: AlertPriority;
   status: string;
   created_at: string;
   created_by: string | null;
@@ -35,10 +37,9 @@ const AlertSystem = () => {
   const queryClient = useQueryClient();
 
   const [newAlert, setNewAlert] = useState({
-    title: '',
     description: '',
-    type: 'information',
-    priority: 'medium' as 'low' | 'medium' | 'high' | 'urgent'
+    type: 'information' as AlertType,
+    priority: 'medium' as AlertPriority
   });
 
   // Query para obtener alertas
@@ -74,7 +75,6 @@ const AlertSystem = () => {
       const { data, error } = await supabase
         .from('alerts')
         .insert({
-          title: alertData.title,
           description: alertData.description || null,
           type: alertData.type,
           priority: alertData.priority,
@@ -94,7 +94,6 @@ const AlertSystem = () => {
       });
       queryClient.invalidateQueries({ queryKey: ['alerts'] });
       setNewAlert({
-        title: '',
         description: '',
         type: 'information',
         priority: 'medium'
@@ -135,10 +134,10 @@ const AlertSystem = () => {
   });
 
   const handleCreateAlert = () => {
-    if (!newAlert.title) {
+    if (!newAlert.description) {
       toast({
         title: "Error",
-        description: "Por favor completa el título de la alerta",
+        description: "Por favor completa la descripción de la alerta",
         variant: "destructive"
       });
       return;
@@ -166,8 +165,8 @@ const AlertSystem = () => {
 
   const getTypeIcon = (type: string) => {
     switch (type) {
-      case 'critical': return AlertTriangle;
-      case 'warning': return Clock;
+      case 'emergency': return AlertTriangle;
+      case 'security': return Clock;
       case 'information': return CheckCircle;
       default: return AlertTriangle;
     }
@@ -186,20 +185,10 @@ const AlertSystem = () => {
         <CardContent className="space-y-4 pt-6">
           <div className="grid md:grid-cols-2 gap-4">
             <div className="space-y-2">
-              <Label htmlFor="title" className="text-gray-700 font-medium">Título de la Alerta *</Label>
-              <Input
-                id="title"
-                value={newAlert.title}
-                onChange={(e) => setNewAlert({...newAlert, title: e.target.value})}
-                placeholder="Ej: Problema técnico en zona norte"
-                className="border-gray-300 focus:border-red-500"
-              />
-            </div>
-            <div className="space-y-2">
               <Label className="text-gray-700 font-medium">Prioridad</Label>
               <Select 
                 value={newAlert.priority} 
-                onValueChange={(value: 'low' | 'medium' | 'high' | 'urgent') => setNewAlert({...newAlert, priority: value})}
+                onValueChange={(value: AlertPriority) => setNewAlert({...newAlert, priority: value})}
               >
                 <SelectTrigger className="border-gray-300 focus:border-red-500">
                   <SelectValue />
@@ -212,27 +201,28 @@ const AlertSystem = () => {
                 </SelectContent>
               </Select>
             </div>
+            <div className="space-y-2">
+              <Label className="text-gray-700 font-medium">Tipo de Alerta</Label>
+              <Select 
+                value={newAlert.type} 
+                onValueChange={(value: AlertType) => setNewAlert({...newAlert, type: value})}
+              >
+                <SelectTrigger className="border-gray-300 focus:border-red-500">
+                  <SelectValue />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="information">Información</SelectItem>
+                  <SelectItem value="security">Seguridad</SelectItem>
+                  <SelectItem value="logistics">Logística</SelectItem>
+                  <SelectItem value="political">Política</SelectItem>
+                  <SelectItem value="emergency">Emergencia</SelectItem>
+                </SelectContent>
+              </Select>
+            </div>
           </div>
 
           <div className="space-y-2">
-            <Label className="text-gray-700 font-medium">Tipo de Alerta</Label>
-            <Select 
-              value={newAlert.type} 
-              onValueChange={(value) => setNewAlert({...newAlert, type: value})}
-            >
-              <SelectTrigger className="border-gray-300 focus:border-red-500">
-                <SelectValue />
-              </SelectTrigger>
-              <SelectContent>
-                <SelectItem value="information">Información</SelectItem>
-                <SelectItem value="warning">Advertencia</SelectItem>
-                <SelectItem value="critical">Crítica</SelectItem>
-              </SelectContent>
-            </Select>
-          </div>
-
-          <div className="space-y-2">
-            <Label htmlFor="description" className="text-gray-700 font-medium">Descripción</Label>
+            <Label htmlFor="description" className="text-gray-700 font-medium">Descripción *</Label>
             <Textarea
               id="description"
               value={newAlert.description}
@@ -276,7 +266,9 @@ const AlertSystem = () => {
                     <div className="flex items-start justify-between mb-2">
                       <div className="flex items-center gap-3">
                         <TypeIcon className="w-5 h-5 text-red-600" />
-                        <h3 className="font-semibold text-lg text-gray-800">{alert.title}</h3>
+                        <h3 className="font-semibold text-lg text-gray-800">
+                          {alert.type.charAt(0).toUpperCase() + alert.type.slice(1)}
+                        </h3>
                       </div>
                       <div className="flex gap-2">
                         <Badge className={getPriorityColor(alert.priority)}>
