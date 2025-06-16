@@ -19,7 +19,7 @@ interface AccessibilityContextType {
   isKeyboardUser: boolean;
 }
 
-export interface AccessibilityProviderProps {
+interface AccessibilityProviderProps {
   children: ReactNode;
 }
 
@@ -153,3 +153,5 @@ export const useAccessibility = () => {
   }
   return context;
 };
+
+export type { AccessibilityProviderProps };
