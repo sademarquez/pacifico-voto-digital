@@ -1,3 +1,4 @@
+
 import {
   BrowserRouter,
   Routes,
@@ -12,7 +13,7 @@ import Dashboard from "./pages/Dashboard";
 import MapaAlertas from "./pages/MapaAlertas";
 import Registro from "./pages/Registro";
 import UserHeader from "./components/UserHeader";
-import { SecureAuthProvider } from "./contexts/AuthContext";
+import { SecureAuthProvider } from "./contexts/SecureAuthContext";
 import TrackingProvider from './components/TrackingProvider';
 import ChatbotManager from './components/ChatbotManager';
 
