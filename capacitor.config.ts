@@ -2,7 +2,7 @@
 import type { CapacitorConfig } from '@capacitor/cli';
 
 const config: CapacitorConfig = {
-  appId: 'app.lovable.0104ad5751124547bf3c092c7fdb1b88',
+  appId: 'com.micampana.electoral2025',
   appName: 'MI CAMPAÑA 2025',
   webDir: 'dist',
   server: {
@@ -11,12 +11,34 @@ const config: CapacitorConfig = {
   },
   plugins: {
     SplashScreen: {
-      launchShowDuration: 2000,
+      launchShowDuration: 3000,
       backgroundColor: '#1e40af',
       androidSplashResourceName: 'splash',
       androidScaleType: 'CENTER_CROP',
-      showSpinner: false
+      showSpinner: true,
+      spinnerColor: '#ffffff'
+    },
+    StatusBar: {
+      style: 'light',
+      backgroundColor: '#1e40af'
+    },
+    Keyboard: {
+      resize: 'body',
+      style: 'light'
+    },
+    App: {
+      launchAutoHide: false
     }
+  },
+  android: {
+    allowMixedContent: true,
+    captureInput: true,
+    webContentsDebuggingEnabled: true
+  },
+  ios: {
+    contentInset: 'automatic',
+    scrollEnabled: true,
+    preferredContentMode: 'mobile'
   }
 };
 

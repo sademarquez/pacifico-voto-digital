@@ -1,4 +1,3 @@
-
 /*
  * Copyright © 2025 sademarquezDLL. Todos los derechos reservados.
  */
@@ -79,7 +78,6 @@ const InteractiveMapFunnel = () => {
   const [geminiInsights, setGeminiInsights] = useState<string>('');
   const [isAnalyzing, setIsAnalyzing] = useState(false);
 
-  // Mock hierarchical data for Colombia
   const mapHierarchy: MapLevel[] = [
     {
       id: 'bogota',
@@ -179,7 +177,6 @@ const InteractiveMapFunnel = () => {
     }
   ];
 
-  // Get user location
   useEffect(() => {
     if (navigator.geolocation) {
       navigator.geolocation.getCurrentPosition(
@@ -200,7 +197,6 @@ const InteractiveMapFunnel = () => {
     }
   }, []);
 
-  // Auto-select closest location based on user coordinates
   useEffect(() => {
     if (userLocation && !currentLevel) {
       // Find closest city/area
@@ -326,275 +322,275 @@ const InteractiveMapFunnel = () => {
   };
 
   return (
-    <div className="space-y-6 max-w-7xl mx-auto p-4">
-      {/* Header with Location Status */}
-      <div className="relative bg-gradient-to-r from-blue-900 via-purple-900 to-indigo-900 rounded-2xl p-6 text-white overflow-hidden">
-        <div className="absolute inset-0 opacity-20" style={{
-          backgroundImage: "url('data:image/svg+xml,%3Csvg width=\"60\" height=\"60\" viewBox=\"0 0 60 60\" xmlns=\"http://www.w3.org/2000/svg\"%3E%3Cg fill=\"none\" fill-rule=\"evenodd\"%3E%3Cg fill=\"%23ffffff\" fill-opacity=\"0.1\"%3E%3Ccircle cx=\"30\" cy=\"30\" r=\"4\"/%3E%3C/g%3E%3C/g%3E%3C/svg%3E')"
-        }}></div>
-        
-        <div className="relative z-10">
-          <div className="flex justify-between items-center mb-4">
-            <div className="flex items-center gap-3">
-              <div className="w-12 h-12 bg-gradient-to-br from-yellow-400 to-orange-500 rounded-xl flex items-center justify-center">
-                <MapIcon className="w-6 h-6 text-white" />
+    <div className="min-h-screen bg-gradient-to-br from-slate-50 via-blue-50 to-purple-50 px-4 py-6">
+      <div className="max-w-7xl mx-auto space-y-6">
+        {/* Header optimizado para móvil */}
+        <div className="relative bg-gradient-to-r from-blue-900 via-purple-900 to-indigo-900 rounded-2xl p-4 sm:p-6 text-white overflow-hidden">
+          <div className="absolute inset-0 opacity-20" style={{
+            backgroundImage: "url('data:image/svg+xml,%3Csvg width=\"60\" height=\"60\" viewBox=\"0 0 60 60\" xmlns=\"http://www.w3.org/2000/svg\"%3E%3Cg fill=\"none\" fill-rule=\"evenodd\"%3E%3Cg fill=\"%23ffffff\" fill-opacity=\"0.1\"%3E%3Ccircle cx=\"30\" cy=\"30\" r=\"4\"/%3E%3C/g%3E%3C/g%3E%3C/svg%3E')"
+          }}></div>
+          
+          <div className="relative z-10">
+            <div className="flex flex-col sm:flex-row sm:justify-between sm:items-center gap-4">
+              <div className="flex items-center gap-3">
+                <div className="w-10 h-10 sm:w-12 sm:h-12 bg-gradient-to-br from-yellow-400 to-orange-500 rounded-xl flex items-center justify-center flex-shrink-0">
+                  <MapIcon className="w-5 h-5 sm:w-6 sm:h-6 text-white" />
+                </div>
+                <div className="min-w-0 flex-1">
+                  <h1 className="text-xl sm:text-2xl font-bold truncate">Mapa Electoral Inteligente</h1>
+                  <p className="opacity-90 text-sm sm:text-base truncate">
+                    {currentLevel ? `📍 ${currentLevel.name}` : 'Detectando tu ubicación...'}
+                  </p>
+                </div>
               </div>
-              <div>
-                <h1 className="text-2xl font-bold">Mapa Electoral Inteligente</h1>
-                <p className="opacity-90">
-                  {currentLevel ? `📍 ${currentLevel.name}` : 'Detectando tu ubicación...'}
-                </p>
+              
+              <div className="flex flex-wrap items-center gap-2">
+                <Badge className="bg-white/20 text-white text-xs sm:text-sm">
+                  <TrendingUp className="w-3 h-3 sm:w-4 sm:h-4 mr-1" />
+                  {leadData.engagementScore}% Engagement
+                </Badge>
+                <Badge className="bg-white/20 text-white text-xs sm:text-sm">
+                  <Sparkles className="w-3 h-3 sm:w-4 sm:h-4 mr-1" />
+                  Gemini IA
+                </Badge>
               </div>
-            </div>
-            
-            <div className="flex items-center gap-3">
-              <Badge className="bg-white/20 text-white">
-                <TrendingUp className="w-4 h-4 mr-1" />
-                {leadData.engagementScore}% Engagement
-              </Badge>
-              <Badge className="bg-white/20 text-white">
-                <Sparkles className="w-4 h-4 mr-1" />
-                Gemini IA
-              </Badge>
             </div>
           </div>
         </div>
-      </div>
 
-      <div className="grid grid-cols-1 lg:grid-cols-4 gap-6">
-        {/* Main Interactive Map */}
-        <div className="lg:col-span-3">
-          <Card className="shadow-2xl border-2 border-blue-200">
-            <CardHeader className="bg-gradient-to-r from-blue-50 to-purple-50">
-              <div className="flex justify-between items-center">
-                <CardTitle className="flex items-center gap-2">
-                  <Globe className="w-5 h-5 text-blue-600" />
-                  Vista: {zoomLevel.charAt(0).toUpperCase() + zoomLevel.slice(1)}
-                </CardTitle>
-                
-                <div className="flex gap-2">
-                  <Button 
-                    size="sm" 
-                    variant="outline"
-                    onClick={handleZoomOut}
-                    disabled={zoomLevel === 'ciudad'}
-                  >
-                    <ZoomOut className="w-4 h-4" />
-                  </Button>
-                  <Button 
-                    size="sm" 
-                    variant="outline"
-                    onClick={handleZoomIn}
-                    disabled={zoomLevel === 'barrio' || !currentLevel?.children}
-                  >
-                    <ZoomIn className="w-4 h-4" />
-                  </Button>
-                </div>
-              </div>
-            </CardHeader>
-            
-            <CardContent className="p-6">
-              {/* Interactive Map Visualization */}
-              <div className="relative bg-gradient-to-br from-blue-100 via-green-50 to-blue-50 rounded-xl border-2 border-blue-200 min-h-[400px] overflow-hidden">
-                {/* Background Pattern */}
-                <div className="absolute inset-0 opacity-10">
-                  <div className="grid grid-cols-8 grid-rows-6 h-full w-full">
-                    {Array.from({ length: 48 }).map((_, i) => (
-                      <div key={i} className="border border-blue-300"></div>
-                    ))}
+        <div className="grid grid-cols-1 xl:grid-cols-4 gap-4 sm:gap-6">
+          {/* Main Interactive Map - Responsivo */}
+          <div className="xl:col-span-3 order-2 xl:order-1">
+            <Card className="shadow-2xl border-2 border-blue-200 h-full">
+              <CardHeader className="bg-gradient-to-r from-blue-50 to-purple-50 p-4">
+                <div className="flex flex-col sm:flex-row sm:justify-between sm:items-center gap-3">
+                  <CardTitle className="flex items-center gap-2 text-base sm:text-lg">
+                    <Globe className="w-4 h-4 sm:w-5 sm:h-5 text-blue-600" />
+                    Vista: {zoomLevel.charAt(0).toUpperCase() + zoomLevel.slice(1)}
+                  </CardTitle>
+                  
+                  <div className="flex gap-2 justify-center sm:justify-end">
+                    <Button 
+                      size="sm" 
+                      variant="outline"
+                      onClick={handleZoomOut}
+                      disabled={zoomLevel === 'ciudad'}
+                      className="h-8 px-3"
+                    >
+                      <ZoomOut className="w-3 h-3 sm:w-4 sm:h-4" />
+                    </Button>
+                    <Button 
+                      size="sm" 
+                      variant="outline"
+                      onClick={handleZoomIn}
+                      disabled={zoomLevel === 'barrio' || !currentLevel?.children}
+                      className="h-8 px-3"
+                    >
+                      <ZoomIn className="w-3 h-3 sm:w-4 sm:h-4" />
+                    </Button>
                   </div>
                 </div>
+              </CardHeader>
+              
+              <CardContent className="p-3 sm:p-6">
+                {/* Interactive Map Visualization - Optimizado para móvil */}
+                <div className="relative bg-gradient-to-br from-blue-100 via-green-50 to-blue-50 rounded-xl border-2 border-blue-200 min-h-[300px] sm:min-h-[400px] overflow-hidden">
+                  {/* Background Pattern */}
+                  <div className="absolute inset-0 opacity-10">
+                    <div className="grid grid-cols-4 sm:grid-cols-8 grid-rows-4 sm:grid-rows-6 h-full w-full">
+                      {Array.from({ length: window.innerWidth < 640 ? 16 : 48 }).map((_, i) => (
+                        <div key={i} className="border border-blue-300"></div>
+                      ))}
+                    </div>
+                  </div>
 
-                {/* Location Markers */}
-                <div className="relative z-10 h-full p-6">
-                  <div className="grid grid-cols-3 gap-4 h-full">
-                    {getVisibleLocations().map((location, index) => (
-                      <div
-                        key={location.id}
-                        className={`relative rounded-lg p-4 cursor-pointer transition-all duration-300 border-2 ${
-                          currentLevel?.id === location.id
-                            ? 'bg-blue-600 text-white border-blue-800 shadow-2xl scale-105'
-                            : 'bg-white/90 hover:bg-blue-50 border-blue-300 hover:border-blue-500 hover:scale-102'
-                        }`}
-                        onClick={() => handleLocationSelect(location)}
-                        style={{
-                          gridColumn: Math.floor(index % 3) + 1,
-                          gridRow: Math.floor(index / 3) + 1
-                        }}
-                      >
-                        <div className="text-center">
-                          <div className={`w-8 h-8 mx-auto mb-2 rounded-full flex items-center justify-center ${
-                            currentLevel?.id === location.id ? 'bg-white/20' : 'bg-blue-600'
-                          }`}>
-                            <MapPin className={`w-4 h-4 ${
-                              currentLevel?.id === location.id ? 'text-white' : 'text-white'
-                            }`} />
-                          </div>
-                          
-                          <h4 className="font-bold text-sm mb-1">{location.name}</h4>
-                          <p className="text-xs opacity-75 capitalize">{location.type}</p>
-                          <p className="text-xs opacity-75">{location.population.toLocaleString()}</p>
-                          
-                          {/* Alert indicators */}
-                          {location.alerts.length > 0 && (
-                            <div className="absolute -top-2 -right-2">
-                              <Badge className="bg-red-500 text-white text-xs animate-pulse">
-                                {location.alerts.length}
-                              </Badge>
+                  {/* Location Markers - Grid responsivo */}
+                  <div className="relative z-10 h-full p-3 sm:p-6">
+                    <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3 sm:gap-4 h-full place-items-center">
+                      {getVisibleLocations().map((location, index) => (
+                        <div
+                          key={location.id}
+                          className={`relative rounded-lg p-3 sm:p-4 cursor-pointer transition-all duration-300 border-2 w-full max-w-xs ${
+                            currentLevel?.id === location.id
+                              ? 'bg-blue-600 text-white border-blue-800 shadow-2xl scale-105'
+                              : 'bg-white/90 hover:bg-blue-50 border-blue-300 hover:border-blue-500 hover:scale-102'
+                          }`}
+                          onClick={() => handleLocationSelect(location)}
+                        >
+                          <div className="text-center">
+                            <div className={`w-6 h-6 sm:w-8 sm:h-8 mx-auto mb-2 rounded-full flex items-center justify-center ${
+                              currentLevel?.id === location.id ? 'bg-white/20' : 'bg-blue-600'
+                            }`}>
+                              <MapPin className={`w-3 h-3 sm:w-4 sm:h-4 ${
+                                currentLevel?.id === location.id ? 'text-white' : 'text-white'
+                              }`} />
                             </div>
-                          )}
+                            
+                            <h4 className="font-bold text-xs sm:text-sm mb-1 truncate">{location.name}</h4>
+                            <p className="text-xs opacity-75 capitalize">{location.type}</p>
+                            <p className="text-xs opacity-75">{location.population.toLocaleString()}</p>
+                            
+                            {/* Alert indicators */}
+                            {location.alerts.length > 0 && (
+                              <div className="absolute -top-1 -right-1 sm:-top-2 sm:-right-2">
+                                <Badge className="bg-red-500 text-white text-xs animate-pulse h-5 w-5 p-0 flex items-center justify-center">
+                                  {location.alerts.length}
+                                </Badge>
+                              </div>
+                            )}
+                          </div>
                         </div>
-                      </div>
-                    ))}
-                  </div>
-
-                  {/* User location indicator if available */}
-                  {userLocation && (
-                    <div className="absolute top-4 right-4 bg-green-500 text-white px-3 py-1 rounded-full text-xs animate-pulse">
-                      📍 Tu ubicación detectada
+                      ))}
                     </div>
-                  )}
-                </div>
-              </div>
 
-              {/* Current Level Info */}
-              {currentLevel && (
-                <div className="mt-4 p-4 bg-gradient-to-r from-blue-50 to-purple-50 rounded-xl border border-blue-200">
-                  <div className="flex items-center justify-between">
-                    <div>
-                      <h3 className="font-bold text-lg text-blue-900">{currentLevel.name}</h3>
-                      <p className="text-blue-700 capitalize">
-                        {currentLevel.type} • {currentLevel.population.toLocaleString()} habitantes
-                      </p>
-                    </div>
-                    <div className="flex gap-2">
-                      <Badge className="bg-blue-100 text-blue-800">
-                        {currentLevel.alerts.length} alertas
-                      </Badge>
-                      {currentLevel.children && (
-                        <Badge className="bg-green-100 text-green-800">
-                          {currentLevel.children.length} sub-zonas
-                        </Badge>
-                      )}
-                    </div>
-                  </div>
-                </div>
-              )}
-            </CardContent>
-          </Card>
-        </div>
-
-        {/* Sidebar with Alerts and Gemini Insights */}
-        <div className="space-y-6">
-          {/* Gemini AI Insights */}
-          <Card className="border-2 border-purple-300 bg-gradient-to-br from-purple-50 to-pink-50">
-            <CardHeader>
-              <CardTitle className="flex items-center gap-2 text-purple-800">
-                <Sparkles className="w-5 h-5" />
-                Análisis IA
-                {isAnalyzing && (
-                  <div className="w-4 h-4 border-2 border-purple-600 border-t-transparent rounded-full animate-spin"></div>
-                )}
-              </CardTitle>
-            </CardHeader>
-            <CardContent>
-              {geminiInsights ? (
-                <div className="bg-white/60 p-3 rounded-lg border border-purple-200">
-                  <p className="text-sm text-purple-900">{geminiInsights}</p>
-                </div>
-              ) : (
-                <div className="text-center py-4">
-                  <Zap className="w-8 h-8 text-purple-400 mx-auto mb-2" />
-                  <p className="text-sm text-purple-600">
-                    Interactúa con el mapa para obtener insights de IA
-                  </p>
-                </div>
-              )}
-            </CardContent>
-          </Card>
-
-          {/* Active Alerts */}
-          <Card className="border-2 border-orange-300">
-            <CardHeader>
-              <CardTitle className="flex items-center gap-2 text-orange-800">
-                <AlertTriangle className="w-5 h-5" />
-                Alertas Activas
-                <Badge className="bg-orange-100 text-orange-800 ml-auto">
-                  {getVisibleAlerts().length}
-                </Badge>
-              </CardTitle>
-            </CardHeader>
-            <CardContent className="max-h-80 overflow-y-auto space-y-3">
-              {getVisibleAlerts().length === 0 ? (
-                <div className="text-center py-8">
-                  <Trophy className="w-12 h-12 text-orange-400 mx-auto mb-3" />
-                  <p className="text-orange-600">¡Zona sin alertas!</p>
-                  <p className="text-sm text-orange-500">Perfecto para nuevas oportunidades</p>
-                </div>
-              ) : (
-                getVisibleAlerts().map((alert) => (
-                  <div
-                    key={alert.id}
-                    className={`p-3 rounded-lg border-2 cursor-pointer transition-all ${
-                      selectedAlert?.id === alert.id
-                        ? 'border-orange-500 bg-orange-50'
-                        : 'border-orange-200 bg-white hover:border-orange-400'
-                    }`}
-                    onClick={() => handleAlertClick(alert)}
-                  >
-                    <div className="flex items-start justify-between mb-2">
-                      <h4 className="font-semibold text-sm text-gray-900">{alert.title}</h4>
-                      <Badge className={`text-xs ${
-                        alert.priority === 'high' ? 'bg-red-100 text-red-800' :
-                        alert.priority === 'medium' ? 'bg-yellow-100 text-yellow-800' :
-                        'bg-gray-100 text-gray-800'
-                      }`}>
-                        {alert.priority}
-                      </Badge>
-                    </div>
-                    <p className="text-xs text-gray-600 mb-2">{alert.description}</p>
-                    {alert.gemini_insight && (
-                      <div className="bg-purple-50 p-2 rounded text-xs text-purple-800 border border-purple-200">
-                        🤖 {alert.gemini_insight}
+                    {/* User location indicator if available */}
+                    {userLocation && (
+                      <div className="absolute top-2 right-2 sm:top-4 sm:right-4 bg-green-500 text-white px-2 py-1 sm:px-3 sm:py-1 rounded-full text-xs animate-pulse">
+                        📍 Tu ubicación detectada
                       </div>
                     )}
                   </div>
-                ))
-              )}
-            </CardContent>
-          </Card>
+                </div>
 
-          {/* Quick Actions */}
-          <Card className="border-2 border-green-300 bg-gradient-to-br from-green-50 to-emerald-50">
-            <CardHeader>
-              <CardTitle className="flex items-center gap-2 text-green-800">
-                <Target className="w-5 h-5" />
-                Acciones Rápidas
-              </CardTitle>
-            </CardHeader>
-            <CardContent className="space-y-3">
-              <Button 
-                className="w-full bg-green-600 hover:bg-green-700 text-white"
-                onClick={() => captureInteraction('contact_request', { method: 'whatsapp' })}
-              >
-                <Phone className="w-4 h-4 mr-2" />
-                Contactar WhatsApp
-              </Button>
-              
-              <Button 
-                variant="outline" 
-                className="w-full border-green-600 text-green-600 hover:bg-green-50"
-                onClick={() => captureInteraction('info_request')}
-              >
-                <MessageCircle className="w-4 h-4 mr-2" />
-                Solicitar Información
-              </Button>
-              
-              <div className="text-center text-xs text-green-600 mt-3">
-                💡 Basado en tu ubicación y engagement
-              </div>
-            </CardContent>
-          </Card>
+                {/* Current Level Info - Responsivo */}
+                {currentLevel && (
+                  <div className="mt-3 sm:mt-4 p-3 sm:p-4 bg-gradient-to-r from-blue-50 to-purple-50 rounded-xl border border-blue-200">
+                    <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3">
+                      <div className="min-w-0 flex-1">
+                        <h3 className="font-bold text-base sm:text-lg text-blue-900 truncate">{currentLevel.name}</h3>
+                        <p className="text-blue-700 capitalize text-sm">
+                          {currentLevel.type} • {currentLevel.population.toLocaleString()} habitantes
+                        </p>
+                      </div>
+                      <div className="flex flex-wrap gap-2">
+                        <Badge className="bg-blue-100 text-blue-800 text-xs">
+                          {currentLevel.alerts.length} alertas
+                        </Badge>
+                        {currentLevel.children && (
+                          <Badge className="bg-green-100 text-green-800 text-xs">
+                            {currentLevel.children.length} sub-zonas
+                          </Badge>
+                        )}
+                      </div>
+                    </div>
+                  </div>
+                )}
+              </CardContent>
+            </Card>
+          </div>
+
+          {/* Sidebar - Sticky en desktop, orden prioritario en móvil */}
+          <div className="space-y-4 sm:space-y-6 order-1 xl:order-2 xl:sticky xl:top-6 xl:h-fit">
+            {/* Gemini AI Insights - Compacto en móvil */}
+            <Card className="border-2 border-purple-300 bg-gradient-to-br from-purple-50 to-pink-50">
+              <CardHeader className="p-3 sm:p-4">
+                <CardTitle className="flex items-center gap-2 text-purple-800 text-sm sm:text-base">
+                  <Sparkles className="w-4 h-4 sm:w-5 sm:h-5" />
+                  Análisis IA
+                  {isAnalyzing && (
+                    <div className="w-3 h-3 sm:w-4 sm:h-4 border-2 border-purple-600 border-t-transparent rounded-full animate-spin"></div>
+                  )}
+                </CardTitle>
+              </CardHeader>
+              <CardContent className="p-3 sm:p-4 pt-0">
+                {geminiInsights ? (
+                  <div className="bg-white/60 p-2 sm:p-3 rounded-lg border border-purple-200">
+                    <p className="text-xs sm:text-sm text-purple-900">{geminiInsights}</p>
+                  </div>
+                ) : (
+                  <div className="text-center py-3 sm:py-4">
+                    <Zap className="w-6 h-6 sm:w-8 sm:h-8 text-purple-400 mx-auto mb-2" />
+                    <p className="text-xs sm:text-sm text-purple-600">
+                      Interactúa con el mapa para obtener insights de IA
+                    </p>
+                  </div>
+                )}
+              </CardContent>
+            </Card>
+
+            {/* Active Alerts - Scrollable en móvil */}
+            <Card className="border-2 border-orange-300">
+              <CardHeader className="p-3 sm:p-4">
+                <CardTitle className="flex items-center gap-2 text-orange-800 text-sm sm:text-base">
+                  <AlertTriangle className="w-4 h-4 sm:w-5 sm:h-5" />
+                  Alertas Activas
+                  <Badge className="bg-orange-100 text-orange-800 ml-auto text-xs">
+                    {getVisibleAlerts().length}
+                  </Badge>
+                </CardTitle>
+              </CardHeader>
+              <CardContent className="p-3 sm:p-4 pt-0 max-h-64 sm:max-h-80 overflow-y-auto space-y-2 sm:space-y-3">
+                {getVisibleAlerts().length === 0 ? (
+                  <div className="text-center py-6 sm:py-8">
+                    <Trophy className="w-8 h-8 sm:w-12 sm:h-12 text-orange-400 mx-auto mb-2 sm:mb-3" />
+                    <p className="text-orange-600 text-sm">¡Zona sin alertas!</p>
+                    <p className="text-xs sm:text-sm text-orange-500">Perfecto para nuevas oportunidades</p>
+                  </div>
+                ) : (
+                  getVisibleAlerts().map((alert) => (
+                    <div
+                      key={alert.id}
+                      className={`p-2 sm:p-3 rounded-lg border-2 cursor-pointer transition-all ${
+                        selectedAlert?.id === alert.id
+                          ? 'border-orange-500 bg-orange-50'
+                          : 'border-orange-200 bg-white hover:border-orange-400'
+                      }`}
+                      onClick={() => handleAlertClick(alert)}
+                    >
+                      <div className="flex items-start justify-between mb-2">
+                        <h4 className="font-semibold text-xs sm:text-sm text-gray-900 flex-1 mr-2">{alert.title}</h4>
+                        <Badge className={`text-xs flex-shrink-0 ${
+                          alert.priority === 'high' ? 'bg-red-100 text-red-800' :
+                          alert.priority === 'medium' ? 'bg-yellow-100 text-yellow-800' :
+                          'bg-gray-100 text-gray-800'
+                        }`}>
+                          {alert.priority}
+                        </Badge>
+                      </div>
+                      <p className="text-xs text-gray-600 mb-2">{alert.description}</p>
+                      {alert.gemini_insight && (
+                        <div className="bg-purple-50 p-2 rounded text-xs text-purple-800 border border-purple-200">
+                          🤖 {alert.gemini_insight}
+                        </div>
+                      )}
+                    </div>
+                  ))
+                )}
+              </CardContent>
+            </Card>
+
+            {/* Quick Actions - Compacto en móvil */}
+            <Card className="border-2 border-green-300 bg-gradient-to-br from-green-50 to-emerald-50">
+              <CardHeader className="p-3 sm:p-4">
+                <CardTitle className="flex items-center gap-2 text-green-800 text-sm sm:text-base">
+                  <Target className="w-4 h-4 sm:w-5 sm:h-5" />
+                  Acciones Rápidas
+                </CardTitle>
+              </CardHeader>
+              <CardContent className="p-3 sm:p-4 pt-0 space-y-2 sm:space-y-3">
+                <Button 
+                  className="w-full bg-green-600 hover:bg-green-700 text-white text-sm h-10"
+                  onClick={() => captureInteraction('contact_request', { method: 'whatsapp' })}
+                >
+                  <Phone className="w-3 h-3 sm:w-4 sm:h-4 mr-2" />
+                  Contactar WhatsApp
+                </Button>
+                
+                <Button 
+                  variant="outline" 
+                  className="w-full border-green-600 text-green-600 hover:bg-green-50 text-sm h-10"
+                  onClick={() => captureInteraction('info_request')}
+                >
+                  <MessageCircle className="w-3 h-3 sm:w-4 sm:h-4 mr-2" />
+                  Solicitar Información
+                </Button>
+                
+                <div className="text-center text-xs text-green-600 mt-2 sm:mt-3">
+                  💡 Basado en tu ubicación y engagement
+                </div>
+              </CardContent>
+            </Card>
+          </div>
         </div>
       </div>
     </div>
