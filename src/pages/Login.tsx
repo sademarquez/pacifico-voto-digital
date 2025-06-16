@@ -63,9 +63,9 @@ const Login = () => {
 
   return (
     <div className="min-h-screen bg-gradient-elegant relative overflow-hidden">
-      {/* Background decoration mejorado */}
-      <div className="absolute inset-0 opacity-20" style={{
-        backgroundImage: `url("data:image/svg+xml,%3Csvg width='80' height='80' viewBox='0 0 80 80' xmlns='http://www.w3.org/2000/svg'%3E%3Cg fill='none' fill-rule='evenodd'%3E%3Cg fill='%23d4af37' fill-opacity='0.1'%3E%3Cpath d='M40 40v-4h-2v4h-4v2h4v4h2v-4h4v-2h-4zm0-30V6h-2v4h-4v2h4v4h2v-4h4v-2h-4zM6 40v-4H4v4H0v2h4v4h2v-4h4v-2H6zM6 10V6H4v4H0v2h4v4h2v-4h4v-2H6z'/%3E%3C/g%3E%3C/g%3E%3C/svg%3E")`
+      {/* Background decoration mejorado con nueva paleta */}
+      <div className="absolute inset-0 opacity-10" style={{
+        backgroundImage: `url("data:image/svg+xml,%3Csvg width='80' height='80' viewBox='0 0 80 80' xmlns='http://www.w3.org/2000/svg'%3E%3Cg fill='none' fill-rule='evenodd'%3E%3Cg fill='%23b8860b' fill-opacity='0.15'%3E%3Cpath d='M40 40v-4h-2v4h-4v2h4v4h2v-4h4v-2h-4zm0-30V6h-2v4h-4v2h4v4h2v-4h4v-2h-4zM6 40v-4H4v4H0v2h4v4h2v-4h4v-2H6zM6 10V6H4v4H0v2h4v4h2v-4h4v-2H6z'/%3E%3C/g%3E%3C/g%3E%3C/svg%3E")`
       }}></div>
       
       <div className="relative z-10 flex items-center justify-center min-h-screen p-4">
@@ -75,12 +75,12 @@ const Login = () => {
           <div className="max-w-md mx-auto">
             <Card className="card-elegant border-0 bg-white/95 backdrop-blur-lg shadow-elegant">
               <CardHeader className="space-y-4 text-center pb-6">
-                <div className="mx-auto w-20 h-20 bg-gradient-primary rounded-full flex items-center justify-center shadow-gold">
-                  <Vote className="w-10 h-10 text-white" />
+                <div className="mx-auto w-20 h-20 bg-gradient-elegant rounded-full flex items-center justify-center shadow-gold animate-glow-gold">
+                  <Vote className="w-10 h-10 text-gold" />
                 </div>
                 <div>
-                  <CardTitle className="text-3xl font-bold text-slate-800 mb-2">Plataforma Zona Segura</CardTitle>
-                  <p className="text-slate-600 font-medium">Tu espacio de participación ciudadana</p>
+                  <CardTitle className="text-3xl font-bold text-black-elegant mb-2">Plataforma Zona Segura</CardTitle>
+                  <p className="text-black-soft font-medium">Tu espacio de participación ciudadana</p>
                 </div>
               </CardHeader>
               
@@ -90,14 +90,14 @@ const Login = () => {
                   <Button 
                     onClick={() => navigate('/mapa-alertas')}
                     size="lg"
-                    className="w-full btn-primary h-14 text-lg font-bold shadow-elegant hover:scale-105 transition-all duration-300"
+                    className="w-full btn-primary h-14 text-lg font-bold shadow-elegant hover:scale-105 transition-all duration-300 bg-gradient-elegant"
                   >
                     <Map className="w-6 h-6 mr-3" />
                     EXPLORAR MAPA
                     <ArrowRight className="w-6 h-6 ml-3" />
                   </Button>
                   
-                  <p className="text-sm text-slate-600">
+                  <p className="text-sm text-black-soft">
                     Descubre propuestas, alertas y participa en tu zona
                   </p>
                 </div>
@@ -105,17 +105,17 @@ const Login = () => {
                 {/* Divisor elegante */}
                 <div className="relative">
                   <div className="absolute inset-0 flex items-center">
-                    <span className="w-full border-t border-slate-200" />
+                    <span className="w-full border-t border-gold/30" />
                   </div>
                   <div className="relative flex justify-center text-xs uppercase">
-                    <span className="bg-white px-4 text-slate-500 font-medium">Equipo de Campaña</span>
+                    <span className="bg-white px-4 text-gold font-bold">Equipo de Campaña</span>
                   </div>
                 </div>
 
                 {/* Formulario de login para equipo */}
                 <form onSubmit={handleSubmit} className="space-y-4">
                   <div className="space-y-2">
-                    <Label htmlFor="email" className="text-slate-700 font-medium">Email</Label>
+                    <Label htmlFor="email" className="text-black-elegant font-medium">Email</Label>
                     <Input
                       id="email"
                       type="email"
@@ -124,12 +124,12 @@ const Login = () => {
                       placeholder="usuario@micampana.com"
                       required
                       disabled={isLoading}
-                      className="input-elegant h-12"
+                      className="input-elegant h-12 border-gold/30 focus:border-gold"
                     />
                   </div>
                   
                   <div className="space-y-2">
-                    <Label htmlFor="password" className="text-slate-700 font-medium">Contraseña</Label>
+                    <Label htmlFor="password" className="text-black-elegant font-medium">Contraseña</Label>
                     <div className="relative">
                       <Input
                         id="password"
@@ -139,13 +139,13 @@ const Login = () => {
                         placeholder="Contraseña segura"
                         required
                         disabled={isLoading}
-                        className="input-elegant pr-12 h-12"
+                        className="input-elegant pr-12 h-12 border-gold/30 focus:border-gold"
                       />
                       <Button
                         type="button"
                         variant="ghost"
                         size="sm"
-                        className="absolute right-3 top-1/2 -translate-y-1/2 h-6 w-6 p-0 text-slate-500"
+                        className="absolute right-3 top-1/2 -translate-y-1/2 h-6 w-6 p-0 text-gold hover:text-gold-dark"
                         onClick={() => setShowPassword(!showPassword)}
                         disabled={isLoading}
                       >
@@ -155,15 +155,15 @@ const Login = () => {
                   </div>
 
                   {error && (
-                    <Alert variant="destructive" className="alert-elegant">
-                      <AlertDescription className="text-sm">{error}</AlertDescription>
+                    <Alert variant="destructive" className="alert-elegant border-gold bg-gold/10">
+                      <AlertDescription className="text-sm text-black-elegant">{error}</AlertDescription>
                     </Alert>
                   )}
 
-                  <Button type="submit" className="w-full btn-secondary h-12" disabled={isLoading}>
+                  <Button type="submit" className="w-full h-12 bg-black-elegant hover:bg-black-soft text-gold font-bold" disabled={isLoading}>
                     {isLoading ? (
                       <div className="flex items-center gap-2">
-                        <div className="w-4 h-4 border-2 border-white/30 border-t-white rounded-full animate-spin" />
+                        <div className="w-4 h-4 border-2 border-gold/30 border-t-gold rounded-full animate-spin" />
                         Iniciando sesión...
                       </div>
                     ) : (
@@ -175,16 +175,16 @@ const Login = () => {
                   </Button>
 
                   {/* Panel de credenciales compacto */}
-                  <div className="bg-slate-50/50 rounded-xl p-4 border border-slate-200/50">
-                    <h3 className="text-sm font-semibold text-slate-700 mb-3 text-center">
+                  <div className="bg-black-elegant/5 rounded-xl p-4 border border-gold/20">
+                    <h3 className="text-sm font-semibold text-black-elegant mb-3 text-center">
                       🔑 Credenciales de Prueba
                     </h3>
                     <div className="grid grid-cols-1 gap-2">
                       {teamCredentials.map((cred, index) => (
-                        <div key={index} className="flex justify-between items-center bg-white rounded-lg p-2 border border-slate-200/50">
+                        <div key={index} className="flex justify-between items-center bg-white rounded-lg p-2 border border-gold/20 hover:border-gold/40 transition-colors">
                           <div>
-                            <span className="font-medium text-xs text-slate-800">{cred.role}</span>
-                            <p className="text-xs text-slate-500">{cred.email}</p>
+                            <span className="font-medium text-xs text-black-elegant">{cred.role}</span>
+                            <p className="text-xs text-black-soft">{cred.email}</p>
                           </div>
                           <Button
                             type="button"
@@ -192,7 +192,7 @@ const Login = () => {
                             size="sm"
                             onClick={() => quickLogin(cred.email, cred.password)}
                             disabled={isLoading}
-                            className="text-xs h-7 px-3 btn-outline-elegant"
+                            className="text-xs h-7 px-3 border-gold/30 text-gold hover:bg-gold/10 hover:border-gold"
                           >
                             Usar
                           </Button>
@@ -203,9 +203,9 @@ const Login = () => {
                 </form>
 
                 {/* Estadísticas de la plataforma */}
-                <div className="flex items-center justify-center gap-6 pt-4 text-slate-600 border-t border-slate-200/50">
+                <div className="flex items-center justify-center gap-6 pt-4 text-black-soft border-t border-gold/20">
                   <div className="flex items-center gap-2">
-                    <Users className="w-4 h-4 text-blue-600" />
+                    <Users className="w-4 h-4 text-blue-primary" />
                     <span className="text-sm font-medium">+15,000 ciudadanos</span>
                   </div>
                   <div className="flex items-center gap-2">

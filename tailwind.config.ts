@@ -63,7 +63,7 @@ export default {
 					border: 'hsl(var(--sidebar-border))',
 					ring: 'hsl(var(--sidebar-ring))'
 				},
-				// Colores de marca personalizados - Paleta dorada opaca
+				// Nueva paleta personalizada - Negro, Dorado y Azul
 				gold: {
 					DEFAULT: 'rgb(var(--gold))',
 					dark: 'rgb(var(--gold-dark))',
@@ -72,7 +72,8 @@ export default {
 				'blue-primary': 'rgb(var(--blue-primary))',
 				'blue-secondary': 'rgb(var(--blue-secondary))',
 				'blue-light': 'rgb(var(--blue-light))',
-				'slate-elegant': 'rgb(var(--slate-elegant))'
+				'black-elegant': 'rgb(var(--black-elegant))',
+				'black-soft': 'rgb(var(--black-soft))'
 			},
 			borderRadius: {
 				lg: 'var(--radius)',
@@ -101,7 +102,7 @@ export default {
 						height: '0'
 					}
 				},
-				// Animaciones elegantes personalizadas
+				// Animaciones elegantes actualizadas
 				'elegant-fade-in': {
 					'0%': {
 						opacity: '0',
@@ -140,12 +141,23 @@ export default {
 					'0%, 100%': { transform: 'translateY(0px)' },
 					'50%': { transform: 'translateY(-10px)' }
 				},
-				'glow': {
+				'glow-gold': {
 					'0%, 100%': { 
 						'box-shadow': '0 0 20px rgba(184, 134, 11, 0.5)' 
 					},
 					'50%': { 
-						'box-shadow': '0 0 40px rgba(184, 134, 11, 0.8)' 
+						'box-shadow': '0 0 40px rgba(184, 134, 11, 0.8), 0 0 60px rgba(30, 58, 138, 0.3)' 
+					}
+				},
+				'gradient-shift': {
+					'0%': { 
+						'background-position': '0% 50%' 
+					},
+					'50%': { 
+						'background-position': '100% 50%' 
+					},
+					'100%': { 
+						'background-position': '0% 50%' 
 					}
 				}
 			},
@@ -157,17 +169,26 @@ export default {
 				'elegant-slide-up': 'elegant-slide-up 0.5s cubic-bezier(0.25, 0.8, 0.25, 1)',
 				'shimmer': 'shimmer 2s infinite',
 				'float': 'float 3s ease-in-out infinite',
-				'glow': 'glow 2s ease-in-out infinite alternate'
+				'glow-gold': 'glow-gold 2s ease-in-out infinite alternate',
+				'gradient-shift': 'gradient-shift 3s ease infinite'
 			},
 			backdropBlur: {
 				'xs': '2px'
 			},
 			boxShadow: {
-				'elegant': '0 4px 6px -1px rgba(30, 58, 138, 0.1), 0 2px 4px -2px rgba(30, 58, 138, 0.1), 0 10px 15px -3px rgba(0, 0, 0, 0.05)',
-				'gold': '0 4px 6px -1px rgba(184, 134, 11, 0.2), 0 2px 4px -2px rgba(184, 134, 11, 0.15), 0 10px 15px -3px rgba(184, 134, 11, 0.1)',
-				'gold-dark': '0 4px 6px -1px rgba(146, 104, 8, 0.3), 0 2px 4px -2px rgba(146, 104, 8, 0.2)',
-				'3d-elegant': '0 4px 6px rgba(30, 58, 138, 0.07), 0 10px 20px rgba(30, 58, 138, 0.15), 0 2px 6px rgba(184, 134, 11, 0.1)',
-				'hover-elegant': '0 10px 25px rgba(30, 58, 138, 0.15), 0 20px 40px rgba(30, 58, 138, 0.1), 0 4px 12px rgba(184, 134, 11, 0.15)'
+				'elegant': '0 4px 6px -1px rgba(15, 23, 42, 0.1), 0 2px 4px -2px rgba(15, 23, 42, 0.1), 0 10px 15px -3px rgba(0, 0, 0, 0.05)',
+				'gold': '0 4px 6px -1px rgba(184, 134, 11, 0.3), 0 2px 4px -2px rgba(184, 134, 11, 0.2), 0 10px 15px -3px rgba(184, 134, 11, 0.1)',
+				'gold-dark': '0 4px 6px -1px rgba(146, 104, 8, 0.4), 0 2px 4px -2px rgba(146, 104, 8, 0.3)',
+				'3d-elegant': '0 4px 6px rgba(15, 23, 42, 0.1), 0 10px 20px rgba(30, 58, 138, 0.15), 0 2px 6px rgba(184, 134, 11, 0.15)',
+				'hover-elegant': '0 10px 25px rgba(15, 23, 42, 0.15), 0 20px 40px rgba(30, 58, 138, 0.1), 0 4px 12px rgba(184, 134, 11, 0.2)',
+				'black-elegant': '0 4px 6px -1px rgba(15, 23, 42, 0.2), 0 2px 4px -2px rgba(15, 23, 42, 0.15)',
+				'blue-glow': '0 4px 6px -1px rgba(30, 58, 138, 0.2), 0 2px 4px -2px rgba(30, 58, 138, 0.15), 0 0 20px rgba(59, 130, 246, 0.1)'
+			},
+			backgroundImage: {
+				'gradient-elegant': 'linear-gradient(135deg, rgb(15 23 42), rgb(30 41 59), rgb(30 58 138), rgb(184 134 11))',
+				'gradient-gold': 'linear-gradient(135deg, rgb(184 134 11), rgb(217 160 33), rgb(146 104 8))',
+				'gradient-blue': 'linear-gradient(135deg, rgb(30 58 138), rgb(59 130 246), rgb(147 197 253))',
+				'gradient-black': 'linear-gradient(135deg, rgb(15 23 42), rgb(30 41 59), rgb(51 65 85))'
 			}
 		}
 	},

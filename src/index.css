@@ -3,73 +3,74 @@
 @tailwind components;
 @tailwind utilities;
 
-/* Plataforma Zona Segura - Identidad de Marca Elegante */
-/* Paleta: Azules premium + Dorado opaco refinado */
+/* Plataforma Zona Segura - Nueva Paleta: Negro, Dorado y Azul */
+/* Paleta profesional: Negro elegante + Dorado refinado + Azul corporativo */
 
 @layer base {
   :root {
-    /* Colores base actualizados con nueva paleta */
+    /* Colores base actualizados con nueva paleta negra-dorada-azul */
     --background: 248 250 252;
-    --foreground: 30 41 59;
+    --foreground: 15 23 42; /* Negro slate más profundo */
 
     --card: 255 255 255;
-    --card-foreground: 30 41 59;
+    --card-foreground: 15 23 42;
 
     --popover: 255 255 255;
-    --popover-foreground: 30 41 59;
+    --popover-foreground: 15 23 42;
 
-    /* Paleta principal - Azules elegantes */
-    --primary: 30 58 138; /* Blue-800 */
+    /* Paleta principal - Negro, Dorado y Azul */
+    --primary: 15 23 42; /* Negro slate-900 */
     --primary-foreground: 255 255 255;
 
-    --secondary: 241 245 249; /* Slate-100 */
-    --secondary-foreground: 30 41 59;
+    --secondary: 241 245 249; /* Slate-100 mantenido */
+    --secondary-foreground: 15 23 42;
 
     --muted: 248 250 252; /* Slate-50 */
-    --muted-foreground: 100 116 139;
+    --muted-foreground: 71 85 105; /* Slate-600 */
 
-    --accent: 219 234 254; /* Blue-100 */
-    --accent-foreground: 30 41 59;
+    --accent: 30 58 138; /* Azul corporativo */
+    --accent-foreground: 255 255 255;
 
     --destructive: 220 38 38;
     --destructive-foreground: 255 255 255;
 
     --border: 226 232 240; /* Slate-200 */
     --input: 241 245 249; /* Slate-100 */
-    --ring: 30 58 138; /* Blue-800 */
+    --ring: 184 134 11; /* Dorado para focus */
 
     --radius: 0.75rem;
 
-    /* Colores personalizados para la marca - Dorado opaco refinado */
-    --gold: 184 134 11; /* Dorado más opaco y elegante */
-    --gold-dark: 146 104 8; /* Dorado oscuro para botones */
-    --gold-light: 217 160 33; /* Dorado claro para acentos */
-    --blue-primary: 30 58 138; /* Azul principal */
-    --blue-secondary: 59 130 246; /* Azul secundario */
+    /* Nueva paleta personalizada - Negro, Dorado y Azul */
+    --gold: 184 134 11; /* Dorado principal */
+    --gold-dark: 146 104 8; /* Dorado oscuro */
+    --gold-light: 217 160 33; /* Dorado claro */
+    --blue-primary: 30 58 138; /* Azul corporativo */
+    --blue-secondary: 59 130 246; /* Azul brillante */
     --blue-light: 219 234 254; /* Azul claro */
-    --slate-elegant: 51 65 85; /* Slate-700 para textos */
+    --black-elegant: 15 23 42; /* Negro elegante */
+    --black-soft: 30 41 59; /* Negro suave */
 
-    --sidebar-background: 248 250 252;
-    --sidebar-foreground: 51 65 85;
-    --sidebar-primary: 30 58 138;
-    --sidebar-primary-foreground: 255 255 255;
-    --sidebar-accent: 241 245 249;
-    --sidebar-accent-foreground: 30 41 59;
-    --sidebar-border: 226 232 240;
-    --sidebar-ring: 30 58 138;
+    --sidebar-background: 15 23 42; /* Negro para sidebar */
+    --sidebar-foreground: 248 250 252;
+    --sidebar-primary: 184 134 11; /* Dorado para elementos activos */
+    --sidebar-primary-foreground: 15 23 42;
+    --sidebar-accent: 30 41 59;
+    --sidebar-accent-foreground: 248 250 252;
+    --sidebar-border: 71 85 105;
+    --sidebar-ring: 184 134 11;
   }
 
   .dark {
-    --background: 15 23 42; /* Slate-900 */
+    --background: 15 23 42; /* Negro slate-900 */
     --foreground: 248 250 252;
 
-    --card: 30 41 59; /* Slate-800 */
+    --card: 30 41 59; /* Negro slate-800 */
     --card-foreground: 248 250 252;
 
     --popover: 30 41 59;
     --popover-foreground: 248 250 252;
 
-    --primary: 59 130 246; /* Blue-500 más claro para dark */
+    --primary: 184 134 11; /* Dorado para dark mode */
     --primary-foreground: 15 23 42;
 
     --secondary: 51 65 85; /* Slate-700 */
@@ -78,28 +79,24 @@
     --muted: 51 65 85;
     --muted-foreground: 148 163 184;
 
-    --accent: 30 58 138; /* Blue-800 */
-    --accent-foreground: 248 250 252;
+    --accent: 59 130 246; /* Azul brillante */
+    --accent-foreground: 15 23 42;
 
     --destructive: 239 68 68;
     --destructive-foreground: 248 250 252;
 
     --border: 51 65 85;
     --input: 51 65 85;
-    --ring: 59 130 246;
-
-    --gold: 184 134 11;
-    --gold-dark: 146 104 8;
-    --gold-light: 217 160 33;
+    --ring: 184 134 11;
 
     --sidebar-background: 15 23 42;
     --sidebar-foreground: 203 213 225;
-    --sidebar-primary: 59 130 246;
+    --sidebar-primary: 184 134 11;
     --sidebar-primary-foreground: 15 23 42;
     --sidebar-accent: 30 41 59;
     --sidebar-accent-foreground: 203 213 225;
     --sidebar-border: 51 65 85;
-    --sidebar-ring: 59 130 246;
+    --sidebar-ring: 184 134 11;
   }
 }
 
@@ -155,53 +152,55 @@
 }
 
 @layer components {
-  /* Gradientes elegantes de marca actualizados */
+  /* Gradientes actualizados - Negro, Dorado y Azul */
   .gradient-elegant {
     background: linear-gradient(135deg, 
-      rgb(15 23 42) 0%,     /* slate-900 */
-      rgb(30 58 138) 35%,   /* blue-800 */
-      rgb(59 130 246) 65%,  /* blue-500 */
-      rgb(219 234 254) 100% /* blue-100 */
+      rgb(15 23 42) 0%,     /* Negro elegante */
+      rgb(30 41 59) 25%,    /* Negro suave */
+      rgb(30 58 138) 50%,   /* Azul corporativo */
+      rgb(184 134 11) 75%,  /* Dorado */
+      rgb(217 160 33) 100%  /* Dorado claro */
     );
   }
 
   .gradient-primary {
     background: linear-gradient(135deg, 
-      rgb(30 58 138) 0%,    /* blue-800 */
-      rgb(59 130 246) 50%,  /* blue-500 */
-      rgb(147 197 253) 100% /* blue-300 */
+      rgb(15 23 42) 0%,     /* Negro elegante */
+      rgb(30 58 138) 50%,   /* Azul corporativo */
+      rgb(59 130 246) 100%  /* Azul brillante */
     );
   }
 
   .gradient-secondary {
     background: linear-gradient(135deg, 
-      rgb(248 250 252) 0%,  /* slate-50 */
-      rgb(241 245 249) 50%, /* slate-100 */
-      rgb(226 232 240) 100% /* slate-200 */
+      rgb(30 41 59) 0%,     /* Negro suave */
+      rgb(71 85 105) 50%,   /* Slate-600 */
+      rgb(100 116 139) 100% /* Slate-500 */
     );
   }
 
   .gradient-gold {
     background: linear-gradient(135deg, 
-      rgb(184 134 11) 0%,   /* gold opaco */
-      rgb(146 104 8) 50%,   /* gold dark */
-      rgb(217 160 33) 100%  /* gold light */
+      rgb(184 134 11) 0%,   /* Dorado principal */
+      rgb(217 160 33) 50%,  /* Dorado claro */
+      rgb(146 104 8) 100%   /* Dorado oscuro */
     );
   }
 
-  /* Componentes de marca elegantes */
+  /* Componentes actualizados con nueva paleta */
   .card-elegant {
     background-color: rgba(255, 255, 255, 0.95);
     backdrop-filter: blur(16px);
     border-radius: 1rem;
-    border: 1px solid rgba(226, 232, 240, 0.5);
-    transform: perspective(1000px) rotateX(0deg);
+    border: 1px solid rgba(184, 134, 11, 0.2);
+    box-shadow: 0 4px 6px -1px rgba(15, 23, 42, 0.1), 0 2px 4px -2px rgba(15, 23, 42, 0.1);
     transition: all 0.4s cubic-bezier(0.25, 0.8, 0.25, 1);
   }
 
   .card-elegant:hover {
-    box-shadow: 0 10px 25px rgba(30, 58, 138, 0.15), 0 20px 40px rgba(30, 58, 138, 0.1), 0 4px 12px rgba(184, 134, 11, 0.15);
-    transform: perspective(1000px) rotateX(1deg) translateY(-8px);
+    box-shadow: 0 10px 25px rgba(15, 23, 42, 0.15), 0 20px 40px rgba(30, 58, 138, 0.1), 0 4px 12px rgba(184, 134, 11, 0.2);
+    transform: translateY(-4px);
+    border-color: rgba(184, 134, 11, 0.4);
   }
 
   .btn-primary {
@@ -209,98 +208,95 @@
     font-weight: 700;
     border: none;
     border-radius: 0.75rem;
-    box-shadow: 0 4px 6px -1px rgba(30, 58, 138, 0.1), 0 2px 4px -2px rgba(30, 58, 138, 0.1), 0 10px 15px -3px rgba(0, 0, 0, 0.05);
+    box-shadow: 0 4px 6px -1px rgba(15, 23, 42, 0.2);
     transition: all 0.3s ease;
     background: linear-gradient(135deg, 
-      rgb(30 58 138) 0%,    /* blue-800 */
-      rgb(59 130 246) 50%,  /* blue-500 */
-      rgb(147 197 253) 100% /* blue-300 */
+      rgb(15 23 42) 0%,     /* Negro elegante */
+      rgb(30 58 138) 100%   /* Azul corporativo */
     );
   }
 
   .btn-primary:hover {
-    box-shadow: 0 4px 6px -1px rgba(184, 134, 11, 0.2), 0 2px 4px -2px rgba(184, 134, 11, 0.15), 0 10px 15px -3px rgba(184, 134, 11, 0.1);
+    background: linear-gradient(135deg, 
+      rgb(30 41 59) 0%,     /* Negro suave */
+      rgb(59 130 246) 100%  /* Azul brillante */
+    );
+    box-shadow: 0 6px 8px -1px rgba(184, 134, 11, 0.3);
     transform: scale(1.05);
   }
 
   .btn-secondary {
-    background-color: rgb(51 65 85);
+    background: linear-gradient(135deg, 
+      rgb(71 85 105) 0%,    /* Slate-600 */
+      rgb(100 116 139) 100% /* Slate-500 */
+    );
     color: white;
     font-weight: 600;
     border: none;
     border-radius: 0.75rem;
-    box-shadow: 0 4px 6px -1px rgba(30, 58, 138, 0.1), 0 2px 4px -2px rgba(30, 58, 138, 0.1), 0 10px 15px -3px rgba(0, 0, 0, 0.05);
+    box-shadow: 0 4px 6px -1px rgba(15, 23, 42, 0.2);
     transition: all 0.3s ease;
   }
 
   .btn-secondary:hover {
-    background-color: rgb(30 41 59);
+    background: linear-gradient(135deg, 
+      rgb(51 65 85) 0%,     /* Slate-700 */
+      rgb(71 85 105) 100%   /* Slate-600 */
+    );
     transform: scale(1.05);
   }
 
   .btn-gold {
     background: linear-gradient(135deg, 
-      rgb(184 134 11) 0%,   /* gold opaco */
-      rgb(146 104 8) 100%   /* gold dark */
+      rgb(184 134 11) 0%,   /* Dorado principal */
+      rgb(217 160 33) 100%  /* Dorado claro */
     );
-    color: white;
+    color: rgb(15 23 42);
     font-weight: 700;
     border: none;
     border-radius: 0.75rem;
-    box-shadow: 0 4px 6px -1px rgba(146, 104, 8, 0.3), 0 2px 4px -2px rgba(146, 104, 8, 0.2);
+    box-shadow: 0 4px 6px -1px rgba(184, 134, 11, 0.4);
     transition: all 0.3s ease;
   }
 
   .btn-gold:hover {
     background: linear-gradient(135deg, 
-      rgb(146 104 8) 0%,    /* gold dark */
-      rgb(120 85 6) 100%    /* gold darker */
+      rgb(217 160 33) 0%,   /* Dorado claro */
+      rgb(184 134 11) 100%  /* Dorado principal */
     );
     transform: scale(1.05);
-    box-shadow: 0 6px 8px -1px rgba(146, 104, 8, 0.4), 0 4px 6px -2px rgba(146, 104, 8, 0.3);
-  }
-
-  .btn-outline-elegant {
-    border: 2px solid rgb(203 213 225);
-    color: rgb(51 65 85);
-    border-radius: 0.5rem;
-    transition: all 0.3s ease;
-  }
-
-  .btn-outline-elegant:hover {
-    border-color: rgb(59 130 246);
-    background-color: rgb(239 246 255);
+    box-shadow: 0 6px 8px -1px rgba(184, 134, 11, 0.5);
   }
 
   .input-elegant {
-    background-color: rgba(248, 250, 252, 0.5);
-    border: 2px solid rgba(226, 232, 240, 0.5);
+    background-color: rgba(248, 250, 252, 0.8);
+    border: 2px solid rgba(184, 134, 11, 0.2);
     border-radius: 0.75rem;
     transition: all 0.3s ease;
-    box-shadow: 0 1px 2px 0 rgba(0, 0, 0, 0.05);
+    box-shadow: 0 1px 2px 0 rgba(15, 23, 42, 0.05);
   }
 
   .input-elegant:focus {
-    border-color: rgb(59 130 246);
+    border-color: rgb(184 134 11);
     background-color: white;
-    box-shadow: 0 4px 6px -1px rgba(30, 58, 138, 0.1), 0 2px 4px -2px rgba(30, 58, 138, 0.1), 0 10px 15px -3px rgba(0, 0, 0, 0.05);
+    box-shadow: 0 4px 6px -1px rgba(184, 134, 11, 0.2), 0 0 0 3px rgba(184, 134, 11, 0.1);
   }
 
   .alert-elegant {
     border-radius: 0.75rem;
-    border-left: 4px solid rgb(239 68 68);
-    background-color: rgba(254, 242, 242, 0.5);
+    border-left: 4px solid rgb(184 134 11);
+    background-color: rgba(254, 249, 195, 0.5);
     backdrop-filter: blur(4px);
   }
 
-  /* Efectos de hover elegantes */
+  /* Efectos de hover actualizados */
   .hover-lift {
     transition: all 0.3s ease;
   }
 
   .hover-lift:hover {
     transform: translateY(-0.5rem);
-    box-shadow: 0 10px 25px rgba(30, 58, 138, 0.15), 0 20px 40px rgba(30, 58, 138, 0.1), 0 4px 12px rgba(184, 134, 11, 0.15);
+    box-shadow: 0 10px 25px rgba(15, 23, 42, 0.15), 0 20px 40px rgba(30, 58, 138, 0.1), 0 4px 12px rgba(184, 134, 11, 0.2);
   }
 
   .hover-glow {
@@ -308,11 +304,11 @@
   }
 
   .hover-glow:hover {
-    box-shadow: 0 4px 6px -1px rgba(184, 134, 11, 0.2), 0 2px 4px -2px rgba(184, 134, 11, 0.15), 0 10px 15px -3px rgba(184, 134, 11, 0.1);
-    filter: drop-shadow(0 0 8px rgba(184, 134, 11, 0.3));
+    box-shadow: 0 4px 6px -1px rgba(184, 134, 11, 0.3), 0 0 20px rgba(184, 134, 11, 0.2);
+    filter: drop-shadow(0 0 8px rgba(184, 134, 11, 0.4));
   }
 
-  /* Estados de loading elegantes */
+  /* Estados de loading actualizados */
   .loading-elegant {
     position: relative;
     overflow: hidden;
@@ -333,28 +329,36 @@
     animation: shimmer 2s infinite;
   }
 
-  /* Elementos decorativos de marca */
+  /* Elementos decorativos actualizados */
   .decorative-dots {
-    background-image: radial-gradient(circle, rgba(184, 134, 11, 0.2) 1px, transparent 1px);
+    background-image: radial-gradient(circle, rgba(184, 134, 11, 0.3) 1px, transparent 1px);
     background-size: 20px 20px;
   }
 
   .decorative-lines {
     background-image: 
-      linear-gradient(45deg, rgba(30, 58, 138, 0.1) 25%, transparent 25%),
+      linear-gradient(45deg, rgba(15, 23, 42, 0.1) 25%, transparent 25%),
       linear-gradient(-45deg, rgba(30, 58, 138, 0.1) 25%, transparent 25%);
     background-size: 40px 40px;
   }
 }
 
 @layer utilities {
-  /* Colores de utilidad actualizados */
+  /* Nuevas utilidades de color */
   .text-gold {
     color: rgb(184 134 11);
   }
 
   .text-gold-dark {
     color: rgb(146 104 8);
+  }
+
+  .text-black-elegant {
+    color: rgb(15 23 42);
+  }
+
+  .text-blue-primary {
+    color: rgb(30 58 138);
   }
 
   .bg-gold {
@@ -365,11 +369,23 @@
     background-color: rgb(146 104 8);
   }
 
+  .bg-black-elegant {
+    background-color: rgb(15 23 42);
+  }
+
+  .bg-blue-primary {
+    background-color: rgb(30 58 138);
+  }
+
   .border-gold {
     border-color: rgb(184 134 11);
   }
 
-  /* Animaciones elegantes mejoradas */
+  .border-black-elegant {
+    border-color: rgb(15 23 42);
+  }
+
+  /* Animaciones elegantes */
   .animate-elegant-fade-in {
     animation: elegantFadeIn 0.6s cubic-bezier(0.25, 0.8, 0.25, 1);
   }
@@ -383,7 +399,7 @@
   }
 }
 
-/* Keyframes para animaciones */
+/* Keyframes mantenidos */
 @keyframes elegantFadeIn {
   from {
     opacity: 0;
@@ -426,7 +442,7 @@
   }
 }
 
-/* Mejoras responsivas elegantes */
+/* Mejoras responsivas */
 @media (max-width: 768px) {
   .container {
     padding-left: 1rem;
@@ -447,7 +463,6 @@
     line-height: 2rem;
   }
 
-  /* Espaciado adicional para navegación móvil */
   body {
     padding-bottom: 5rem;
   }

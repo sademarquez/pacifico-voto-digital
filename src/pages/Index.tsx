@@ -1,3 +1,4 @@
+
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
@@ -265,7 +266,7 @@ const Index = () => {
           icon: Shield,
           title: "Desarrollador del Sistema",
           subtitle: "Control Total y Administración",
-          color: "bg-red-600",
+          color: "bg-gradient-elegant",
           description: "Acceso completo a todas las funcionalidades"
         };
       case 'master':
@@ -273,7 +274,7 @@ const Index = () => {
           icon: Shield,
           title: "Administrador Master",
           subtitle: "Gestión Completa de Campaña",
-          color: "bg-purple-600",
+          color: "bg-gradient-elegant",
           description: "Supervisión total de la estrategia electoral"
         };
       case 'candidato':
@@ -281,7 +282,7 @@ const Index = () => {
           icon: Crown,
           title: `Candidato ${user.name}`,
           subtitle: "Liderazgo y Coordinación",
-          color: "bg-blue-600",
+          color: "bg-gradient-blue",
           description: "Dirección estratégica de la campaña"
         };
       case 'lider':
@@ -289,7 +290,7 @@ const Index = () => {
           icon: Star,
           title: `Líder Territorial`,
           subtitle: "Gestión de Zona Electoral",
-          color: "bg-green-600",
+          color: "bg-gradient-gold",
           description: "Coordinación local y territorial"
         };
       case 'votante':
@@ -297,7 +298,7 @@ const Index = () => {
           icon: Users,
           title: "Colaborador Activo",
           subtitle: "Participación y Apoyo",
-          color: "bg-indigo-600",
+          color: "bg-gradient-blue",
           description: "Contribución valiosa al equipo"
         };
       
@@ -306,7 +307,7 @@ const Index = () => {
           icon: MapPin,
           title: "Visitante Bienvenido",
           subtitle: "Explora tu Comunidad",
-          color: "bg-orange-600",
+          color: "bg-gradient-black",
           description: "Descubre información pública de tu zona"
         };
       
@@ -315,7 +316,7 @@ const Index = () => {
           icon: Users,
           title: "Usuario",
           subtitle: "Mi Campaña 2025",
-          color: "bg-gray-600",
+          color: "bg-gradient-elegant",
           description: "Participante del sistema electoral"
         };
     }
@@ -328,10 +329,11 @@ const Index = () => {
   return (
     <div className="min-h-screen bg-gradient-to-br from-slate-50 via-white to-gray-50">
       {/* Header personalizado del usuario */}
-      <div className={`bg-gradient-to-r ${roleInfo.color} to-opacity-90 text-white shadow-lg`}>
-        <div className="container mx-auto px-4 py-8">
+      <div className={`${roleInfo.color} text-white shadow-elegant relative overflow-hidden`}>
+        <div className="absolute inset-0 opacity-20 decorative-lines"></div>
+        <div className="container mx-auto px-4 py-8 relative z-10">
           <div className="flex flex-col items-center text-center">
-            <div className="w-32 h-32 rounded-xl overflow-hidden shadow-lg mb-4 bg-white border-4 border-white/20 flex items-center justify-center">
+            <div className="w-32 h-32 rounded-xl overflow-hidden shadow-gold mb-4 bg-white/10 border-4 border-gold/30 flex items-center justify-center backdrop-blur-sm">
               <img 
                 src="/lovable-uploads/83527a7a-6d3b-4edb-bdfc-312894177818.png" 
                 alt="MI CAMPAÑA Logo" 
@@ -339,12 +341,12 @@ const Index = () => {
               />
             </div>
             <div className="flex items-center gap-3 mb-3">
-              <RoleIcon className="w-8 h-8 text-white" />
-              <h1 className="text-3xl font-bold">{roleInfo.title}</h1>
+              <RoleIcon className="w-8 h-8 text-gold animate-glow-gold" />
+              <h1 className="text-3xl font-bold text-gold">{roleInfo.title}</h1>
             </div>
             <p className="text-xl opacity-90 mb-2">{roleInfo.subtitle}</p>
             <p className="text-lg opacity-80 mb-4">{roleInfo.description}</p>
-            <Badge className="bg-white/20 text-white border-white/30 text-lg px-4 py-2">
+            <Badge className="bg-gold/20 text-gold border-gold/30 text-lg px-4 py-2 font-bold">
               MI CAMPAÑA 2025 - {user.role.toUpperCase()}
             </Badge>
           </div>
@@ -353,31 +355,31 @@ const Index = () => {
 
       {/* Módulos personalizados */}
       <div className="container mx-auto px-4 py-8">
-        <h2 className="text-3xl font-bold text-gray-800 mb-2 text-center">
+        <h2 className="text-3xl font-bold text-black-elegant mb-2 text-center">
           Panel Personalizado
         </h2>
-        <p className="text-gray-600 text-center mb-8">
+        <p className="text-black-soft text-center mb-8">
           Herramientas específicas para tu rol en la campaña
         </p>
         
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 max-w-6xl mx-auto">
           {modules.map((module, index) => (
             <Link key={index} to={module.href}>
-              <Card className="h-full hover:shadow-lg transition-all duration-300 hover:scale-[1.02] cursor-pointer border border-gray-200 shadow-sm group">
+              <Card className="h-full hover:shadow-elegant transition-all duration-300 hover:scale-[1.02] cursor-pointer border border-gold/20 shadow-sm group card-elegant">
                 <CardHeader className="pb-3">
                   <div className="flex items-center space-x-3">
-                    <div className={`w-12 h-12 rounded-lg ${module.color} flex items-center justify-center shadow-sm group-hover:shadow-md transition-shadow`}>
+                    <div className={`w-12 h-12 rounded-lg ${module.color} flex items-center justify-center shadow-gold group-hover:shadow-gold-dark transition-shadow animate-float`}>
                       <module.icon className="w-6 h-6 text-white" />
                     </div>
                     <div>
-                      <CardTitle className="text-lg text-gray-800 group-hover:text-gray-900 transition-colors">
+                      <CardTitle className="text-lg text-black-elegant group-hover:text-gold transition-colors">
                         {module.title}
                       </CardTitle>
                     </div>
                   </div>
                 </CardHeader>
                 <CardContent>
-                  <CardDescription className="text-gray-600 group-hover:text-gray-700 transition-colors">
+                  <CardDescription className="text-black-soft group-hover:text-black-elegant transition-colors">
                     {module.description}
                   </CardDescription>
                 </CardContent>
@@ -393,7 +395,7 @@ const Index = () => {
             target="_blank" 
             rel="noopener noreferrer"
           >
-            <Button size="lg" className={`rounded-lg ${roleInfo.color} hover:opacity-90 shadow-sm hover:shadow-md transition-all`}>
+            <Button size="lg" className="rounded-lg bg-black-elegant hover:bg-black-soft text-gold shadow-elegant hover:shadow-gold transition-all hover-glow">
               <Facebook className="w-6 h-6" />
             </Button>
           </a>
@@ -402,11 +404,11 @@ const Index = () => {
             target="_blank" 
             rel="noopener noreferrer"
           >
-            <Button size="lg" className={`rounded-lg ${roleInfo.color} hover:opacity-90 shadow-sm hover:shadow-md transition-all`}>
+            <Button size="lg" className="rounded-lg bg-blue-primary hover:bg-blue-secondary text-gold shadow-elegant hover:shadow-blue-glow transition-all hover-glow">
               <Instagram className="w-6 h-6" />
             </Button>
           </a>
-          <Button size="lg" className={`rounded-lg ${roleInfo.color} hover:opacity-90 shadow-sm hover:shadow-md transition-all`}>
+          <Button size="lg" className="rounded-lg bg-gold hover:bg-gold-dark text-white shadow-elegant hover:shadow-gold-dark transition-all hover-glow">
             <Music className="w-6 h-6" />
           </Button>
         </div>
