@@ -1,4 +1,3 @@
-
 import { useState, useEffect } from "react";
 import { useQuery } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
@@ -33,8 +32,9 @@ import {
   Star,
   X
 } from 'lucide-react';
-import { useAuth } from "@/contexts/AuthContext";
+import { useSecureAuth } from "@/contexts/SecureAuthContext";
 import { useNavigate } from "react-router-dom";
+import Navigation from "@/components/Navigation";
 
 interface Alert {
   id: string;
@@ -51,7 +51,6 @@ interface Alert {
   } | null;
 }
 
-// Move calculateDistance function to the top
 const calculateDistance = (lat1: number, lng1: number, lat2: number, lng2: number) => {
   const R = 6371e3;
   const φ1 = lat1 * Math.PI/180;
@@ -68,7 +67,7 @@ const calculateDistance = (lat1: number, lng1: number, lat2: number, lng2: numbe
 };
 
 const MapaAlertas = () => {
-  const { user, isAuthenticated } = useAuth();
+  const { user, isAuthenticated } = useSecureAuth();
   const navigate = useNavigate();
   const [mapCenter, setMapCenter] = useState({ lat: 4.60971, lng: -74.08175 });
   const [userLocation, setUserLocation] = useState<{lat: number, lng: number} | null>(null);
@@ -236,7 +235,6 @@ const MapaAlertas = () => {
     refetchOnWindowFocus: false,
   });
 
-  // Now filteredAlerts can use calculateDistance since it's defined above
   const filteredAlerts = userLocation 
     ? alerts.filter(alert => {
         if (!alert.territory?.coordinates) return false;
@@ -661,7 +659,7 @@ const MapaAlertas = () => {
             <div className="flex gap-3">
               <Button 
                 onClick={() => setShowFunnel(true)}
-                className="bg-gradient-to-r from-yellow-500 to-orange-600 hover:from-yellow-600 hover:to-orange-700 text-white font-bold shadow-lg"
+                className="bg-gradient-to-r from-blue-600 to-purple-700 hover:from-blue-700 hover:to-purple-800 text-white font-bold shadow-lg"
               >
                 <Heart className="w-4 h-4 mr-2" />
                 Conocer Candidato
@@ -682,10 +680,10 @@ const MapaAlertas = () => {
 
       <div className="container mx-auto p-4 space-y-6">
         <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-          <Card className="shadow-lg border-0 bg-white/80 backdrop-blur">
+          <Card className="shadow-lg border-0 bg-white/90 backdrop-blur">
             <CardHeader className="pb-3">
-              <CardTitle className="flex items-center gap-2 text-lg">
-                <Navigation className="w-5 h-5 text-blue-600" />
+              <CardTitle className="flex items-center gap-2 text-lg text-slate-800">
+                <Navigation className="w-5 h-5 text-slate-600" />
                 Filtros de Zona
               </CardTitle>
             </CardHeader>
@@ -705,10 +703,10 @@ const MapaAlertas = () => {
             </CardContent>
           </Card>
 
-          <Card className="shadow-lg border-0 bg-white/80 backdrop-blur">
+          <Card className="shadow-lg border-0 bg-white/90 backdrop-blur">
             <CardHeader className="pb-3">
-              <CardTitle className="flex items-center gap-2 text-lg">
-                <CircleIcon className="w-5 h-5 text-purple-600" />
+              <CardTitle className="flex items-center gap-2 text-lg text-slate-800">
+                <CircleIcon className="w-5 h-5 text-slate-600" />
                 Radio de Búsqueda
               </CardTitle>
             </CardHeader>
@@ -727,17 +725,17 @@ const MapaAlertas = () => {
             </CardContent>
           </Card>
 
-          <Card className="shadow-lg border-0 bg-white/80 backdrop-blur">
+          <Card className="shadow-lg border-0 bg-white/90 backdrop-blur">
             <CardHeader className="pb-3">
-              <CardTitle className="flex items-center gap-2 text-lg">
-                <Users className="w-5 h-5 text-green-600" />
+              <CardTitle className="flex items-center gap-2 text-lg text-slate-800">
+                <Users className="w-5 h-5 text-slate-600" />
                 Estadísticas
               </CardTitle>
             </CardHeader>
             <CardContent>
               <div className="text-center">
-                <div className="text-2xl font-bold text-green-600">{filteredAlerts.length}</div>
-                <div className="text-sm text-gray-600">
+                <div className="text-2xl font-bold text-slate-700">{filteredAlerts.length}</div>
+                <div className="text-sm text-slate-600">
                   {userLocation ? 'Propuestas cerca de ti' : 'Propuestas totales'}
                 </div>
               </div>
@@ -746,12 +744,12 @@ const MapaAlertas = () => {
         </div>
 
         <Card className="shadow-2xl border-0 overflow-hidden">
-          <CardHeader className="bg-gradient-to-r from-blue-500 to-purple-500 text-white">
+          <CardHeader className="bg-gradient-to-r from-slate-600 to-slate-700 text-white">
             <CardTitle className="flex items-center gap-2 text-xl">
               <AlertTriangle className="w-6 h-6" />
               Mapa Interactivo de Propuestas
             </CardTitle>
-            <p className="text-blue-100">
+            <p className="text-slate-200">
               Haz clic en los marcadores para ver detalles de cada propuesta
             </p>
           </CardHeader>
@@ -790,7 +788,7 @@ const MapaAlertas = () => {
                       icon={{
                         path: typeof window !== 'undefined' && window.google?.maps?.SymbolPath?.CIRCLE || 0,
                         scale: 8,
-                        fillColor: '#4f46e5',
+                        fillColor: '#475569',
                         fillOpacity: 1,
                         strokeColor: '#ffffff',
                         strokeWeight: 3,
@@ -801,9 +799,9 @@ const MapaAlertas = () => {
                       center={userLocation}
                       radius={radiusFilter}
                       options={{
-                        fillColor: '#4f46e5',
+                        fillColor: '#475569',
                         fillOpacity: 0.1,
-                        strokeColor: '#4f46e5',
+                        strokeColor: '#475569',
                         strokeOpacity: 0.3,
                         strokeWeight: 2,
                       }}
@@ -820,15 +818,15 @@ const MapaAlertas = () => {
                     onCloseClick={() => setSelectedAlert(null)}
                   >
                     <div className="p-3 max-w-xs">
-                      <h3 className="font-bold text-gray-900 mb-2">{selectedAlert.title}</h3>
-                      <p className="text-sm text-gray-600 mb-3">{selectedAlert.description}</p>
+                      <h3 className="font-bold text-slate-900 mb-2">{selectedAlert.title}</h3>
+                      <p className="text-sm text-slate-600 mb-3">{selectedAlert.description}</p>
                       <div className="flex items-center justify-between">
                         <Badge className={getAlertTypeColor(selectedAlert.type)}>
                           {selectedAlert.type}
                         </Badge>
                         <div className="flex items-center gap-1">
                           <CircleIcon className={`w-3 h-3 ${getAlertPriorityColor(selectedAlert.priority)}`} />
-                          <span className="text-xs text-gray-500">
+                          <span className="text-xs text-slate-500">
                             {selectedAlert.territory?.name}
                           </span>
                         </div>
@@ -842,11 +840,11 @@ const MapaAlertas = () => {
         </Card>
 
         <Card className="shadow-xl border-0">
-          <CardHeader className="bg-gradient-to-r from-green-500 to-blue-500 text-white">
+          <CardHeader className="bg-gradient-to-r from-slate-600 to-slate-700 text-white">
             <div className="flex items-center justify-between">
               <div>
                 <CardTitle className="text-xl">🎯 Propuestas Activas en tu Área</CardTitle>
-                <p className="text-green-100">
+                <p className="text-slate-200">
                   {userLocation 
                     ? `Mostrando ${filteredAlerts.length} propuestas en un radio de ${radiusFilter/1000}km`
                     : `Mostrando todas las ${alerts.length} propuestas disponibles`
@@ -865,17 +863,17 @@ const MapaAlertas = () => {
           <CardContent className="p-6">
             {isLoading ? (
               <div className="text-center py-12">
-                <div className="animate-spin w-12 h-12 border-4 border-blue-600 border-t-transparent rounded-full mx-auto mb-4"></div>
-                <p className="text-gray-600 text-lg">Cargando propuestas...</p>
+                <div className="animate-spin w-12 h-12 border-4 border-slate-600 border-t-transparent rounded-full mx-auto mb-4"></div>
+                <p className="text-slate-600 text-lg">Cargando propuestas...</p>
               </div>
             ) : (
               <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
                 {filteredAlerts.map((alert) => (
-                  <Card key={alert.id} className="border-2 hover:shadow-xl transition-all duration-300 transform hover:scale-105 cursor-pointer bg-gradient-to-br from-white to-gray-50">
+                  <Card key={alert.id} className="border-2 hover:shadow-xl transition-all duration-300 transform hover:scale-105 cursor-pointer bg-gradient-to-br from-white to-slate-50">
                     <CardContent className="p-5">
                       <div className="space-y-3">
-                        <h3 className="font-bold text-gray-900 text-lg leading-tight">{alert.title}</h3>
-                        <p className="text-sm text-gray-600 leading-relaxed">{alert.description}</p>
+                        <h3 className="font-bold text-slate-900 text-lg leading-tight">{alert.title}</h3>
+                        <p className="text-sm text-slate-600 leading-relaxed">{alert.description}</p>
                         <div className="flex items-center justify-between pt-2">
                           <Badge className={`${getAlertTypeColor(alert.type)} font-medium`}>
                             {alert.type === 'social' ? 'Social' : 
@@ -884,13 +882,13 @@ const MapaAlertas = () => {
                           </Badge>
                           <div className="flex items-center gap-2">
                             <CircleIcon className={`w-4 h-4 ${getAlertPriorityColor(alert.priority)}`} />
-                            <span className="text-xs text-gray-500 font-medium">
+                            <span className="text-xs text-slate-500 font-medium">
                               {alert.territory?.name}
                             </span>
                           </div>
                         </div>
                         {userLocation && alert.territory?.coordinates && (
-                          <div className="text-xs text-blue-600 font-medium">
+                          <div className="text-xs text-slate-600 font-medium">
                             📍 {(calculateDistance(
                               userLocation.lat, 
                               userLocation.lng,
@@ -908,7 +906,7 @@ const MapaAlertas = () => {
           </CardContent>
         </Card>
 
-        <Card className="bg-gradient-to-r from-yellow-400 via-orange-500 to-red-500 text-white shadow-2xl border-0">
+        <Card className="bg-gradient-to-r from-slate-600 via-slate-700 to-slate-800 text-white shadow-2xl border-0">
           <CardContent className="p-8 text-center">
             <h2 className="text-3xl font-bold mb-4">🚀 ¿Te Gustaron Nuestras Propuestas?</h2>
             <p className="text-xl mb-6 opacity-90">
@@ -918,7 +916,7 @@ const MapaAlertas = () => {
               <Button 
                 onClick={() => setShowFunnel(true)}
                 size="lg"
-                className="bg-white text-orange-600 hover:bg-gray-100 font-bold shadow-lg"
+                className="bg-white text-slate-700 hover:bg-slate-100 font-bold shadow-lg"
               >
                 <Heart className="w-5 h-5 mr-2" />
                 Registrarme como Partidario
