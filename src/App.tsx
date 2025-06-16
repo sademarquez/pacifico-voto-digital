@@ -16,6 +16,7 @@ import MensajesPrivados from "./pages/MensajesPrivados";
 import Configuracion from "./pages/Configuracion";
 import Informes from "./pages/Informes";
 import Login from "./pages/Login";
+import CandidatoFunnel from "./pages/CandidatoFunnel";
 import {
   QueryClient,
   QueryClientProvider,
@@ -47,8 +48,8 @@ const ProtectedRoute = ({ children }: { children: React.ReactNode }) => {
   return <>{children}</>;
 };
 
-// Componente para rutas de visitante - permite acceso público
-const VisitorRoute = ({ children }: { children: React.ReactNode }) => {
+// Componente para rutas públicas - permite acceso sin autenticación
+const PublicRoute = ({ children }: { children: React.ReactNode }) => {
   const { isLoading } = useAuth();
   
   if (isLoading) {
@@ -76,7 +77,20 @@ function App() {
           <div className="min-h-screen bg-background">
             <Navigation />
             <Routes>
+              {/* Rutas públicas */}
               <Route path="/login" element={<Login />} />
+              <Route path="/candidato-funnel" element={
+                <PublicRoute>
+                  <CandidatoFunnel />
+                </PublicRoute>
+              } />
+              <Route path="/mapa-alertas" element={
+                <PublicRoute>
+                  <MapaAlertas />
+                </PublicRoute>
+              } />
+              
+              {/* Rutas protegidas */}
               <Route path="/" element={
                 <ProtectedRoute>
                   <Index />
@@ -86,12 +100,6 @@ function App() {
                 <ProtectedRoute>
                   <Registro />
                 </ProtectedRoute>
-              } />
-              {/* Ruta pública para visitantes */}
-              <Route path="/mapa-alertas" element={
-                <VisitorRoute>
-                  <MapaAlertas />
-                </VisitorRoute>
               } />
               <Route path="/liderazgo" element={
                 <ProtectedRoute>
