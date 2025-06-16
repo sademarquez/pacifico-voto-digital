@@ -3,79 +3,66 @@
 @tailwind components;
 @tailwind utilities;
 
-/* PALETA MODERNA CAMPAÑA POLÍTICA 2025 */
-/* Colores base inspirados en confianza, modernidad y tecnología */
+/* IMPORTAR TEMA MODERNO */
+@import './styles/modernTheme.css';
 
+/* PALETA MODERNA OPACA ELEGANTE - CAMPAÑA POLÍTICA 2025 */
 @layer base {
   :root {
-    /* Paleta principal moderna */
-    --background: 248 250 252; /* Gris muy claro para fondo */
-    --foreground: 15 23 42; /* Gris muy oscuro para texto */
+    /* Variables base actualizadas con diseño opaco elegante */
+    --background: 248 250 252; 
+    --foreground: 15 23 42; 
 
-    --card: 255 255 255; /* Blanco puro para cards */
+    --card: rgba(255, 255, 255, 0.95); 
     --card-foreground: 15 23 42;
 
-    --popover: 255 255 255;
+    --popover: rgba(255, 255, 255, 0.95);
     --popover-foreground: 15 23 42;
 
-    /* Nueva paleta principal - Azul moderno profesional */
-    --primary: 59 130 246; /* Azul vibrante moderno */
+    /* Paleta principal opaca moderna */
+    --primary: rgba(59, 130, 246, 0.85); 
     --primary-foreground: 255 255 255;
 
-    --secondary: 241 245 249; /* Gris ultra claro */
+    --secondary: rgba(241, 245, 249, 0.92); 
     --secondary-foreground: 51 65 85;
 
-    --muted: 248 250 252; /* Gris suave para backgrounds */
+    --muted: rgba(248, 250, 252, 0.88); 
     --muted-foreground: 100 116 139;
 
-    --accent: 34 197 94; /* Verde éxito moderno */
+    --accent: rgba(16, 185, 129, 0.82); 
     --accent-foreground: 255 255 255;
 
-    --destructive: 239 68 68; /* Rojo moderno para errores */
+    --destructive: rgba(239, 68, 68, 0.85); 
     --destructive-foreground: 255 255 255;
 
-    --border: 226 232 240; /* Bordes suaves */
-    --input: 248 250 252; /* Input backgrounds */
-    --ring: 59 130 246; /* Focus rings */
+    --border: rgba(226, 232, 240, 0.8); 
+    --input: rgba(248, 250, 252, 0.9); 
+    --ring: rgba(59, 130, 246, 0.85); 
 
-    --radius: 1rem; /* Bordes más redondeados */
+    --radius: 1rem; 
 
-    /* Paleta campaña política moderna */
-    --political-primary: 59 130 246; /* Azul confianza */
-    --political-secondary: 34 197 94; /* Verde progreso */
-    --political-accent: 168 85 247; /* Púrpura innovación */
-    --political-warning: 245 158 11; /* Naranja atención */
-    --political-success: 34 197 94; /* Verde éxito */
-    --political-neutral: 100 116 139; /* Gris profesional */
+    /* Variables móviles mejoradas */
+    --mobile-header-height: 4.5rem;
+    --mobile-nav-height: 5rem;
+    --mobile-content-padding: 1.25rem;
 
-    /* Gradientes modernos */
-    --gradient-primary: linear-gradient(135deg, rgb(59 130 246), rgb(147 51 234));
-    --gradient-success: linear-gradient(135deg, rgb(34 197 94), rgb(59 130 246));
-    --gradient-accent: linear-gradient(135deg, rgb(168 85 247), rgb(236 72 153));
-    --gradient-warning: linear-gradient(135deg, rgb(245 158 11), rgb(251 191 36));
-
-    /* Sombras modernas */
-    --shadow-modern-sm: 0 1px 2px 0 rgba(0, 0, 0, 0.05), 0 1px 3px 0 rgba(0, 0, 0, 0.1);
-    --shadow-modern-md: 0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -1px rgba(0, 0, 0, 0.06);
-    --shadow-modern-lg: 0 10px 15px -3px rgba(0, 0, 0, 0.1), 0 4px 6px -2px rgba(0, 0, 0, 0.05);
-    --shadow-modern-xl: 0 20px 25px -5px rgba(0, 0, 0, 0.1), 0 10px 10px -5px rgba(0, 0, 0, 0.04);
-
-    /* Variables para móvil */
-    --mobile-header-height: 4rem;
-    --mobile-nav-height: 4.5rem;
-    --mobile-content-padding: 1rem;
+    /* Animaciones fluidas */
+    --animation-speed-fast: 0.2s;
+    --animation-speed-normal: 0.3s;
+    --animation-speed-slow: 0.5s;
+    --easing-smooth: cubic-bezier(0.4, 0, 0.2, 1);
   }
 
   .dark {
-    --background: 15 23 42;
+    --background: rgba(15, 23, 42, 0.95);
     --foreground: 248 250 252;
-    --card: 30 41 59;
+    --card: rgba(30, 41, 59, 0.95);
     --card-foreground: 248 250 252;
-    --primary: 59 130 246;
-    --secondary: 51 65 85;
-    --muted: 51 65 85;
-    --border: 51 65 85;
-    --input: 51 65 85;
+    --primary: rgba(59, 130, 246, 0.9);
+    --secondary: rgba(51, 65, 85, 0.9);
+    --muted: rgba(51, 65, 85, 0.85);
+    --border: rgba(51, 65, 85, 0.8);
+    --input: rgba(51, 65, 85, 0.9);
   }
 }
 
@@ -91,9 +78,10 @@
 
   body {
     background: linear-gradient(135deg, 
-      rgb(248 250 252) 0%,
-      rgb(241 245 249) 50%,
-      rgb(226 232 240) 100%
+      rgba(248, 250, 252, 0.95) 0%,
+      rgba(241, 245, 249, 0.92) 30%,
+      rgba(219, 234, 254, 0.88) 70%,
+      rgba(226, 232, 240, 0.90) 100%
     );
     color: hsl(var(--foreground));
     font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', system-ui, sans-serif;
@@ -104,7 +92,7 @@
     overflow-x: hidden;
   }
 
-  /* Tipografía moderna optimizada */
+  /* Tipografía mejorada con efectos modernos */
   h1, h2, h3, h4, h5, h6 {
     font-weight: 700;
     letter-spacing: -0.025em;
@@ -114,7 +102,10 @@
 
   h1 {
     font-size: 2.5rem;
-    background: var(--gradient-primary);
+    background: linear-gradient(135deg, 
+      rgba(59, 130, 246, 0.9) 0%, 
+      rgba(37, 99, 235, 0.95) 50%, 
+      rgba(29, 78, 216, 1) 100%);
     -webkit-background-clip: text;
     -webkit-text-fill-color: transparent;
     background-clip: text;
@@ -122,12 +113,12 @@
 
   h2 {
     font-size: 2rem;
-    color: rgb(59 130 246);
+    color: rgba(59, 130, 246, 0.9);
   }
 
   h3 {
     font-size: 1.5rem;
-    color: rgb(51 65 85);
+    color: rgba(51, 65, 85, 0.9);
   }
 
   /* Responsividad móvil perfecta */
@@ -164,14 +155,18 @@
 }
 
 @layer components {
-  /* Componentes modernos de campaña política */
+  /* Componentes ultra modernos con glassmorphism */
   .campaign-card {
     background: rgba(255, 255, 255, 0.95);
     backdrop-filter: blur(20px);
+    -webkit-backdrop-filter: blur(20px);
     border: 1px solid rgba(226, 232, 240, 0.8);
     border-radius: 1rem;
-    box-shadow: var(--shadow-modern-md);
-    transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+    box-shadow: 
+      0 4px 6px rgba(0, 0, 0, 0.07),
+      0 1px 3px rgba(0, 0, 0, 0.06),
+      inset 0 1px 0 rgba(255, 255, 255, 0.1);
+    transition: all var(--animation-speed-normal) var(--easing-smooth);
     position: relative;
     overflow: hidden;
   }
@@ -183,24 +178,35 @@
     left: 0;
     right: 0;
     height: 4px;
-    background: var(--gradient-primary);
+    background: linear-gradient(90deg, 
+      rgba(59, 130, 246, 0.8) 0%,
+      rgba(16, 185, 129, 0.8) 50%,
+      rgba(139, 92, 246, 0.8) 100%);
   }
 
   .campaign-card:hover {
     transform: translateY(-4px) scale(1.02);
-    box-shadow: var(--shadow-modern-xl);
-    border-color: rgb(59 130 246);
+    box-shadow: 
+      0 20px 25px rgba(0, 0, 0, 0.1),
+      0 10px 15px rgba(0, 0, 0, 0.05),
+      0 0 20px rgba(59, 130, 246, 0.3);
+    border-color: rgba(59, 130, 246, 0.6);
   }
 
+  /* Botones interactivos ultra modernos */
   .btn-modern-primary {
-    background: var(--gradient-primary);
+    background: linear-gradient(135deg, 
+      rgba(59, 130, 246, 0.9) 0%, 
+      rgba(37, 99, 235, 0.95) 100%);
     color: white;
     font-weight: 600;
     border: none;
     border-radius: 0.75rem;
-    padding: 0.75rem 1.5rem;
-    box-shadow: var(--shadow-modern-sm);
-    transition: all 0.3s ease;
+    padding: 0.875rem 1.5rem;
+    box-shadow: 
+      0 4px 6px rgba(59, 130, 246, 0.2),
+      0 2px 4px rgba(59, 130, 246, 0.1);
+    transition: all var(--animation-speed-normal) var(--easing-smooth);
     position: relative;
     overflow: hidden;
   }
@@ -212,8 +218,11 @@
     left: -100%;
     width: 100%;
     height: 100%;
-    background: linear-gradient(90deg, transparent, rgba(255,255,255,0.2), transparent);
-    transition: left 0.5s;
+    background: linear-gradient(90deg, 
+      transparent, 
+      rgba(255,255,255,0.2), 
+      transparent);
+    transition: left var(--animation-speed-slow);
   }
 
   .btn-modern-primary:hover::before {
@@ -222,113 +231,44 @@
 
   .btn-modern-primary:hover {
     transform: translateY(-2px);
-    box-shadow: var(--shadow-modern-lg);
+    box-shadow: 
+      0 10px 15px rgba(59, 130, 246, 0.3),
+      0 4px 6px rgba(59, 130, 246, 0.2);
   }
 
-  .btn-modern-secondary {
-    background: rgba(59, 130, 246, 0.1);
-    color: rgb(59 130 246);
-    font-weight: 600;
-    border: 2px solid rgba(59, 130, 246, 0.2);
-    border-radius: 0.75rem;
-    padding: 0.75rem 1.5rem;
-    transition: all 0.3s ease;
-  }
-
-  .btn-modern-secondary:hover {
-    background: rgba(59, 130, 246, 0.2);
-    border-color: rgb(59 130 246);
-    transform: translateY(-1px);
-  }
-
+  /* Input moderno con efectos glassmorphism */
   .input-modern {
-    background: rgba(248, 250, 252, 0.8);
+    background: rgba(248, 250, 252, 0.9);
     border: 2px solid rgba(226, 232, 240, 0.8);
     border-radius: 0.75rem;
     padding: 0.875rem 1rem;
-    transition: all 0.3s ease;
+    transition: all var(--animation-speed-normal) var(--easing-smooth);
     font-size: 1rem;
+    backdrop-filter: blur(10px);
+    -webkit-backdrop-filter: blur(10px);
   }
 
   .input-modern:focus {
-    border-color: rgb(59 130 246);
+    border-color: rgba(59, 130, 246, 0.8);
     background: rgba(255, 255, 255, 0.95);
-    box-shadow: 0 0 0 3px rgba(59, 130, 246, 0.1);
+    box-shadow: 
+      0 0 0 3px rgba(59, 130, 246, 0.1),
+      0 4px 6px rgba(0, 0, 0, 0.05);
     outline: none;
     transform: translateY(-1px);
   }
 
-  /* Navegación móvil moderna */
-  .mobile-nav-modern {
-    position: fixed;
-    bottom: 0;
-    left: 0;
-    right: 0;
-    height: var(--mobile-nav-height);
-    background: rgba(255, 255, 255, 0.95);
-    backdrop-filter: blur(20px);
-    border-top: 1px solid rgba(226, 232, 240, 0.8);
-    z-index: 50;
-    padding: 0.5rem;
-  }
-
-  .mobile-nav-item {
-    display: flex;
-    flex-direction: column;
-    align-items: center;
-    justify-content: center;
-    padding: 0.5rem;
-    border-radius: 0.75rem;
-    transition: all 0.3s ease;
-    min-height: 3.5rem;
-    position: relative;
-  }
-
-  .mobile-nav-item.active {
-    background: var(--gradient-primary);
-    color: white;
-    transform: translateY(-2px);
-    box-shadow: var(--shadow-modern-md);
-  }
-
-  .mobile-nav-item.active::before {
-    content: '';
-    position: absolute;
-    top: -8px;
-    left: 50%;
-    transform: translateX(-50%);
-    width: 4px;
-    height: 4px;
-    background: white;
-    border-radius: 50%;
-    box-shadow: 0 0 8px rgba(255, 255, 255, 0.8);
-  }
-
-  .mobile-nav-item:not(.active):hover {
-    background: rgba(59, 130, 246, 0.1);
-    color: rgb(59 130 246);
-  }
-
-  /* Headers modernos */
-  .header-modern {
-    background: rgba(255, 255, 255, 0.95);
-    backdrop-filter: blur(20px);
-    border-bottom: 1px solid rgba(226, 232, 240, 0.8);
-    position: sticky;
-    top: 0;
-    z-index: 40;
-  }
-
-  /* Stats cards modernas */
+  /* Stats cards ultra modernas */
   .stats-card-modern {
-    background: rgba(255, 255, 255, 0.9);
+    background: rgba(255, 255, 255, 0.95);
     backdrop-filter: blur(15px);
+    -webkit-backdrop-filter: blur(15px);
     border: 1px solid rgba(226, 232, 240, 0.6);
     border-radius: 1rem;
     padding: 1.5rem;
     position: relative;
     overflow: hidden;
-    transition: all 0.3s ease;
+    transition: all var(--animation-speed-normal) var(--easing-smooth);
   }
 
   .stats-card-modern::before {
@@ -338,128 +278,93 @@
     left: 0;
     width: 100%;
     height: 3px;
-    background: var(--gradient-primary);
+    background: linear-gradient(90deg, 
+      rgba(59, 130, 246, 0.8) 0%,
+      rgba(16, 185, 129, 0.8) 100%);
   }
 
   .stats-card-modern:hover {
     transform: translateY(-2px);
-    box-shadow: var(--shadow-modern-lg);
-  }
-
-  /* Efectos de loading modernos */
-  .loading-modern {
-    background: linear-gradient(90deg, 
-      rgba(248, 250, 252, 0.4) 25%, 
-      rgba(255, 255, 255, 0.8) 50%, 
-      rgba(248, 250, 252, 0.4) 75%
-    );
-    background-size: 200% 100%;
-    animation: shimmer-modern 2s infinite;
-  }
-
-  /* Alertas modernas */
-  .alert-success-modern {
-    background: rgba(34, 197, 94, 0.1);
-    border: 1px solid rgba(34, 197, 94, 0.3);
-    color: rgb(21, 128, 61);
-    border-radius: 0.75rem;
-    padding: 1rem;
-  }
-
-  .alert-warning-modern {
-    background: rgba(245, 158, 11, 0.1);
-    border: 1px solid rgba(245, 158, 11, 0.3);
-    color: rgb(146, 64, 14);
-    border-radius: 0.75rem;
-    padding: 1rem;
-  }
-
-  .alert-error-modern {
-    background: rgba(239, 68, 68, 0.1);
-    border: 1px solid rgba(239, 68, 68, 0.3);
-    color: rgb(153, 27, 27);
-    border-radius: 0.75rem;
-    padding: 1rem;
+    box-shadow: 
+      0 10px 15px rgba(0, 0, 0, 0.1),
+      0 4px 6px rgba(0, 0, 0, 0.05);
   }
 }
 
 @layer utilities {
-  /* Utilidades modernas */
+  /* Utilidades modernas mejoradas */
   .gradient-text-primary {
-    background: var(--gradient-primary);
+    background: linear-gradient(135deg, 
+      rgba(59, 130, 246, 0.9) 0%, 
+      rgba(37, 99, 235, 0.95) 50%, 
+      rgba(29, 78, 216, 1) 100%);
     -webkit-background-clip: text;
     -webkit-text-fill-color: transparent;
     background-clip: text;
   }
 
   .gradient-text-success {
-    background: var(--gradient-success);
+    background: linear-gradient(135deg, 
+      rgba(16, 185, 129, 0.9) 0%, 
+      rgba(5, 150, 105, 0.95) 100%);
     -webkit-background-clip: text;
     -webkit-text-fill-color: transparent;
     background-clip: text;
   }
 
   .gradient-bg-primary {
-    background: var(--gradient-primary);
+    background: linear-gradient(135deg, 
+      rgba(59, 130, 246, 0.9) 0%, 
+      rgba(37, 99, 235, 0.95) 100%);
   }
 
   .gradient-bg-success {
-    background: var(--gradient-success);
+    background: linear-gradient(135deg, 
+      rgba(16, 185, 129, 0.9) 0%, 
+      rgba(5, 150, 105, 0.95) 100%);
   }
 
   .gradient-bg-accent {
-    background: var(--gradient-accent);
+    background: linear-gradient(135deg, 
+      rgba(139, 92, 246, 0.9) 0%, 
+      rgba(124, 58, 237, 0.95) 100%);
   }
 
+  /* Sombras modernas mejoradas */
   .shadow-modern-sm {
-    box-shadow: var(--shadow-modern-sm);
+    box-shadow: 
+      0 1px 2px rgba(0, 0, 0, 0.05),
+      0 1px 3px rgba(0, 0, 0, 0.1);
   }
 
   .shadow-modern-md {
-    box-shadow: var(--shadow-modern-md);
+    box-shadow: 
+      0 4px 6px rgba(0, 0, 0, 0.07),
+      0 2px 4px rgba(0, 0, 0, 0.06);
   }
 
   .shadow-modern-lg {
-    box-shadow: var(--shadow-modern-lg);
+    box-shadow: 
+      0 10px 15px rgba(0, 0, 0, 0.1),
+      0 4px 6px rgba(0, 0, 0, 0.05);
   }
 
   .shadow-modern-xl {
-    box-shadow: var(--shadow-modern-xl);
+    box-shadow: 
+      0 20px 25px rgba(0, 0, 0, 0.1),
+      0 10px 10px rgba(0, 0, 0, 0.04);
   }
 
   .backdrop-modern {
     backdrop-filter: blur(20px);
-  }
-
-  /* Responsividad perfecta */
-  .mobile-hidden {
-    @media (max-width: 768px) {
-      display: none !important;
-    }
-  }
-
-  .mobile-only {
-    @media (min-width: 769px) {
-      display: none !important;
-    }
-  }
-
-  .container-mobile {
-    @media (max-width: 768px) {
-      padding-left: var(--mobile-content-padding);
-      padding-right: var(--mobile-content-padding);
-    }
+    -webkit-backdrop-filter: blur(20px);
   }
 }
 
-/* Animaciones modernas */
+/* Animaciones ultra fluidas */
 @keyframes shimmer-modern {
-  0% {
-    background-position: -200% 0;
-  }
-  100% {
-    background-position: 200% 0;
-  }
+  0% { background-position: -200% 0; }
+  100% { background-position: 200% 0; }
 }
 
 @keyframes fade-in-up {
@@ -493,17 +398,52 @@
   }
 }
 
+@keyframes float-gentle {
+  0%, 100% { 
+    transform: translateY(0px); 
+  }
+  50% { 
+    transform: translateY(-8px); 
+  }
+}
+
+@keyframes pulse-glow {
+  0%, 100% { 
+    box-shadow: 
+      0 4px 6px rgba(0, 0, 0, 0.07),
+      0 2px 4px rgba(0, 0, 0, 0.06);
+  }
+  50% { 
+    box-shadow: 
+      0 10px 15px rgba(0, 0, 0, 0.1),
+      0 4px 6px rgba(0, 0, 0, 0.05),
+      0 0 20px rgba(59, 130, 246, 0.3);
+  }
+}
+
 /* Animaciones aplicadas */
 .animate-fade-in-up {
-  animation: fade-in-up 0.6s ease-out;
+  animation: fade-in-up 0.6s var(--easing-smooth);
 }
 
 .animate-scale-in {
-  animation: scale-in 0.4s ease-out;
+  animation: scale-in 0.4s var(--easing-smooth);
 }
 
 .animate-slide-up {
-  animation: slide-up 0.5s ease-out;
+  animation: slide-up 0.5s var(--easing-smooth);
+}
+
+.animate-slide-elegant {
+  animation: fade-in-up 0.6s var(--easing-smooth);
+}
+
+.animate-float {
+  animation: float-gentle 6s ease-in-out infinite;
+}
+
+.animate-pulse-glow {
+  animation: pulse-glow 2s ease-in-out infinite;
 }
 
 /* Optimizaciones de rendimiento */
@@ -525,14 +465,7 @@ img, video {
   }
 }
 
-@media (prefers-contrast: high) {
-  :root {
-    --border: 51 65 85;
-    --ring: 59 130 246;
-  }
-}
-
-/* Scrollbar personalizado */
+/* Scrollbar personalizado moderno */
 ::-webkit-scrollbar {
   width: 6px;
 }

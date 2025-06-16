@@ -24,6 +24,8 @@ import {
 import DashboardVisitante from "../components/DashboardVisitante";
 import ElectoralDashboard from "../components/ElectoralDashboard";
 import AutomatedVisitorWindow from "../components/AutomatedVisitorWindow";
+import ModernInteractiveMap from "../components/ModernInteractiveMap";
+import ModernUserInterface from "../components/ModernUserInterface";
 
 const Dashboard = () => {
   const { user, isLoading: authLoading } = useSecureAuth();
@@ -247,28 +249,34 @@ const Dashboard = () => {
               )}
             </TabsContent>
 
-            {/* Nuevo tab Electoral IA moderno */}
+            {/* Nuevo tab Electoral IA moderno con mapa interactivo */}
             {availableTabs.find(tab => tab.id === 'electoral') && (
               <TabsContent value="electoral">
-                <div className="campaign-card p-6 animate-scale-in">
-                  <div className="flex items-center gap-4 mb-6">
-                    <div className="w-12 h-12 gradient-bg-primary rounded-xl flex items-center justify-center">
-                      <Zap className="w-6 h-6 text-white" />
+                <div className="space-y-6">
+                  <div className="campaign-card p-6 animate-scale-in">
+                    <div className="flex items-center gap-4 mb-6">
+                      <div className="w-12 h-12 gradient-bg-primary rounded-xl flex items-center justify-center animate-pulse-glow">
+                        <Zap className="w-6 h-6 text-white" />
+                      </div>
+                      <div>
+                        <h2 className="text-2xl font-bold gradient-text-primary">IA Electoral + Mapa Interactivo</h2>
+                        <p className="text-gray-600">Automatización con Gemini AI y visualización geográfica avanzada</p>
+                      </div>
                     </div>
-                    <div>
-                      <h2 className="text-2xl font-bold gradient-text-primary">IA Electoral Avanzada</h2>
-                      <p className="text-gray-600">Automatización con Gemini AI para campañas inteligentes</p>
-                    </div>
+                    <ModernInteractiveMap />
                   </div>
                   <ElectoralDashboard />
                 </div>
               </TabsContent>
             )}
 
-            {/* Nuevo tab Ventana de Visitantes moderno */}
+            {/* Nuevo tab Visitantes con interfaz moderna */}
             {availableTabs.find(tab => tab.id === 'visitor') && (
               <TabsContent value="visitor">
-                <AutomatedVisitorWindow />
+                <div className="space-y-6">
+                  <ModernUserInterface />
+                  <AutomatedVisitorWindow />
+                </div>
               </TabsContent>
             )}
 

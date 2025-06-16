@@ -1,4 +1,3 @@
-
 import {
   BrowserRouter,
   Routes,
@@ -23,6 +22,8 @@ import { SecureAuthProvider } from "./contexts/SecureAuthContext";
 import TrackingProvider from './components/TrackingProvider';
 import ChatbotManager from './components/ChatbotManager';
 import GeminiAssistant from './components/GeminiAssistant';
+import EnhancedMobileNavigation from './components/EnhancedMobileNavigation';
+import './styles/modernTheme.css';
 
 const queryClient = new QueryClient({
   defaultOptions: {
@@ -39,39 +40,45 @@ function App() {
       <SecureAuthProvider>
         <TrackingProvider>
           <BrowserRouter>
-            <Routes>
-              <Route path="/" element={<Login />} />
-              <Route path="/login" element={<Login />} />
-              <Route path="/index" element={<Index />} />
-              <Route path="/dashboard" element={<Dashboard />} />
-              <Route path="/mapa-alertas" element={<MapaAlertas />} />
-              <Route path="/registro" element={<Registro />} />
-              <Route path="/configuracion" element={<Configuracion />} />
-              <Route path="/informes" element={<Informes />} />
-              <Route path="/liderazgo" element={<Liderazgo />} />
-              <Route path="/red-ayudantes" element={<RedAyudantes />} />
-              <Route path="/tareas" element={<TasksPage />} />
-              <Route path="/eventos" element={<EventsPage />} />
-              <Route path="/acciones-rapidas" element={<QuickActionsPage />} />
-            </Routes>
-            
-            {/* Asistente IA Gemini disponible en toda la aplicación */}
-            <GeminiAssistant />
-            
-            <ChatbotManager />
-            <Toaster 
-              position="top-right"
-              toastOptions={{
-                duration: 4000,
-                style: {
-                  background: 'white',
-                  color: '#333',
-                  border: '1px solid #e2e8f0',
-                  borderRadius: '0.75rem',
-                  boxShadow: '0 10px 15px -3px rgba(0, 0, 0, 0.1)',
-                },
-              }}
-            />
+            <div className="min-h-screen bg-gradient-to-br from-slate-50 to-blue-50">
+              {/* Navegación móvil moderna mejorada */}
+              <EnhancedMobileNavigation />
+              
+              <Routes>
+                <Route path="/" element={<Login />} />
+                <Route path="/login" element={<Login />} />
+                <Route path="/index" element={<Index />} />
+                <Route path="/dashboard" element={<Dashboard />} />
+                <Route path="/mapa-alertas" element={<MapaAlertas />} />
+                <Route path="/registro" element={<Registro />} />
+                <Route path="/configuracion" element={<Configuracion />} />
+                <Route path="/informes" element={<Informes />} />
+                <Route path="/liderazgo" element={<Liderazgo />} />
+                <Route path="/red-ayudantes" element={<RedAyudantes />} />
+                <Route path="/tareas" element={<TasksPage />} />
+                <Route path="/eventos" element={<EventsPage />} />
+                <Route path="/acciones-rapidas" element={<QuickActionsPage />} />
+              </Routes>
+              
+              {/* Asistente IA Gemini con interfaz moderna */}
+              <GeminiAssistant />
+              
+              <ChatbotManager />
+              <Toaster 
+                position="top-right"
+                toastOptions={{
+                  duration: 4000,
+                  style: {
+                    background: 'rgba(255, 255, 255, 0.95)',
+                    color: '#1f2937',
+                    border: '1px solid rgba(229, 231, 235, 0.8)',
+                    borderRadius: '1rem',
+                    boxShadow: '0 20px 25px -5px rgba(0, 0, 0, 0.1), 0 10px 10px -5px rgba(0, 0, 0, 0.04)',
+                    backdropFilter: 'blur(20px)',
+                  },
+                }}
+              />
+            </div>
           </BrowserRouter>
         </TrackingProvider>
       </SecureAuthProvider>
