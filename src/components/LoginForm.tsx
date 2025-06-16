@@ -5,7 +5,7 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Alert, AlertDescription } from "@/components/ui/alert";
-import { Shield, Eye, EyeOff, AlertCircle, User, Crown } from "lucide-react";
+import { Shield, Eye, EyeOff, AlertCircle, User, Crown, Users } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
 
 interface LoginFormProps {
@@ -20,6 +20,15 @@ const LoginForm = ({ onLogin, isLoading, authError, clearAuthError }: LoginFormP
   const [password, setPassword] = useState("");
   const [showPassword, setShowPassword] = useState(false);
   const { toast } = useToast();
+
+  const demoUsers = [
+    { email: 'daniel@demo.com', name: 'Daniel', role: 'desarrollador' },
+    { email: 'luis@demo.com', name: 'Luis', role: 'desarrollador' },
+    { email: 'sebastian@demo.com', name: 'Sebastian', role: 'desarrollador' },
+    { email: 'llm@demo.com', name: 'LLM Assistant', role: 'desarrollador' },
+    { email: 'dev@demo.com', name: 'Desarrollador', role: 'desarrollador' },
+    { email: 'master@demo.com', name: 'Master', role: 'master' }
+  ];
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -47,19 +56,19 @@ const LoginForm = ({ onLogin, isLoading, authError, clearAuthError }: LoginFormP
     
     if (result.success) {
       toast({
-        title: "¡Bienvenido!",
-        description: `Acceso concedido a ${email}`,
+        title: "¡Acceso Concedido!",
+        description: `Bienvenido ${email}`,
       });
     }
   };
 
-  const fillCreatorCredentials = () => {
-    setEmail('sademarquez@micampana.com');
-    setPassword('majomariana1207');
+  const fillCredentials = (userEmail: string, userName: string) => {
+    setEmail(userEmail);
+    setPassword('12345678');
     clearAuthError();
     toast({
-      title: "Credenciales del Creador",
-      description: "Listo para acceso como Santiago De Márquez",
+      title: "Credenciales Cargadas",
+      description: `Listo para acceso como ${userName}`,
     });
   };
 
@@ -95,7 +104,7 @@ const LoginForm = ({ onLogin, isLoading, authError, clearAuthError }: LoginFormP
                   setEmail(e.target.value);
                   if (authError) clearAuthError();
                 }}
-                placeholder="tu@micampana.com"
+                placeholder="tu@demo.com"
                 className="border-2 border-gray-300 focus:border-blue-500"
                 required
                 disabled={isLoading}
@@ -113,7 +122,7 @@ const LoginForm = ({ onLogin, isLoading, authError, clearAuthError }: LoginFormP
                     setPassword(e.target.value);
                     if (authError) clearAuthError();
                   }}
-                  placeholder="Tu contraseña segura"
+                  placeholder="12345678"
                   className="pr-10 border-2 border-gray-300 focus:border-blue-500"
                   required
                   disabled={isLoading}
@@ -131,37 +140,58 @@ const LoginForm = ({ onLogin, isLoading, authError, clearAuthError }: LoginFormP
               </div>
             </div>
 
-            <div className="space-y-3">
-              <Button 
-                type="submit" 
-                className="w-full bg-gradient-to-r from-blue-600 to-purple-600 hover:from-blue-700 hover:to-purple-700 text-white font-bold py-3" 
-                disabled={isLoading}
-              >
-                {isLoading ? "Autenticando..." : "Acceder al Sistema"}
-              </Button>
-              
-              <Button
-                type="button"
-                variant="outline"
-                onClick={fillCreatorCredentials}
-                className="w-full border-2 border-amber-500 text-amber-700 hover:bg-amber-50 flex items-center gap-2"
-                disabled={isLoading}
-              >
-                <Crown className="w-4 h-4" />
-                Acceso del Creador
-              </Button>
-            </div>
+            <Button 
+              type="submit" 
+              className="w-full bg-gradient-to-r from-blue-600 to-purple-600 hover:from-blue-700 hover:to-purple-700 text-white font-bold py-3" 
+              disabled={isLoading}
+            >
+              {isLoading ? "Autenticando..." : "Acceder al Sistema"}
+            </Button>
           </form>
+
+          {/* Usuarios de prueba */}
+          <div className="mt-6 space-y-3">
+            <div className="flex items-center gap-2 mb-3">
+              <Users className="w-5 h-5 text-blue-600" />
+              <strong className="text-blue-900">Usuarios de Prueba:</strong>
+            </div>
+            
+            <div className="grid grid-cols-1 gap-2 max-h-48 overflow-y-auto">
+              {demoUsers.map((user, index) => (
+                <Button
+                  key={index}
+                  type="button"
+                  variant="outline"
+                  onClick={() => fillCredentials(user.email, user.name)}
+                  className="justify-start text-left p-3 h-auto border border-gray-300 hover:bg-blue-50"
+                  disabled={isLoading}
+                >
+                  <div className="flex items-center gap-2 w-full">
+                    {user.role === 'desarrollador' ? (
+                      <Crown className="w-4 h-4 text-amber-500" />
+                    ) : (
+                      <User className="w-4 h-4 text-blue-500" />
+                    )}
+                    <div className="flex-1">
+                      <div className="font-medium text-sm">{user.name}</div>
+                      <div className="text-xs text-gray-500">{user.email}</div>
+                    </div>
+                    <div className="text-xs text-gray-400 capitalize">{user.role}</div>
+                  </div>
+                </Button>
+              ))}
+            </div>
+          </div>
           
           <div className="mt-6 p-4 bg-gradient-to-r from-blue-50 to-purple-50 rounded-lg border border-blue-200">
             <div className="flex items-center gap-2 mb-2">
-              <User className="w-5 h-5 text-blue-600" />
-              <strong className="text-blue-900">Sistema Profesional Activo</strong>
+              <Shield className="w-5 h-5 text-blue-600" />
+              <strong className="text-blue-900">Sistema Premium Activo</strong>
             </div>
+            <p className="text-sm text-blue-700">• ✅ Gemini AI Premium integrado</p>
             <p className="text-sm text-blue-700">• ✅ Base de datos empresarial</p>
-            <p className="text-sm text-blue-700">• ✅ Integración Gemini AI</p>
-            <p className="text-sm text-blue-700">• ✅ Importación masiva de datos</p>
             <p className="text-sm text-blue-700">• ✅ Gestión multi-usuario</p>
+            <p className="text-sm text-blue-700">• ✅ Auditoría completa disponible</p>
           </div>
         </CardContent>
       </Card>

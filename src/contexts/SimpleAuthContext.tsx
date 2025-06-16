@@ -45,7 +45,36 @@ export const SimpleAuthProvider: React.FC<{ children: ReactNode }> = ({ children
 
       if (error) {
         console.error('❌ Error cargando perfil:', error);
-        throw error;
+        
+        // Si no existe perfil, crear uno básico
+        if (error.code === 'PGRST116') {
+          console.log('📝 Creando perfil básico...');
+          const { error: insertError } = await supabase
+            .from('profiles')
+            .insert({
+              id: supabaseUser.id,
+              name: supabaseUser.email?.split('@')[0] || 'Usuario',
+              role: 'votante',
+              created_at: new Date().toISOString()
+            });
+
+          if (insertError) {
+            console.error('❌ Error creando perfil:', insertError);
+            throw insertError;
+          }
+
+          // Intentar cargar el perfil recién creado
+          const { data: newProfile, error: newError } = await supabase
+            .from('profiles')
+            .select('id, name, role')
+            .eq('id', supabaseUser.id)
+            .single();
+
+          if (newError) throw newError;
+          profile = newProfile;
+        } else {
+          throw error;
+        }
       }
 
       const userData: User = {
@@ -83,8 +112,11 @@ export const SimpleAuthProvider: React.FC<{ children: ReactNode }> = ({ children
           errorMsg = 'Credenciales incorrectas. Verifica email y contraseña.';
         } else if (error.message.includes('Email not confirmed')) {
           errorMsg = 'Email no confirmado. Contacta al administrador.';
+        } else if (error.message.includes('Too many requests')) {
+          errorMsg = 'Demasiados intentos. Espera un momento.';
         }
         
+        console.error('❌ Error de login:', error);
         setAuthError(errorMsg);
         setIsLoading(false);
         return { success: false, error: errorMsg };
@@ -95,9 +127,9 @@ export const SimpleAuthProvider: React.FC<{ children: ReactNode }> = ({ children
         return { success: true };
       }
 
-      setAuthError('Login sin datos de usuario');
+      setAuthError('Login sin datos válidos');
       setIsLoading(false);
-      return { success: false, error: 'Login sin datos de usuario' };
+      return { success: false, error: 'Login sin datos válidos' };
     } catch (error) {
       console.error('❌ Error crítico en login:', error);
       const errorMsg = 'Error inesperado durante el login';
@@ -110,13 +142,16 @@ export const SimpleAuthProvider: React.FC<{ children: ReactNode }> = ({ children
   const logout = async () => {
     try {
       setIsLoading(true);
-      await supabase.auth.signOut();
+      const { error } = await supabase.auth.signOut();
+      if (error) {
+        console.error('❌ Error en logout:', error);
+      }
       setUser(null);
       setSession(null);
       setAuthError(null);
       console.log('👋 Logout exitoso');
     } catch (error) {
-      console.error('❌ Error en logout:', error);
+      console.error('❌ Error crítico en logout:', error);
     } finally {
       setIsLoading(false);
     }
@@ -126,7 +161,7 @@ export const SimpleAuthProvider: React.FC<{ children: ReactNode }> = ({ children
     console.log('🚀 Inicializando SimpleAuthProvider');
 
     const { data: authListener } = supabase.auth.onAuthStateChange(async (event, session) => {
-      console.log(`🔔 AUTH EVENT: ${event}`, { hasSession: !!session });
+      console.log(`🔔 AUTH EVENT: ${event}`, { hasSession: !!session, userEmail: session?.user?.email });
 
       if (session?.user && event !== 'SIGNED_OUT') {
         setSession(session);
@@ -142,12 +177,20 @@ export const SimpleAuthProvider: React.FC<{ children: ReactNode }> = ({ children
     // Verificar sesión inicial
     const initializeAuth = async () => {
       try {
-        const { data: { session } } = await supabase.auth.getSession();
+        const { data: { session }, error } = await supabase.auth.getSession();
+        
+        if (error) {
+          console.error('❌ Error obteniendo sesión:', error);
+          setIsLoading(false);
+          return;
+        }
         
         if (session?.user) {
           console.log('✅ Sesión inicial encontrada para:', session.user.email);
           setSession(session);
           await loadUserProfile(session.user);
+        } else {
+          console.log('ℹ️ No hay sesión inicial');
         }
       } catch (error) {
         console.error('❌ Error inicialización auth:', error);
