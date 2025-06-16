@@ -1,15 +1,17 @@
 
 import { useAuth } from '@/contexts/AuthContext';
 import { useDataSegregation } from '@/hooks/useDataSegregation';
+import { useDemoUsers } from '@/hooks/useDemoUsers';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
-import { CheckCircle, XCircle, User, Shield, Bug } from 'lucide-react';
+import { CheckCircle, XCircle, User, Shield, Bug, Database, TrendingUp } from 'lucide-react';
 import { SystemDiagnostics } from './SystemDiagnostics';
 import { useState } from 'react';
 
 export const DebugAuthPanel = () => {
   const { user, isAuthenticated } = useAuth();
+  const { databaseStats } = useDemoUsers();
   const [showDiagnostics, setShowDiagnostics] = useState(false);
   const {
     canCreateCandidatos,
@@ -17,13 +19,6 @@ export const DebugAuthPanel = () => {
     canCreateVotantes,
     canManageUsers
   } = useDataSegregation();
-
-  const testCredentials = [
-    { email: 'admin@micampana.com', password: 'AdminSecure2025!', role: 'Desarrollador' },
-    { email: 'master@micampana.com', password: 'MasterSecure2025!', role: 'Master' },
-    { email: 'candidato@micampana.com', password: 'CandidatoSecure2025!', role: 'Candidato' },
-    { email: 'lider@micampana.com', password: 'LiderSecure2025!', role: 'Líder Territorial' }
-  ];
 
   const permissions = [
     { name: 'Crear Candidatos', value: canCreateCandidatos },
@@ -34,11 +29,11 @@ export const DebugAuthPanel = () => {
 
   return (
     <div className="fixed bottom-4 left-4 z-50 space-y-2 max-w-xs">
-      <Card className="bg-white/95 backdrop-blur">
+      <Card className="bg-white/95 backdrop-blur border-2 border-blue-200">
         <CardHeader className="pb-2">
           <CardTitle className="text-sm flex items-center gap-2">
-            <Shield className="w-4 h-4" />
-            Debug Auth
+            <Shield className="w-4 h-4 text-blue-600" />
+            Debug Auth - Demo DB
             <Button
               variant="outline"
               size="sm"
@@ -78,11 +73,16 @@ export const DebugAuthPanel = () => {
           </div>
 
           <div className="border-t pt-2">
-            <p className="text-xs font-medium mb-1">Estado Sistema:</p>
+            <p className="text-xs font-medium mb-1 flex items-center gap-1">
+              <Database className="w-3 h-3 text-blue-600" />
+              Base Demo:
+            </p>
             <div className="text-xs space-y-1">
+              <div>Usuarios: {databaseStats.totalUsers.toLocaleString()}</div>
+              <div>Votos: {databaseStats.votes.toLocaleString()}</div>
+              <div>Territorios: {databaseStats.territories}</div>
+              <div>Candidatos: {databaseStats.candidates}</div>
               <div>Auth: {isAuthenticated ? '✅' : '❌'}</div>
-              <div>User: {user ? '✅' : '❌'}</div>
-              <div>Role: {user?.role || 'N/A'}</div>
             </div>
           </div>
         </CardContent>
@@ -94,19 +94,31 @@ export const DebugAuthPanel = () => {
         </div>
       )}
 
-      <Card className="bg-blue-50/95 backdrop-blur">
+      <Card className="bg-green-50/95 backdrop-blur border-2 border-green-200">
         <CardHeader className="pb-2">
-          <CardTitle className="text-xs">Credenciales de Prueba</CardTitle>
+          <CardTitle className="text-xs flex items-center gap-1">
+            <TrendingUp className="w-3 h-3 text-green-600" />
+            Estado Demo
+          </CardTitle>
         </CardHeader>
         <CardContent>
-          <div className="space-y-1">
-            {testCredentials.map((cred, idx) => (
-              <div key={idx} className="text-xs">
-                <p className="font-medium">{cred.role}</p>
-                <p className="text-gray-600">{cred.email}</p>
-                <p className="text-gray-600 mb-2">{cred.password}</p>
-              </div>
-            ))}
+          <div className="space-y-1 text-xs">
+            <div className="flex justify-between">
+              <span>Funnel IA:</span>
+              <span className="text-green-600 font-semibold">✅ Activo</span>
+            </div>
+            <div className="flex justify-between">
+              <span>Mapa Geo:</span>
+              <span className="text-green-600 font-semibold">✅ Operativo</span>
+            </div>
+            <div className="flex justify-between">
+              <span>N8N Ready:</span>
+              <span className="text-green-600 font-semibold">✅ Listo</span>
+            </div>
+            <div className="flex justify-between">
+              <span>Alertas:</span>
+              <span className="text-green-600 font-semibold">{databaseStats.alerts} activas</span>
+            </div>
           </div>
         </CardContent>
       </Card>

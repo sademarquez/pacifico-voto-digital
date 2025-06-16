@@ -1,4 +1,3 @@
-
 import React, { createContext, useContext, useState, ReactNode, useEffect, useCallback } from 'react';
 import { supabase } from '@/integrations/supabase/client';
 import { User as SupabaseUser, Session } from '@supabase/supabase-js';
@@ -41,7 +40,6 @@ export const SecureAuthProvider: React.FC<{ children: ReactNode }> = ({ children
     logInfo('auth', 'Error de autenticación limpiado por usuario');
   };
 
-  // Diagnóstico de salud del sistema
   const checkSystemHealth = useCallback(async () => {
     try {
       const { data, error } = await supabase
@@ -69,12 +67,10 @@ export const SecureAuthProvider: React.FC<{ children: ReactNode }> = ({ children
   }, [logWarning, logError]);
 
   useEffect(() => {
-    logInfo('auth', 'Inicializando SecureAuthProvider v2.0');
+    logInfo('auth', 'Inicializando SecureAuthProvider v2.0 - Demo Database Edition');
     
-    // Verificar salud del sistema
     checkSystemHealth();
 
-    // Configurar listener de autenticación
     const { data: authListener } = supabase.auth.onAuthStateChange(async (event, session) => {
       logInfo('auth', `Evento de autenticación: ${event}`, { 
         hasSession: !!session,
@@ -84,7 +80,6 @@ export const SecureAuthProvider: React.FC<{ children: ReactNode }> = ({ children
       if (session?.user) {
         setSession(session);
 
-        // Obtener perfil del usuario con manejo de errores
         setTimeout(async () => {
           try {
             await loadUserProfile(session.user);
@@ -101,7 +96,6 @@ export const SecureAuthProvider: React.FC<{ children: ReactNode }> = ({ children
       }
     });
 
-    // Obtener sesión inicial
     const getInitialSession = async () => {
       try {
         const { data: { session }, error } = await supabase.auth.getSession();
@@ -111,7 +105,7 @@ export const SecureAuthProvider: React.FC<{ children: ReactNode }> = ({ children
         } else if (session?.user) {
           setSession(session);
           await loadUserProfile(session.user);
-          logInfo('auth', 'Sesión inicial restaurada', { userEmail: session.user.email });
+          logInfo('auth', 'Sesión inicial restaurada - Demo Database', { userEmail: session.user.email });
         }
       } catch (error) {
         handleError(error as Error, 'Inicialización de sesión', { category: 'auth' });
@@ -130,7 +124,7 @@ export const SecureAuthProvider: React.FC<{ children: ReactNode }> = ({ children
 
   const loadUserProfile = async (supabaseUser: SupabaseUser) => {
     try {
-      logInfo('auth', 'Cargando perfil de usuario', { userId: supabaseUser.id });
+      logInfo('auth', 'Cargando perfil de usuario desde base demo', { userId: supabaseUser.id });
       
       const { data: profile, error } = await supabase
         .from('profiles')
@@ -145,7 +139,7 @@ export const SecureAuthProvider: React.FC<{ children: ReactNode }> = ({ children
       if (profile) {
         const userData: User = {
           id: profile.id,
-          name: profile.name || supabaseUser.email || 'Usuario',
+          name: profile.name || supabaseUser.email || 'Usuario Demo',
           role: profile.role as User['role'],
           email: supabaseUser.email || '',
         };
@@ -153,24 +147,25 @@ export const SecureAuthProvider: React.FC<{ children: ReactNode }> = ({ children
         setUser(userData);
         setAuthError(null);
         
-        logInfo('auth', 'Perfil de usuario cargado exitosamente', {
+        logInfo('auth', 'Perfil de usuario demo cargado exitosamente', {
           userId: userData.id,
           role: userData.role,
-          name: userData.name
+          name: userData.name,
+          databaseType: 'demo'
         });
       } else {
-        throw new Error('Perfil de usuario no encontrado');
+        throw new Error('Perfil de usuario no encontrado en base demo');
       }
     } catch (error) {
-      const errorMsg = `Error cargando perfil: ${(error as Error).message}`;
+      const errorMsg = `Error cargando perfil demo: ${(error as Error).message}`;
       setAuthError(errorMsg);
-      logError('auth', 'Error cargando perfil de usuario', error as Error);
+      logError('auth', 'Error cargando perfil de usuario demo', error as Error);
       throw error;
     }
   };
 
   const login = async (email: string, password: string): Promise<boolean> => {
-    logInfo('auth', 'Intento de login iniciado', { email });
+    logInfo('auth', 'Intento de login iniciado - Base Demo', { email });
     setAuthError(null);
 
     try {
@@ -180,34 +175,35 @@ export const SecureAuthProvider: React.FC<{ children: ReactNode }> = ({ children
       });
 
       if (error) {
-        let errorMsg = 'Error de autenticación: ';
+        let errorMsg = 'Error de autenticación en base demo: ';
         
         if (error.message.includes('Invalid login credentials')) {
-          errorMsg = 'Credenciales incorrectas. Verifica email y contraseña.';
+          errorMsg = 'Credenciales incorrectas. Usa las credenciales demo proporcionadas.';
         } else if (error.message.includes('Email not confirmed')) {
-          errorMsg = 'Email no confirmado. Revisa tu correo para activar tu cuenta.';
+          errorMsg = 'Email no confirmado. Los usuarios demo están preconfigurados.';
         } else {
           errorMsg += error.message;
         }
         
         setAuthError(errorMsg);
-        logError('auth', 'Error en login', error);
+        logError('auth', 'Error en login demo', error);
         return false;
       }
 
       if (data.user) {
-        logInfo('auth', 'Login exitoso', { 
+        logInfo('auth', 'Login demo exitoso', { 
           userId: data.user.id,
-          email: data.user.email 
+          email: data.user.email,
+          databaseType: 'demo'
         });
         return true;
       }
 
       return false;
     } catch (error) {
-      const errorMsg = 'Error inesperado durante el login';
+      const errorMsg = 'Error inesperado durante el login demo';
       setAuthError(errorMsg);
-      logError('auth', 'Error crítico en login', error as Error);
+      logError('auth', 'Error crítico en login demo', error as Error);
       return false;
     }
   };
