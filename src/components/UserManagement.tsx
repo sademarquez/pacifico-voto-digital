@@ -1,3 +1,4 @@
+
 import { useState } from "react";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
@@ -15,7 +16,7 @@ import { useToast } from "@/hooks/use-toast";
 interface Profile {
   id: string;
   name: string | null;
-  role: 'desarrollador' | 'master' | 'candidato' | 'lider' | 'votante';
+  role: 'desarrollador' | 'master' | 'candidato' | 'lider' | 'votante' | 'visitante';
   created_by: string | null;
   created_at: string;
 }
@@ -54,7 +55,7 @@ const UserManagement = () => {
       }
       
       console.log('📋 Users loaded:', data.length);
-      return data;
+      return data as Profile[];
     },
     enabled: canManageUsers,
   });
@@ -165,6 +166,7 @@ const UserManagement = () => {
       case 'candidato': return Target;
       case 'lider': return Users2;
       case 'votante': return User;
+      case 'visitante': return User;
       default: return User;
     }
   };
@@ -176,6 +178,7 @@ const UserManagement = () => {
       case 'candidato': return 'bg-blue-100 text-blue-800';
       case 'lider': return 'bg-orange-100 text-orange-800';
       case 'votante': return 'bg-green-100 text-green-800';
+      case 'visitante': return 'bg-gray-100 text-gray-800';
       default: return 'bg-gray-100 text-gray-800';
     }
   };
@@ -187,6 +190,7 @@ const UserManagement = () => {
       case 'candidato': return 'Candidato';
       case 'lider': return 'Líder Territorial';
       case 'votante': return 'Votante';
+      case 'visitante': return 'Visitante';
       default: return role;
     }
   };

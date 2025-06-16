@@ -1,3 +1,4 @@
+
 import React, { createContext, useContext, useState, ReactNode, useEffect, useCallback } from 'react';
 import { supabase } from '@/integrations/supabase/client';
 import { User as SupabaseUser, Session } from '@supabase/supabase-js';
@@ -8,7 +9,7 @@ interface User {
   id: string;
   email: string;
   name: string;
-  role: 'desarrollador' | 'master' | 'candidato' | 'lider' | 'votante';
+  role: 'desarrollador' | 'master' | 'candidato' | 'lider' | 'votante' | 'visitante';
 }
 
 interface SecureAuthContextType {
@@ -145,7 +146,7 @@ export const SecureAuthProvider: React.FC<{ children: ReactNode }> = ({ children
         const userData: User = {
           id: profile.id,
           name: profile.name || supabaseUser.email || 'Usuario',
-          role: profile.role,
+          role: profile.role as User['role'],
           email: supabaseUser.email || '',
         };
 

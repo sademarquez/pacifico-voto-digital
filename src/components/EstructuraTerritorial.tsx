@@ -33,7 +33,7 @@ interface EstructuraTerritorialProps {
 interface Profile {
   id: string;
   name: string;
-  role: 'desarrollador' | 'master' | 'candidato' | 'lider' | 'votante';
+  role: 'desarrollador' | 'master' | 'candidato' | 'lider' | 'votante' | 'visitante';
   created_at: string;
 }
 
