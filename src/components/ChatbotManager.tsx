@@ -1,6 +1,5 @@
-
 import { useState, useEffect } from 'react';
-import { useAuth } from '@/contexts/AuthContext';
+import { useSecureAuth } from '@/contexts/SecureAuthContext';
 import { MessageCircle, X, Minimize2, Maximize2 } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader } from '@/components/ui/card';
@@ -18,7 +17,7 @@ interface BotConfig {
 }
 
 const ChatbotManager = () => {
-  const { user } = useAuth();
+  const { user } = useSecureAuth();
   const [isOpen, setIsOpen] = useState(false);
   const [isMinimized, setIsMinimized] = useState(false);
   const [botConfig, setBotConfig] = useState<BotConfig | null>(null);
