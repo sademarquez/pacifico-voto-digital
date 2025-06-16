@@ -1,10 +1,9 @@
-
 import { useState, useEffect } from 'react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Badge } from '@/components/ui/badge';
-import { useSecureAuth } from '../contexts/SecureAuthContext';
+import { useSimpleAuth } from '../contexts/SimpleAuthContext';
 import { geminiService } from '@/services/geminiService';
 import { 
   Sparkles, 
@@ -23,7 +22,7 @@ import {
 import { toast } from 'sonner';
 
 const GeminiAssistant = () => {
-  const { user } = useSecureAuth();
+  const { user } = useSimpleAuth();
   const [isOpen, setIsOpen] = useState(false);
   const [isMinimized, setIsMinimized] = useState(false);
   const [message, setMessage] = useState('');
