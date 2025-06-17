@@ -26,89 +26,11 @@ interface MCPAutomationRule {
   execution_probability: number;
 }
 
-interface MapInteractionAnalysis {
-  insights: string[];
-  next_actions: string[];
-  automation_opportunities: string[];
-  roi_prediction: number;
-}
-
-interface DynamicMapContent {
-  territorial_alerts: any[];
-  opportunity_zones: any[];
-  automated_suggestions: string[];
-  real_time_insights: string;
-}
-
 export class GeminiMCPService {
-  private serviceStatus: { connected: boolean; lastCheck: Date | null } = {
-    connected: false,
-    lastCheck: null
-  };
+  private apiKey: string;
 
   constructor() {
-    this.checkServiceHealth();
-  }
-
-  private async checkServiceHealth(): Promise<void> {
-    try {
-      const isConnected = await geminiService.testConnection();
-      this.serviceStatus = {
-        connected: isConnected,
-        lastCheck: new Date()
-      };
-    } catch (error) {
-      console.error('❌ Error checking MCP service health:', error);
-      this.serviceStatus = {
-        connected: false,
-        lastCheck: new Date()
-      };
-    }
-  }
-
-  private getFallbackStrategy(mapData: MCPMapData): TerritorialStrategy {
-    return {
-      zone_id: `zone_${mapData.coordinates.lat}_${mapData.coordinates.lng}`,
-      priority_level: 'medium',
-      voter_segments: ['Indecisos urbanos', 'Profesionales jóvenes', 'Familias trabajadoras'],
-      automated_actions: [
-        'Mensajes personalizados por WhatsApp',
-        'Eventos comunitarios dirigidos',
-        'Publicidad digital segmentada'
-      ],
-      ai_recommendations: [
-        'Incrementar presencia en redes sociales',
-        'Activar líderes de opinión locales',
-        'Organizar encuentros ciudadanos'
-      ],
-      resource_allocation: Math.floor(mapData.electoral_potential * 0.6)
-    };
-  }
-
-  private getFallbackRules(): MCPAutomationRule[] {
-    return [
-      {
-        trigger: 'high_voter_concentration_detected',
-        condition: 'electoral_potential > 70%',
-        action: 'deploy_targeted_campaign',
-        gemini_enhancement: 'Personalizar mensajes con IA según demografía local',
-        execution_probability: 85
-      },
-      {
-        trigger: 'low_engagement_zone',
-        condition: 'engagement_level < 40%',
-        action: 'activate_community_leaders',
-        gemini_enhancement: 'Identificar influencers locales y crear contenido específico',
-        execution_probability: 70
-      },
-      {
-        trigger: 'competitive_activity_surge',
-        condition: 'competitor_activity > baseline + 50%',
-        action: 'defensive_counter_campaign',
-        gemini_enhancement: 'Análisis de mensajes competidores y respuesta estratégica',
-        execution_probability: 90
-      }
-    ];
+    this.apiKey = import.meta.env.VITE_GEMINI_API_KEY || '';
   }
 
   async generateTerritorialStrategy(
@@ -157,17 +79,17 @@ export class GeminiMCPService {
       });
 
       const cleanResponse = response.replace(/```json|```/g, '').trim();
-      const strategy = JSON.parse(cleanResponse);
-      
-      // Validar estructura de respuesta
-      if (!strategy.zone_id || !strategy.priority_level) {
-        throw new Error('Invalid strategy structure');
-      }
-      
-      return strategy;
+      return JSON.parse(cleanResponse);
     } catch (error) {
-      console.error('❌ Error generating territorial strategy:', error);
-      return this.getFallbackStrategy(mapData);
+      console.error('Error generating territorial strategy:', error);
+      return {
+        zone_id: `zone_${Date.now()}`,
+        priority_level: 'medium',
+        voter_segments: ['Indecisos urbanos', 'Profesionales jóvenes'],
+        automated_actions: ['Mensajes personalizados', 'Eventos dirigidos'],
+        ai_recommendations: ['Incrementar presencia digital', 'Activar líderes locales'],
+        resource_allocation: 25
+      };
     }
   }
 
@@ -216,23 +138,30 @@ export class GeminiMCPService {
       });
 
       const cleanResponse = response.replace(/```json|```/g, '').trim();
-      const rules = JSON.parse(cleanResponse);
-      
-      if (!Array.isArray(rules)) {
-        throw new Error('Rules must be an array');
-      }
-      
-      return rules;
+      return JSON.parse(cleanResponse);
     } catch (error) {
-      console.error('❌ Error creating MCP automation rules:', error);
-      return this.getFallbackRules();
+      console.error('Error creating MCP automation rules:', error);
+      return [
+        {
+          trigger: 'high_voter_concentration_detected',
+          condition: 'electoral_potential > 70%',
+          action: 'deploy_targeted_campaign',
+          gemini_enhancement: 'Personalizar mensajes con IA según demografía local',
+          execution_probability: 85
+        }
+      ];
     }
   }
 
   async analyzeMapInteraction(
     interactionData: any,
     userCredentials: any
-  ): Promise<MapInteractionAnalysis> {
+  ): Promise<{
+    insights: string[];
+    next_actions: string[];
+    automation_opportunities: string[];
+    roi_prediction: number;
+  }> {
     const prompt = `
     GEMINI MAP INTERACTION ANALYZER - ANÁLISIS AVANZADO
 
@@ -271,30 +200,13 @@ export class GeminiMCPService {
       });
 
       const cleanResponse = response.replace(/```json|```/g, '').trim();
-      const analysis = JSON.parse(cleanResponse);
-      
-      if (!analysis.insights || !Array.isArray(analysis.insights)) {
-        throw new Error('Invalid analysis structure');
-      }
-      
-      return analysis;
+      return JSON.parse(cleanResponse);
     } catch (error) {
-      console.error('❌ Error analyzing map interaction:', error);
+      console.error('Error analyzing map interaction:', error);
       return {
-        insights: [
-          'Zona con alto potencial electoral detectada',
-          'Demografía favorable para propuestas sociales',
-          'Oportunidad de crecimiento del 25% identificada'
-        ],
-        next_actions: [
-          'Activar campaña dirigida inmediatamente',
-          'Desplegar recursos de comunicación',
-          'Programar eventos comunitarios'
-        ],
-        automation_opportunities: [
-          'Mensajes automatizados por horarios de mayor actividad',
-          'Eventos programados según patrones de asistencia'
-        ],
+        insights: ['Zona con alto potencial electoral', 'Demografía favorable'],
+        next_actions: ['Activar campaña dirigida', 'Desplegar recursos'],
+        automation_opportunities: ['Mensajes automatizados', 'Eventos programados'],
         roi_prediction: 73
       };
     }
@@ -304,7 +216,12 @@ export class GeminiMCPService {
     mapBounds: any,
     userRole: string,
     currentContext: any
-  ): Promise<DynamicMapContent> {
+  ): Promise<{
+    territorial_alerts: any[];
+    opportunity_zones: any[];
+    automated_suggestions: string[];
+    real_time_insights: string;
+  }> {
     const prompt = `
     GEMINI DYNAMIC MAP CONTENT GENERATOR
 
@@ -359,53 +276,16 @@ export class GeminiMCPService {
       });
 
       const cleanResponse = response.replace(/```json|```/g, '').trim();
-      const content = JSON.parse(cleanResponse);
-      
-      if (!content.territorial_alerts) {
-        throw new Error('Invalid content structure');
-      }
-      
-      return content;
+      return JSON.parse(cleanResponse);
     } catch (error) {
-      console.error('❌ Error generating dynamic map content:', error);
+      console.error('Error generating dynamic map content:', error);
       return {
-        territorial_alerts: [
-          {
-            id: 'fallback_1',
-            title: 'Zona de Oportunidad Detectada',
-            description: 'Área con alto potencial electoral requiere atención',
-            coordinates: { lat: 4.7500, lng: -74.0500 },
-            priority: 'medium',
-            auto_action: 'Activar campaña dirigida'
-          }
-        ],
-        opportunity_zones: [
-          {
-            zone_name: 'Centro Urbano',
-            potential_score: 78,
-            recommended_investment: 35,
-            automation_level: 80
-          }
-        ],
-        automated_suggestions: [
-          'Revisar datos territoriales actualizados',
-          'Activar análisis predictivo de tendencias',
-          'Optimizar distribución de recursos'
-        ],
-        real_time_insights: 'Sistema en análisis continuo de territorios electorales. Conectividad con Gemini verificada.'
+        territorial_alerts: [],
+        opportunity_zones: [],
+        automated_suggestions: ['Revisar datos territoriales', 'Activar análisis predictivo'],
+        real_time_insights: 'Sistema en análisis continuo de territorios electorales'
       };
     }
-  }
-
-  // Método para obtener el estado del servicio
-  getServiceStatus(): { connected: boolean; lastCheck: Date | null } {
-    return { ...this.serviceStatus };
-  }
-
-  // Método para forzar reconexión
-  async reconnect(): Promise<boolean> {
-    await this.checkServiceHealth();
-    return this.serviceStatus.connected;
   }
 }
 
