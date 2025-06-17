@@ -78,10 +78,10 @@ export const DebugAuthPanel = () => {
               Base Demo:
             </p>
             <div className="text-xs space-y-1">
-              <div>Usuarios: {databaseStats.totalUsers.toLocaleString()}</div>
-              <div>Votos: {databaseStats.votes.toLocaleString()}</div>
-              <div>Territorios: {databaseStats.territories}</div>
-              <div>Candidatos: {databaseStats.candidates}</div>
+              <div>Usuarios: {databaseStats.demo.users.toLocaleString()}</div>
+              <div>Votantes: {databaseStats.demo.voters.toLocaleString()}</div>
+              <div>Interacciones: {databaseStats.demo.interactions}</div>
+              <div>Campañas: {databaseStats.demo.campaigns}</div>
               <div>Auth: {isAuthenticated ? '✅' : '❌'}</div>
             </div>
           </div>
@@ -117,7 +117,7 @@ export const DebugAuthPanel = () => {
             </div>
             <div className="flex justify-between">
               <span>Alertas:</span>
-              <span className="text-green-600 font-semibold">{databaseStats.alerts} activas</span>
+              <span className="text-green-600 font-semibold">{databaseStats.demo.alerts} activas</span>
             </div>
           </div>
         </CardContent>
