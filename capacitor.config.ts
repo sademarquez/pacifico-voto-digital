@@ -11,57 +11,34 @@ const config: CapacitorConfig = {
   },
   plugins: {
     SplashScreen: {
-      launchShowDuration: 2000,
+      launchShowDuration: 3000,
       backgroundColor: '#1e40af',
       androidSplashResourceName: 'splash',
       androidScaleType: 'CENTER_CROP',
       showSpinner: true,
-      spinnerColor: '#ffffff',
-      launchAutoHide: true
+      spinnerColor: '#ffffff'
     },
     StatusBar: {
       style: 'light',
-      backgroundColor: '#1e40af',
-      overlay: false
+      backgroundColor: '#1e40af'
     },
     Keyboard: {
       resize: 'body',
-      style: 'light',
-      resizeOnFullScreen: true
+      style: 'light'
     },
     App: {
       launchAutoHide: false
-    },
-    Device: {
-      enabled: true
-    },
-    Network: {
-      enabled: true
-    },
-    Storage: {
-      enabled: true
     }
   },
   android: {
     allowMixedContent: true,
     captureInput: true,
-    webContentsDebuggingEnabled: true,
-    loggingBehavior: 'debug',
-    minWebViewVersion: 60,
-    flavor: 'main',
-    buildOptions: {
-      keystorePath: undefined,
-      keystoreAlias: undefined,
-      releaseType: 'AAB',
-      signingType: 'apksigner'
-    }
+    webContentsDebuggingEnabled: true
   },
   ios: {
     contentInset: 'automatic',
     scrollEnabled: true,
-    preferredContentMode: 'mobile',
-    allowsLinkPreview: false,
-    handleApplicationURL: true
+    preferredContentMode: 'mobile'
   }
 };
 

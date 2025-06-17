@@ -1,9 +1,10 @@
+
 import { useState, useEffect } from "react";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { useNavigate } from "react-router-dom";
-import { useSimpleAuth } from "../contexts/SimpleAuthContext";
+import { useSecureAuth } from "../contexts/SecureAuthContext";
 import { 
   Users, 
   MapPin, 
@@ -26,7 +27,7 @@ import GeminiAssistant from "../components/GeminiAssistant";
 
 const Index = () => {
   const navigate = useNavigate();
-  const { user, logout } = useSimpleAuth();
+  const { user, logout } = useSecureAuth();
   const [currentTestimonial, setCurrentTestimonial] = useState(0);
 
   const testimonials = [
@@ -62,7 +63,7 @@ const Index = () => {
 
   const handleLogout = async () => {
     await logout();
-    navigate("/simple-login");
+    navigate("/login");
   };
 
   return (
@@ -167,7 +168,7 @@ const Index = () => {
                 </Button>
               ) : (
                 <Button
-                  onClick={() => navigate("/simple-login")}
+                  onClick={() => navigate("/login")}
                   className="bg-white/20 backdrop-blur-sm border-2 border-white/30 text-white text-xl px-12 py-6 rounded-2xl hover:bg-white/30 shadow-2xl transform hover:scale-105 transition-all duration-300 group"
                 >
                   <Shield className="w-6 h-6 mr-3 group-hover:rotate-12 transition-transform" />
@@ -289,7 +290,7 @@ const Index = () => {
 
                   {!user && (
                     <Button
-                      onClick={() => navigate("/simple-login")}
+                      onClick={() => navigate("/login")}
                       className="bg-white/20 backdrop-blur-sm border-2 border-white/30 text-white text-xl px-12 py-6 rounded-2xl hover:bg-white/30 shadow-2xl transform hover:scale-105 transition-all duration-300"
                     >
                       <Shield className="w-6 h-6 mr-2" />

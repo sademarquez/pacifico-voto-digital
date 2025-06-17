@@ -1,331 +1,288 @@
+const GEMINI_API_KEY = import.meta.env.VITE_GEMINI_API_KEY || 
+  (typeof window !== 'undefined' && (window as any).GEMINI_API_KEY);
 
-// Servicio Real de Gemini 2.0 Flash con API Key
-const GEMINI_API_KEY = 'AIzaSyBQJ5X1B3vYQZFqOx9vA2V5-_oE8GKGQ3A'; // Clave temporal, luego mover a Supabase
-const GEMINI_API_URL = 'https://generativelanguage.googleapis.com/v1beta/models/gemini-2.0-flash:generateContent';
+const GEMINI_API_URL = 'https://generativelanguage.googleapis.com/v1beta/models/gemini-1.5-pro:generateContent';
 
-export const geminiService = {
-  // Configuración del servicio
-  config: {
-    model: 'gemini-2.0-flash',
-    apiUrl: GEMINI_API_URL,
-    maxTokens: 2048,
-    temperature: 0.7,
-    safetySettings: [
-      {
-        category: "HARM_CATEGORY_HARASSMENT",
-        threshold: "BLOCK_MEDIUM_AND_ABOVE"
-      },
-      {
-        category: "HARM_CATEGORY_HATE_SPEECH", 
-        threshold: "BLOCK_MEDIUM_AND_ABOVE"
+interface GeminiRequest {
+  contents: {
+    parts: {
+      text: string;
+    }[];
+  }[];
+  generationConfig?: {
+    temperature?: number;
+    topK?: number;
+    topP?: number;
+    maxOutputTokens?: number;
+  };
+}
+
+interface VoterProfile {
+  nombre: string;
+  edad?: number;
+  profesion?: string;
+  barrio?: string;
+  intereses?: string;
+  genero?: string;
+  estrato?: number;
+}
+
+interface CandidateInfo {
+  nombre: string;
+  cargo: string;
+  propuestas: any;
+  partido?: string;
+}
+
+export class GeminiElectoralService {
+  private apiKey: string;
+
+  constructor() {
+    this.apiKey = GEMINI_API_KEY || '';
+    if (!this.apiKey) {
+      console.warn('Gemini API key not found. Some features may not work.');
+    }
+  }
+
+  async makeRequest(prompt: string, config?: any): Promise<string> {
+    if (!this.apiKey) {
+      throw new Error('Gemini API key not configured');
+    }
+
+    const request: GeminiRequest = {
+      contents: [{
+        parts: [{ text: prompt }]
+      }],
+      generationConfig: {
+        temperature: 0.7,
+        topK: 40,
+        topP: 0.8,
+        maxOutputTokens: 1024,
+        ...config
       }
-    ]
-  },
+    };
 
-  async makeRequest(prompt: string): Promise<string> {
     try {
-      console.log('🤖 Gemini Real API: Procesando consulta...', { prompt: prompt.slice(0, 100) + '...' });
-      
-      const requestBody = {
-        contents: [
-          {
-            parts: [
-              {
-                text: prompt
-              }
-            ]
-          }
-        ],
-        generationConfig: {
-          temperature: this.config.temperature,
-          topK: 40,
-          topP: 0.95,
-          maxOutputTokens: this.config.maxTokens,
-        },
-        safetySettings: this.config.safetySettings
-      };
-
-      const response = await fetch(`${GEMINI_API_URL}?key=${GEMINI_API_KEY}`, {
+      const response = await fetch(`${GEMINI_API_URL}?key=${this.apiKey}`, {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
         },
-        body: JSON.stringify(requestBody)
+        body: JSON.stringify(request)
       });
 
       if (!response.ok) {
-        const errorData = await response.json().catch(() => ({}));
-        throw new Error(`API Error: ${response.status} - ${errorData.error?.message || response.statusText}`);
+        throw new Error(`Gemini API error: ${response.status}`);
       }
 
       const data = await response.json();
-      
-      if (data.candidates && data.candidates[0] && data.candidates[0].content) {
-        const generatedText = data.candidates[0].content.parts[0].text;
-        console.log('✅ Respuesta exitosa de Gemini 2.0 Flash');
-        
-        // Respuestas inteligentes basadas en el contexto del prompt
-        if (prompt.toLowerCase().includes('electoral') || prompt.toLowerCase().includes('campaña')) {
-          return `🎯 **Estrategia Electoral IA - Gemini 2.0 Flash Real**
-
-${generatedText}
-
-**Análisis Electoral Avanzado:**
-• 📊 Datos procesados con Gemini 2.0 Flash Premium
-• 🎯 Targeting predictivo basado en ML avanzado
-• 🤖 Automatización 24/7 con N8N + Gemini
-• 📱 Optimización mobile-first para máximo alcance
-
-**ROI Proyectado:** +340% basado en IA real de Google
-**Precisión:** 94% con modelo Gemini 2.0 Flash
-
-¿Quieres que profundice en algún aspecto específico? 🚀`;
-        }
-        
-        return `🤖 **Gemini 2.0 Flash Premium Activo**
-
-${generatedText}
-
-**Potenciado por:**
-• Google Gemini 2.0 Flash (Último modelo)
-• MI CAMPAÑA 2025 + IA Real
-• Análisis predictivo avanzado
-• Automatización electoral inteligente
-
-*Respuesta generada en tiempo real con IA de última generación* ⚡`;
-      }
-      
-      throw new Error('Respuesta inválida de la API');
-      
+      return data.candidates?.[0]?.content?.parts?.[0]?.text || '';
     } catch (error) {
-      console.error('❌ Error en Gemini Service Real:', error);
-      
-      // Fallback solo si hay error de red
-      return this.getFallbackResponse(prompt);
+      console.error('Error calling Gemini API:', error);
+      throw error;
     }
-  },
+  }
 
-  async analyzeSentiment(text: string): Promise<{
+  async generatePersonalizedCampaignMessage(voterProfile: VoterProfile, candidateInfo: CandidateInfo): Promise<string> {
+    const prompt = `
+    Genera un mensaje de campaña electoral personalizado y persuasivo para:
+    
+    VOTANTE:
+    - Nombre: ${voterProfile.nombre}
+    - Edad: ${voterProfile.edad || 'No especificada'}
+    - Profesión: ${voterProfile.profesion || 'No especificada'}
+    - Barrio: ${voterProfile.barrio || 'No especificado'}
+    - Estrato socioeconómico: ${voterProfile.estrato || 'No especificado'}
+    - Género: ${voterProfile.genero || 'No especificado'}
+    
+    CANDIDATO:
+    - Nombre: ${candidateInfo.nombre}
+    - Cargo al que aspira: ${candidateInfo.cargo}
+    - Partido: ${candidateInfo.partido || 'Independiente'}
+    - Propuestas principales: ${JSON.stringify(candidateInfo.propuestas)}
+    
+    INSTRUCCIONES:
+    - Máximo 160 caracteres (optimizado para SMS/WhatsApp)
+    - Tono conversacional, cercano y respetuoso
+    - Incluir el nombre del votante
+    - Mencionar una propuesta específica relevante para su perfil
+    - Call-to-action claro pero no agresivo
+    - Usar lenguaje colombiano neutro
+    - Evitar promesas irreales
+    
+    FORMATO: Solo el mensaje, sin explicaciones adicionales.
+    `;
+
+    return await this.makeRequest(prompt);
+  }
+
+  async analyzeSentiment(message: string): Promise<{
     score: number;
-    label: 'positive' | 'negative' | 'neutral';
-    confidence: number;
+    level: string;
+    emotions: string[];
+    voterIntent: string;
+    concerns: string[];
+    engagementLevel: number;
   }> {
+    const prompt = `
+    Analiza el sentiment y contenido del siguiente mensaje electoral de un votante:
+    "${message}"
+    
+    Proporciona un análisis completo que incluya:
+    1. Score de sentiment (-1 a 1, donde -1 es muy negativo y 1 muy positivo)
+    2. Nivel de sentiment (muy_negativo, negativo, neutral, positivo, muy_positivo)
+    3. Emociones detectadas (máximo 3)
+    4. Intención de voto (positiva, negativa, neutral, indecisa)
+    5. Temas de preocupación mencionados
+    6. Nivel de engagement (1-10)
+    
+    Responde SOLO en formato JSON válido:
+    {
+      "score": 0.0,
+      "level": "neutral",
+      "emotions": ["emocion1", "emocion2"],
+      "voterIntent": "neutral",
+      "concerns": ["preocupacion1"],
+      "engagementLevel": 5
+    }
+    `;
+
     try {
-      console.log('🔍 Análisis de sentimiento con Gemini Real:', text.slice(0, 50));
-      
-      const prompt = `Analiza el sentimiento del siguiente texto y responde SOLO con un JSON válido con este formato:
-{
-  "score": [número entre 0 y 1],
-  "label": "positive" | "negative" | "neutral",
-  "confidence": [número entre 0 y 1]
+      const response = await this.makeRequest(prompt);
+      const cleanResponse = response.replace(/```json|```/g, '').trim();
+      return JSON.parse(cleanResponse);
+    } catch (error) {
+      console.error('Error parsing sentiment analysis:', error);
+      // Devolver valores por defecto en caso de error
+      return {
+        score: 0,
+        level: 'neutral',
+        emotions: [],
+        voterIntent: 'neutral',
+        concerns: [],
+        engagementLevel: 5
+      };
+    }
+  }
+
+  async generateAutomatedResponse(voterMessage: string, candidateInfo: CandidateInfo): Promise<string> {
+    const prompt = `
+    Genera una respuesta automática profesional para este mensaje de un votante:
+    "${voterMessage}"
+    
+    Información del candidato:
+    - Nombre: ${candidateInfo.nombre}
+    - Cargo: ${candidateInfo.cargo}
+    - Propuestas: ${JSON.stringify(candidateInfo.propuestas)}
+    
+    INSTRUCCIONES:
+    - Responde de manera empática y profesional
+    - Aborda las preocupaciones específicas mencionadas
+    - Proporciona información relevante sin ser abrumador
+    - Invita al diálogo constructivo
+    - Máximo 200 caracteres
+    - Tono respetuoso y político apropiado
+    
+    FORMATO: Solo la respuesta, sin explicaciones.
+    `;
+
+    return await this.makeRequest(prompt);
+  }
+
+  async optimizeCampaignStrategy(metricsData: any): Promise<{
+    recommendations: string[];
+    targetAudience: string[];
+    messageOptimization: string;
+    budgetSuggestions: string;
+  }> {
+    const prompt = `
+    Analiza estas métricas de campaña electoral y proporciona recomendaciones de optimización:
+    
+    MÉTRICAS ACTUALES:
+    ${JSON.stringify(metricsData, null, 2)}
+    
+    Proporciona recomendaciones estratégicas para:
+    1. Acciones específicas para mejorar el ROI
+    2. Audiencias objetivo más efectivas
+    3. Optimización de mensajes
+    4. Distribución eficiente del presupuesto
+    
+    Responde en formato JSON:
+    {
+      "recommendations": ["recomendacion1", "recomendacion2"],
+      "targetAudience": ["audiencia1", "audiencia2"],
+      "messageOptimization": "sugerencia de mensaje",
+      "budgetSuggestions": "sugerencia de presupuesto"
+    }
+    `;
+
+    try {
+      const response = await this.makeRequest(prompt);
+      const cleanResponse = response.replace(/```json|```/g, '').trim();
+      return JSON.parse(cleanResponse);
+    } catch (error) {
+      console.error('Error parsing campaign optimization:', error);
+      return {
+        recommendations: ['Revisar estrategia actual'],
+        targetAudience: ['Votantes indecisos'],
+        messageOptimization: 'Personalizar mensajes por demografía',
+        budgetSuggestions: 'Redistribuir según canales más efectivos'
+      };
+    }
+  }
+
+  async generateWelcomeMessage(voterData?: Partial<VoterProfile>): Promise<string> {
+    const prompt = `
+    Genera un mensaje de bienvenida automático para un visitante que acaba de entrar a la plataforma electoral.
+    
+    ${voterData ? `Información disponible del visitante:
+    - Nombre: ${voterData.nombre || 'No proporcionado'}
+    - Ubicación: ${voterData.barrio || 'No especificada'}` : 'Es la primera visita del usuario.'}
+    
+    INSTRUCCIONES:
+    - Tono amigable y acogedor
+    - Breve explicación del propósito de la plataforma
+    - Invitación a participar sin presión
+    - Máximo 120 caracteres
+    - Lenguaje inclusivo
+    
+    FORMATO: Solo el mensaje de bienvenida.
+    `;
+
+    return await this.makeRequest(prompt);
+  }
+
+  // Nuevo método para el asistente conversacional
+  async generateAssistantResponse(userMessage: string, userRole: string, userName: string): Promise<string> {
+    const prompt = `
+    Eres un asistente IA especializado en campañas electorales para MI CAMPAÑA 2025.
+    Usuario actual: ${userName} (Rol: ${userRole})
+    
+    Contexto del sistema:
+    - Plataforma electoral con automatización IA avanzada
+    - Funcionalidades: gestión de votantes, análisis de sentimientos, métricas en tiempo real
+    - Capacidades: mensajes personalizados, optimización de campañas, análisis predictivo
+    - Integración con Gemini AI para automatización al 120%
+    
+    Pregunta del usuario: "${userMessage}"
+    
+    INSTRUCCIONES:
+    - Responde de manera profesional y específica para campañas electorales
+    - Adapta la respuesta al rol del usuario (${userRole})
+    - Proporciona consejos prácticos y accionables
+    - Mantén un tono profesional pero cercano
+    - Si es relevante, menciona funcionalidades específicas de la plataforma
+    - Máximo 200 palabras
+    - Usa emojis moderadamente para hacer la respuesta más amigable
+    
+    FORMATO: Solo la respuesta directa, sin explicaciones adicionales.
+    `;
+
+    return await this.makeRequest(prompt, {
+      temperature: 0.8,
+      maxOutputTokens: 512
+    });
+  }
 }
 
-Texto a analizar: "${text}"`;
-
-      const response = await this.makeRequest(prompt);
-      
-      try {
-        // Extraer JSON de la respuesta
-        const jsonMatch = response.match(/\{[\s\S]*\}/);
-        if (jsonMatch) {
-          const result = JSON.parse(jsonMatch[0]);
-          return result;
-        }
-      } catch (parseError) {
-        console.log('Usando análisis local como fallback');
-      }
-      
-      // Fallback local
-      const positiveWords = ['excelente', 'bueno', 'genial', 'perfecto', 'me gusta', 'increíble'];
-      const negativeWords = ['malo', 'terrible', 'odio', 'horrible', 'pésimo', 'detesto'];
-      
-      const lowerText = text.toLowerCase();
-      let score = 0.5;
-      
-      positiveWords.forEach(word => {
-        if (lowerText.includes(word)) score += 0.2;
-      });
-      
-      negativeWords.forEach(word => {
-        if (lowerText.includes(word)) score -= 0.2;
-      });
-      
-      score = Math.max(0, Math.min(1, score));
-      
-      let label: 'positive' | 'negative' | 'neutral' = 'neutral';
-      if (score > 0.6) label = 'positive';
-      if (score < 0.4) label = 'negative';
-      
-      return {
-        score,
-        label,
-        confidence: Math.abs(score - 0.5) * 2
-      };
-    } catch (error) {
-      console.error('Error en análisis de sentimiento:', error);
-      return { score: 0.5, label: 'neutral', confidence: 0 };
-    }
-  },
-
-  async generateWelcomeMessage(userContext?: any): Promise<string> {
-    try {
-      console.log('👋 Generando mensaje de bienvenida con Gemini Real');
-      
-      const prompt = `Genera un mensaje de bienvenida personalizado para MI CAMPAÑA 2025, un sistema electoral con IA. 
-      
-Contexto del usuario: ${JSON.stringify(userContext || {})}
-
-El mensaje debe:
-- Ser profesional pero cercano
-- Mencionar las capacidades de IA electoral
-- Incluir emojis relevantes
-- Ser conciso (máximo 150 palabras)`;
-
-      const response = await this.makeRequest(prompt);
-      return response;
-    } catch (error) {
-      console.error('Error generando mensaje de bienvenida:', error);
-      return `¡Bienvenido a MI CAMPAÑA 2025! 🚀 
-      
-Tu asistente electoral con Gemini 2.0 Flash está listo para optimizar tu estrategia política con IA de última generación.
-
-**¿En qué puedo ayudarte hoy?**
-• Análisis predictivo de votantes
-• Estrategias de comunicación IA
-• Automatización de campañas 24/7
-• Insights electorales en tiempo real
-
-¡Comencemos a transformar tu campaña! ⚡`;
-    }
-  },
-
-  async testConnection(): Promise<{ success: boolean; message: string; latency?: number }> {
-    try {
-      const startTime = Date.now();
-      console.log('🔄 Probando conexión con Gemini 2.0 Flash Real...');
-      
-      const testResponse = await this.makeRequest('Responde solo con: "Gemini 2.0 Flash operativo"');
-      const latency = Date.now() - startTime;
-      
-      if (testResponse.includes('operativo') || testResponse.includes('Gemini')) {
-        return {
-          success: true,
-          message: `✅ Conexión exitosa con Gemini 2.0 Flash Real. Latencia: ${latency}ms`,
-          latency
-        };
-      }
-      
-      return {
-        success: true,
-        message: `✅ Gemini 2.0 Flash responde correctamente. Latencia: ${latency}ms`,
-        latency
-      };
-    } catch (error) {
-      console.error('Error probando conexión:', error);
-      return {
-        success: false,
-        message: `❌ Error de conexión: ${error}`
-      };
-    }
-  },
-
-  async getModelInfo(): Promise<{
-    model: string;
-    version: string;
-    capabilities: string[];
-    status: 'active' | 'maintenance' | 'offline';
-    apiConnection: boolean;
-  }> {
-    try {
-      console.log('ℹ️ Obteniendo información del modelo...');
-      
-      const connectionTest = await this.testConnection();
-      
-      return {
-        model: 'gemini-2.0-flash',
-        version: '2.0-real',
-        capabilities: [
-          'Análisis electoral avanzado con IA real',
-          'Generación de contenido personalizado',
-          'Análisis de sentimientos preciso',
-          'Predicciones de comportamiento electoral', 
-          'Optimización de campañas automática',
-          'Respuestas contextuales inteligentes'
-        ],
-        status: connectionTest.success ? 'active' : 'offline',
-        apiConnection: connectionTest.success
-      };
-    } catch (error) {
-      console.error('Error obteniendo info del modelo:', error);
-      return {
-        model: 'gemini-2.0-flash',
-        version: 'unknown',
-        capabilities: ['Funcionalidad limitada'],
-        status: 'offline',
-        apiConnection: false
-      };
-    }
-  },
-
-  async generateAutomatedResponse(context: {
-    userMessage: string;
-    userProfile?: any;
-    conversationHistory?: string[];
-  }): Promise<string> {
-    try {
-      console.log('🤖 Generando respuesta automatizada con Gemini Real...');
-      
-      const prompt = `Como asistente electoral de MI CAMPAÑA 2025, responde al siguiente mensaje de usuario:
-
-Mensaje: "${context.userMessage}"
-Perfil del usuario: ${JSON.stringify(context.userProfile || {})}
-Historial: ${context.conversationHistory?.slice(-3).join(' | ') || 'Sin historial'}
-
-Instrucciones:
-- Respuesta profesional y útil
-- Relacionada con campaña electoral
-- Incluir emojis relevantes
-- Máximo 200 palabras
-- Proporcionar valor práctico`;
-
-      const response = await this.makeRequest(prompt);
-      return response;
-    } catch (error) {
-      console.error('Error generando respuesta automatizada:', error);
-      return `Gracias por tu mensaje. Mi sistema de IA electoral está procesando tu consulta.
-
-Mientras tanto, puedes explorar:
-• 📊 Dashboard con métricas en tiempo real
-• 🎯 Herramientas de targeting avanzado  
-• 🤖 Automatización de campañas
-
-¿Hay algo específico en lo que pueda ayudarte ahora? 🚀`;
-    }
-  },
-
-  getFallbackResponse(prompt?: string): string {
-    return `🔄 **Gemini 2.0 Flash - Modo Resiliente**
-
-Estoy procesando tu consulta con sistemas de backup mientras restablezco la conexión principal con Google AI.
-
-**✅ MI CAMPAÑA 2025 - Funcionalidades Activas:**
-• Dashboard electoral en tiempo real
-• Automatización N8N operativa 24/7  
-• Base de datos de votantes actualizada
-• Análisis predictivo local
-• Sistema de alertas inteligente
-
-**📊 Datos Demo Premium Disponibles:**
-• 100K+ registros de votantes verificados
-• 5 campañas exitosas como referencia
-• Métricas de ROI +340% comprobadas
-• Workflows automatizados funcionando
-
-**🎯 Recomendación Inmediata:**
-El sistema está optimizado para funcionar de manera autónoma. Todas las funcionalidades principales están operativas.
-
-${prompt?.toLowerCase().includes('electoral') ? 
-  '**Análisis Electoral:** Tu consulta será procesada con prioridad alta una vez que la conexión premium se restablezca.' : 
-  '¿Necesitas ayuda con alguna funcionalidad específica del sistema?'} 🚀`;
-  }
-};
+export const geminiService = new GeminiElectoralService();

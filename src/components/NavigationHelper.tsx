@@ -1,3 +1,4 @@
+
 /*
  * Copyright © 2025 sademarquezDLL. Todos los derechos reservados.
  */
@@ -5,7 +6,7 @@
 import { useNavigate } from "react-router-dom";
 import { Button } from "@/components/ui/button";
 import { ArrowLeft, Home, LogOut, MessageCircle } from "lucide-react";
-import { useSimpleAuth } from "../contexts/SimpleAuthContext";
+import { useSecureAuth } from "../contexts/SecureAuthContext";
 
 interface NavigationHelperProps {
   showBackButton?: boolean;
@@ -21,7 +22,7 @@ const NavigationHelper = ({
   customTitle 
 }: NavigationHelperProps) => {
   const navigate = useNavigate();
-  const { logout } = useSimpleAuth();
+  const { logout } = useSecureAuth();
 
   const handleBack = () => {
     navigate(-1);
@@ -33,7 +34,7 @@ const NavigationHelper = ({
 
   const handleLogout = async () => {
     await logout();
-    navigate("/simple-login");
+    navigate("/login");
   };
 
   return (

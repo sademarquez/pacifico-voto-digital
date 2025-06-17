@@ -1,9 +1,10 @@
+
+import { useSecureAuth } from "../contexts/SecureAuthContext";
 import Navigation from "../components/Navigation";
-import { useSimpleAuth } from "../contexts/SimpleAuthContext";
 import EventsManager from "../components/dashboard/EventsManager";
 
 const EventsPage = () => {
-  const { user } = useSimpleAuth();
+  const { user } = useSecureAuth();
 
   if (!user) {
     return <div>Cargando...</div>;

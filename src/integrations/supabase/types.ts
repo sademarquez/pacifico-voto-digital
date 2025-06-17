@@ -1440,10 +1440,6 @@ export type Database = {
         Args: { manager_id: string; target_id: string }
         Returns: boolean
       }
-      create_demo_users: {
-        Args: Record<PropertyKey, never>
-        Returns: string
-      }
       get_current_user_role: {
         Args: Record<PropertyKey, never>
         Returns: string

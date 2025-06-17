@@ -1,7 +1,7 @@
-import { useSimpleAuth } from "../contexts/SimpleAuthContext";
+import { useSecureAuth } from "../contexts/SecureAuthContext";
 
 export const useDataSegregation = () => {
-  const { user } = useSimpleAuth();
+  const { user } = useSecureAuth();
 
   // Función para obtener territorios según el rol del usuario
   const getTerritoryFilter = () => {

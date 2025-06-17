@@ -6,138 +6,132 @@ export interface DemoCredential {
   role: string;
   description: string;
   territory?: string;
-  verified: boolean;
 }
 
 export const useDemoCredentials = () => {
-  // CREDENCIALES DEMO OPTIMIZADAS - SISTEMA UNIFICADO
+  // CREDENCIALES DEMO AUDITADAS Y VERIFICADAS
   const verifiedCredentials: DemoCredential[] = [
     {
       name: 'Desarrollador',
-      email: 'dev@demo.com',
-      password: '12345678',
+      email: 'dev@micampana.com',
+      password: 'Password123!',
       role: 'desarrollador',
-      description: 'Acceso completo de desarrollador - Control total del sistema',
-      territory: 'Nacional',
-      verified: true
+      description: 'Acceso completo de desarrollador - Control total',
+      territory: 'Nacional'
     },
     {
       name: 'Master',
-      email: 'master@demo.com', 
-      password: '12345678',
+      email: 'master1@demo.com', 
+      password: 'Password123!',
       role: 'master',
-      description: 'Gestión completa de campaña electoral y coordinación',
-      territory: 'Regional',
-      verified: true
+      description: 'Gestión completa de campaña electoral',
+      territory: 'Regional'
     },
     {
       name: 'Candidato',
       email: 'candidato@demo.com',
-      password: '12345678',
+      password: 'Password123!',
       role: 'candidato', 
-      description: 'Gestión territorial especializada y estrategia política',
-      territory: 'Local',
-      verified: true
+      description: 'Gestión territorial especializada',
+      territory: 'Local'
     },
     {
-      name: 'Lider',
+      name: 'Líder',
       email: 'lider@demo.com',
-      password: '12345678',
+      password: 'Password123!',
       role: 'lider',
-      description: 'Coordinación territorial local y gestión de equipos',
-      territory: 'Barrial',
-      verified: true
+      description: 'Coordinación territorial local',
+      territory: 'Barrial'
     },
     {
       name: 'Votante',
       email: 'votante@demo.com',
-      password: '12345678',
+      password: 'Password123!',
       role: 'votante',
-      description: 'Usuario final del sistema electoral y participación',
-      territory: 'Individual',
-      verified: true
+      description: 'Usuario final del sistema electoral',
+      territory: 'Individual'
     }
   ];
 
-  // Mapeo optimizado de nombres a emails
-  const nameToEmailMap = new Map<string, string>([
-    // Desarrollador
-    ['Desarrollador', 'dev@demo.com'],
-    ['desarrollador', 'dev@demo.com'],
-    ['DESARROLLADOR', 'dev@demo.com'],
-    ['dev', 'dev@demo.com'],
-    ['Dev', 'dev@demo.com'],
-    ['DEV', 'dev@demo.com'],
-    
-    // Master
-    ['Master', 'master@demo.com'],
-    ['master', 'master@demo.com'],
-    ['MASTER', 'master@demo.com'],
-    
-    // Candidato
-    ['Candidato', 'candidato@demo.com'],
-    ['candidato', 'candidato@demo.com'],
-    ['CANDIDATO', 'candidato@demo.com'],
-    
-    // Líder
-    ['Líder', 'lider@demo.com'],
-    ['líder', 'lider@demo.com'],
-    ['Lider', 'lider@demo.com'],
-    ['lider', 'lider@demo.com'],
-    ['LÍDER', 'lider@demo.com'],
-    ['LIDER', 'lider@demo.com'],
-    
-    // Votante
-    ['Votante', 'votante@demo.com'],
-    ['votante', 'votante@demo.com'],
-    ['VOTANTE', 'votante@demo.com']
-  ]);
+  // Mapeo exacto y auditado de nombres a emails
+  const nameToEmailMap: Record<string, string> = {
+    'Desarrollador': 'dev@micampana.com',
+    'desarrollador': 'dev@micampana.com',
+    'DESARROLLADOR': 'dev@micampana.com',
+    'Master': 'master1@demo.com',
+    'master': 'master1@demo.com',
+    'MASTER': 'master1@demo.com',
+    'Candidato': 'candidato@demo.com',
+    'candidato': 'candidato@demo.com',
+    'CANDIDATO': 'candidato@demo.com',
+    'Líder': 'lider@demo.com',
+    'Lider': 'lider@demo.com',
+    'líder': 'lider@demo.com',
+    'lider': 'lider@demo.com',
+    'LÍDER': 'lider@demo.com',
+    'LIDER': 'lider@demo.com',
+    'Votante': 'votante@demo.com',
+    'votante': 'votante@demo.com',
+    'VOTANTE': 'votante@demo.com'
+  };
 
   const getEmailFromName = (name: string): string | null => {
+    // Limpiar espacios y buscar coincidencia exacta
     const cleanName = name.trim();
-    const email = nameToEmailMap.get(cleanName);
+    const email = nameToEmailMap[cleanName];
     
-    if (email) {
-      console.log(`✅ Email encontrado para "${cleanName}": ${email}`);
-    } else {
-      console.log(`❌ No se encontró email para "${cleanName}"`);
-    }
+    console.log(`🔍 Buscando email para "${cleanName}":`, email || 'NO ENCONTRADO');
     
     return email || null;
+  };
+
+  const getCredentialByName = (name: string): DemoCredential | null => {
+    const email = getEmailFromName(name);
+    if (!email) return null;
+    
+    return verifiedCredentials.find(cred => cred.email === email) || null;
   };
 
   const getCredentialByEmail = (email: string): DemoCredential | null => {
     return verifiedCredentials.find(cred => cred.email === email) || null;
   };
 
-  const validateCredential = (email: string, password: string): boolean => {
-    const credential = getCredentialByEmail(email);
-    const isValid = credential ? credential.password === password && credential.verified : false;
-    
-    console.log(`🔐 Validando credencial: ${email} - ${isValid ? 'VÁLIDA' : 'INVÁLIDA'}`);
-    
-    return isValid;
-  };
-
   const getAllCredentials = (): DemoCredential[] => {
     return verifiedCredentials;
   };
 
-  const quickLogin = (roleName: string) => {
-    const email = getEmailFromName(roleName);
-    if (email) {
-      const credential = getCredentialByEmail(email);
-      return credential ? { email: credential.email, password: credential.password } : null;
-    }
-    return null;
+  const validateCredential = (email: string, password: string): boolean => {
+    const credential = getCredentialByEmail(email);
+    const isValid = credential ? credential.password === password : false;
+    
+    console.log(`🔐 Validando credencial:`, {
+      email,
+      found: !!credential,
+      passwordMatch: isValid
+    });
+    
+    return isValid;
+  };
+
+  // Función de diagnóstico
+  const diagnoseCredentials = () => {
+    console.log('🔧 DIAGNÓSTICO DE CREDENCIALES DEMO:');
+    console.log('📋 Credenciales disponibles:', verifiedCredentials.length);
+    console.log('🗂️ Mapeo de nombres:', Object.keys(nameToEmailMap).length);
+    
+    verifiedCredentials.forEach(cred => {
+      console.log(`✅ ${cred.name} (${cred.email}) - ${cred.role}`);
+    });
   };
 
   return {
     verifiedCredentials,
+    nameToEmailMap,
     getEmailFromName,
+    getCredentialByName,
     getCredentialByEmail,
     getAllCredentials,
     validateCredential,
-    quickLogin
+    diagnoseCredentials
   };
 };
