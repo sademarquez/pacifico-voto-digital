@@ -43,7 +43,7 @@ const Chatbot = ({ isMinimized = false, onToggleMinimize, onClose }: ChatbotProp
   const messagesEndRef = useRef<HTMLDivElement>(null);
 
   // API Key de Gemini configurada
-  const GEMINI_API_KEY = "AIzaSyB0EL5it0LTQOHChULpQSa7BGvdPQPzNkY";
+  const GEMINI_API_KEY = "AIzaSyDaq-_E5FQtTF0mfJsohXvT2OHMgldjq14";
 
   const getWelcomeMessage = () => {
     const baseMessage = '🚀 ¡Hola! Soy tu asistente IA especializado de MI CAMPAÑA 2025. Powered by Gemini AI.';
