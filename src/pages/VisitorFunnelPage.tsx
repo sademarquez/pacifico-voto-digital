@@ -1,13 +1,18 @@
 
-import InteractiveMapFunnel from '@/components/InteractiveMapFunnel';
+import EnhancedInteractiveMapFunnel from '@/components/EnhancedInteractiveMapFunnel';
+import PageLayout from '@/components/PageLayout';
 
 const VisitorFunnelPage = () => {
   return (
-    <div className="min-h-screen bg-gradient-to-br from-slate-50 via-blue-50 to-purple-50">
+    <PageLayout 
+      borderVariant="animated" 
+      borderColor="purple"
+      className="bg-gradient-to-br from-slate-50 via-blue-50 to-purple-50"
+    >
       <div className="container mx-auto py-6">
-        <InteractiveMapFunnel />
+        <EnhancedInteractiveMapFunnel />
       </div>
-    </div>
+    </PageLayout>
   );
 };
 
