@@ -7,7 +7,7 @@ import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Alert, AlertDescription } from '@/components/ui/alert';
-import { useDemoCredentials } from '@/hooks/useDemoCredentials';
+import { useDemoUsers } from '@/hooks/useDemoUsers';
 import { 
   Vote, 
   Eye, 
@@ -20,8 +20,7 @@ import {
   Globe,
   Crown,
   TrendingUp,
-  Users,
-  CheckCircle
+  Users
 } from 'lucide-react';
 
 const Login = () => {
@@ -33,7 +32,7 @@ const Login = () => {
   const [showCredentials, setShowCredentials] = useState(false);
   const { login, isAuthenticated } = useSecureAuth();
   const navigate = useNavigate();
-  const { verifiedCredentials, getEmailFromName, validateCredential } = useDemoCredentials();
+  const { demoUsers, databaseStats } = useDemoUsers();
 
   // Redirigir si ya está autenticado
   if (isAuthenticated) {
@@ -47,51 +46,26 @@ const Login = () => {
     setIsLoading(true);
 
     try {
-      let finalEmail = email.trim();
-      
-      // Si el usuario ingresó un nombre, convertir a email
-      const mappedEmail = getEmailFromName(email.trim());
-      if (mappedEmail) {
-        finalEmail = mappedEmail;
-      }
-
-      // Validar credenciales antes de intentar login
-      if (!validateCredential(finalEmail, password)) {
-        setError('❌ Credenciales incorrectas. Usa las credenciales demo mostradas abajo.');
-        setShowCredentials(true);
-        setIsLoading(false);
-        return;
-      }
-
-      console.log('🔐 Intentando login con credenciales verificadas:', { 
-        originalInput: email, 
-        finalEmail, 
-        hasPassword: !!password 
-      });
-
-      const result = await login(finalEmail, password);
+      const result = await login(email, password);
       
       if (result) {
         console.log('✅ Login exitoso, redirigiendo...');
         navigate('/dashboard');
       } else {
-        setError('❌ Error de autenticación. Verifica las credenciales o revisa la configuración de Supabase.');
-        setShowCredentials(true);
+        setError('Credenciales incorrectas. Verifica tu email y contraseña.');
       }
     } catch (error) {
       console.error('💥 Error crítico en handleSubmit:', error);
-      setError('❌ Error de conexión. Verifica la configuración de Supabase.');
-      setShowCredentials(true);
+      setError('Error de conexión. Intenta nuevamente.');
     } finally {
       setIsLoading(false);
     }
   };
 
-  const quickLogin = (credential: any) => {
-    setEmail(credential.email);
-    setPassword(credential.password);
+  const quickLogin = (testEmail: string, testPassword: string) => {
+    setEmail(testEmail);
+    setPassword(testPassword);
     setError('');
-    console.log('🚀 Credencial seleccionada:', credential.name);
   };
 
   const getRoleIcon = (role: string) => {
@@ -110,11 +84,12 @@ const Login = () => {
       {/* Background elegante */}
       <div className="absolute inset-0 bg-gradient-to-br from-slate-900 via-blue-900 to-indigo-900"></div>
       <div className="absolute inset-0 bg-[radial-gradient(circle_at_50%_50%,rgba(56,189,248,0.1),transparent_50%)]"></div>
+      <div className="absolute inset-0 bg-[conic-gradient(from_0deg_at_50%_50%,transparent_0deg,rgba(59,130,246,0.05)_120deg,transparent_240deg)]"></div>
       
       <div className="relative z-10 flex items-center justify-center min-h-screen p-4">
         <div className="w-full max-w-6xl grid grid-cols-1 lg:grid-cols-2 gap-12 items-center">
           
-          {/* Panel izquierdo */}
+          {/* Panel izquierdo - Presentación elegante */}
           <div className="hidden lg:flex flex-col justify-center space-y-8 text-white">
             <div className="space-y-6">
               <div className="flex items-center space-x-4">
@@ -126,39 +101,39 @@ const Login = () => {
                     MI CAMPAÑA
                   </h1>
                   <p className="text-2xl font-semibold text-blue-200">2025</p>
-                  <p className="text-lg opacity-90">Sistema Electoral IA - DEMO FUNCIONAL</p>
+                  <p className="text-lg opacity-90">Automatización Electoral con IA</p>
                 </div>
               </div>
               
               <div className="space-y-6 mt-12">
                 <div className="flex items-center space-x-4 p-6 bg-white/10 backdrop-blur-sm rounded-2xl border border-white/20">
-                  <CheckCircle className="w-8 h-8 text-green-300" />
+                  <TrendingUp className="w-8 h-8 text-green-300" />
                   <div>
-                    <h3 className="text-xl font-bold">Base Demo Verificada</h3>
-                    <p className="text-blue-200">5 usuarios • Credenciales actualizadas</p>
+                    <h3 className="text-xl font-bold">Resultados Garantizados</h3>
+                    <p className="text-blue-200">ROI +280% • Engagement +340%</p>
                   </div>
                 </div>
                 
                 <div className="flex items-center space-x-4 p-6 bg-white/10 backdrop-blur-sm rounded-2xl border border-white/20">
                   <Sparkles className="w-8 h-8 text-yellow-300" />
                   <div>
-                    <h3 className="text-xl font-bold">IA + Mapas + WhatsApp</h3>
-                    <p className="text-blue-200">Ecosistema completo integrado</p>
+                    <h3 className="text-xl font-bold">IA Generativa Avanzada</h3>
+                    <p className="text-blue-200">Gemini + N8N • Automatización Total</p>
                   </div>
                 </div>
                 
                 <div className="flex items-center space-x-4 p-6 bg-white/10 backdrop-blur-sm rounded-2xl border border-white/20">
-                  <TrendingUp className="w-8 h-8 text-blue-300" />
+                  <Users className="w-8 h-8 text-blue-300" />
                   <div>
-                    <h3 className="text-xl font-bold">Listo para Móvil</h3>
-                    <p className="text-blue-200">Android Studio + Capacitor</p>
+                    <h3 className="text-xl font-bold">Base Masiva</h3>
+                    <p className="text-blue-200">{databaseStats.totalUsers.toLocaleString()} usuarios activos</p>
                   </div>
                 </div>
               </div>
             </div>
           </div>
 
-          {/* Panel derecho - Login */}
+          {/* Panel derecho - Login elegante */}
           <div className="flex items-center justify-center">
             <Card className="w-full max-w-lg bg-white/95 backdrop-blur-xl border-0 shadow-2xl">
               <CardHeader className="space-y-4 text-center pb-8">
@@ -167,14 +142,14 @@ const Login = () => {
                 </div>
                 <div>
                   <CardTitle className="text-3xl font-bold bg-gradient-to-r from-blue-600 to-purple-700 bg-clip-text text-transparent mb-2">
-                    MI CAMPAÑA 2025
+                    Acceso Seguro
                   </CardTitle>
-                  <p className="text-gray-600">Sistema Electoral con IA</p>
+                  <p className="text-gray-600">Plataforma Electoral Empresarial</p>
                 </div>
               </CardHeader>
               
               <CardContent className="space-y-6">
-                {/* Botón Visitante */}
+                {/* Botón principal de Visitante */}
                 <div className="text-center">
                   <Button 
                     onClick={() => navigate('/visitor-funnel')}
@@ -184,7 +159,7 @@ const Login = () => {
                     <Map className="w-6 h-6 mr-3" />
                     <div className="flex flex-col">
                       <span>DESCUBRE TU ZONA</span>
-                      <span className="text-sm opacity-90">Mapa IA + SellerChat</span>
+                      <span className="text-sm opacity-90">Mapa Inteligente + IA</span>
                     </div>
                     <ArrowRight className="w-6 h-6 ml-3" />
                   </Button>
@@ -196,20 +171,20 @@ const Login = () => {
                     <span className="w-full border-t border-gray-200" />
                   </div>
                   <div className="relative flex justify-center text-sm uppercase">
-                    <span className="bg-white px-4 text-gray-500 font-medium">Acceso Demo</span>
+                    <span className="bg-white px-4 text-gray-500 font-medium">Acceso Administrativo</span>
                   </div>
                 </div>
 
                 {/* Formulario de login */}
                 <form onSubmit={handleSubmit} className="space-y-4">
                   <div className="space-y-2">
-                    <Label htmlFor="email" className="text-gray-700 font-medium">Usuario o Email</Label>
+                    <Label htmlFor="email" className="text-gray-700 font-medium">Email Corporativo</Label>
                     <Input
                       id="email"
-                      type="text"
+                      type="email"
                       value={email}
                       onChange={(e) => setEmail(e.target.value)}
-                      placeholder="Ej: Desarrollador o dev@micampana.com"
+                      placeholder="usuario@micampana.com"
                       required
                       disabled={isLoading}
                       className="h-12 border-2 focus:border-blue-500 transition-colors"
@@ -224,7 +199,7 @@ const Login = () => {
                         type={showPassword ? "text" : "password"}
                         value={password}
                         onChange={(e) => setPassword(e.target.value)}
-                        placeholder="Password123!"
+                        placeholder="Contraseña segura"
                         required
                         disabled={isLoading}
                         className="h-12 border-2 focus:border-blue-500 pr-12 transition-colors"
@@ -263,7 +238,7 @@ const Login = () => {
                   </Button>
                 </form>
 
-                {/* Mostrar credenciales automáticamente si hay error */}
+                {/* Enlace discreto para credenciales */}
                 <div className="text-center">
                   <Button
                     variant="ghost"
@@ -271,48 +246,39 @@ const Login = () => {
                     onClick={() => setShowCredentials(!showCredentials)}
                     className="text-gray-500 hover:text-gray-700 text-sm"
                   >
-                    {showCredentials ? 'Ocultar' : 'Ver'} credenciales verificadas
+                    {showCredentials ? 'Ocultar' : 'Ver'} credenciales de prueba
                   </Button>
                 </div>
 
-                {/* Panel de credenciales verificadas */}
+                {/* Panel de credenciales - Solo visible cuando se solicita */}
                 {showCredentials && (
                   <div className="bg-gray-50 rounded-xl p-4 border">
-                    <h4 className="font-semibold text-gray-800 mb-3 text-sm flex items-center gap-2">
-                      <CheckCircle className="w-4 h-4 text-green-600" />
-                      Credenciales Demo Verificadas
-                    </h4>
+                    <h4 className="font-semibold text-gray-800 mb-3 text-sm">Credenciales de Prueba</h4>
                     <div className="space-y-2 max-h-60 overflow-y-auto">
-                      {verifiedCredentials.map((credential, index) => (
+                      {demoUsers.slice(0, 5).map((user, index) => (
                         <div key={index} className="bg-white rounded-lg p-3 border hover:border-blue-200 transition-colors">
                           <div className="flex items-center justify-between mb-1">
                             <div className="flex items-center space-x-2">
-                              {getRoleIcon(credential.role)}
-                              <span className="font-medium text-sm text-gray-800">{credential.name}</span>
+                              {getRoleIcon(user.role)}
+                              <span className="font-medium text-sm text-gray-800">{user.name}</span>
                             </div>
                             <Button
                               type="button"
                               variant="outline"
                               size="sm"
-                              onClick={() => quickLogin(credential)}
+                              onClick={() => quickLogin(user.email, user.password)}
                               disabled={isLoading}
                               className="text-xs h-7 px-3"
                             >
                               Usar
                             </Button>
                           </div>
-                          <div className="text-xs text-gray-600 mb-1">{credential.description}</div>
-                          <div className="text-xs font-mono text-gray-500 bg-gray-100 px-2 py-1 rounded mb-1">
-                            Email: {credential.email}
-                          </div>
+                          <div className="text-xs text-gray-600 mb-1">{user.description}</div>
                           <div className="text-xs font-mono text-gray-500 bg-gray-100 px-2 py-1 rounded">
-                            Pass: {credential.password}
+                            {user.email}
                           </div>
                         </div>
                       ))}
-                    </div>
-                    <div className="mt-3 p-2 bg-green-50 rounded text-xs text-green-700 border border-green-200">
-                      💡 <strong>Tip:</strong> Puedes usar el nombre (ej: "Desarrollador") o el email completo para iniciar sesión.
                     </div>
                   </div>
                 )}

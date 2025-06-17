@@ -1,8 +1,3 @@
-
-/*
- * Copyright © 2025 sademarquezDLL. Todos los derechos reservados.
- */
-
 import React, { createContext, useContext, useState, ReactNode, useEffect, useCallback } from 'react';
 import { supabase } from '@/integrations/supabase/client';
 import { User as SupabaseUser, Session } from '@supabase/supabase-js';
@@ -14,8 +9,6 @@ interface User {
   email: string;
   name: string;
   role: 'desarrollador' | 'master' | 'candidato' | 'lider' | 'votante' | 'visitante';
-  isDemoUser?: boolean;
-  territory?: string;
 }
 
 interface SecureAuthContextType {
@@ -28,7 +21,6 @@ interface SecureAuthContextType {
   authError: string | null;
   clearAuthError: () => void;
   systemHealth: 'healthy' | 'warning' | 'error';
-  databaseMode: 'demo' | 'production';
 }
 
 const SecureAuthContext = createContext<SecureAuthContextType | undefined>(undefined);
@@ -39,7 +31,6 @@ export const SecureAuthProvider: React.FC<{ children: ReactNode }> = ({ children
   const [isLoading, setIsLoading] = useState(true);
   const [authError, setAuthError] = useState<string | null>(null);
   const [systemHealth, setSystemHealth] = useState<'healthy' | 'warning' | 'error'>('healthy');
-  const [databaseMode, setDatabaseMode] = useState<'demo' | 'production'>('demo');
 
   const { logInfo, logError, logWarning } = useSystemLogger();
   const { handleError, handleAsyncError } = useErrorHandler();
@@ -49,27 +40,6 @@ export const SecureAuthProvider: React.FC<{ children: ReactNode }> = ({ children
     logInfo('auth', 'Error de autenticación limpiado por usuario');
   };
 
-  // Detectar modo de base de datos
-  const detectDatabaseMode = useCallback(async () => {
-    try {
-      // Verificar si estamos en modo demo o producción
-      const isDemoEnvironment = window.location.hostname.includes('lovable') || 
-                               window.location.hostname.includes('localhost') ||
-                               process.env.NODE_ENV === 'development';
-
-      if (isDemoEnvironment) {
-        setDatabaseMode('demo');
-        logInfo('system', 'Modo DEMO detectado - Base de datos de demostración activa');
-      } else {
-        setDatabaseMode('production');
-        logInfo('system', 'Modo PRODUCCIÓN detectado - Base de datos real activa');
-      }
-    } catch (error) {
-      logError('system', 'Error detectando modo de base de datos', error as Error);
-      setDatabaseMode('demo'); // Fallback a demo por seguridad
-    }
-  }, [logInfo, logError]);
-
   const checkSystemHealth = useCallback(async () => {
     try {
       const { data, error } = await supabase
@@ -78,7 +48,7 @@ export const SecureAuthProvider: React.FC<{ children: ReactNode }> = ({ children
         .eq('key', 'maintenance_mode')
         .single();
 
-      if (error && error.code !== 'PGRST116') { // PGRST116 = no rows returned
+      if (error) {
         setSystemHealth('warning');
         logWarning('system', 'No se pudo verificar estado del sistema', { error: error.message });
         return;
@@ -97,20 +67,19 @@ export const SecureAuthProvider: React.FC<{ children: ReactNode }> = ({ children
   }, [logWarning, logError]);
 
   useEffect(() => {
-    logInfo('auth', `Inicializando SecureAuthProvider v3.0 - Sistema Electoral Colombia`);
+    logInfo('auth', 'Inicializando SecureAuthProvider v2.0 - Demo Database Edition');
     
-    detectDatabaseMode();
     checkSystemHealth();
 
     const { data: authListener } = supabase.auth.onAuthStateChange(async (event, session) => {
       logInfo('auth', `Evento de autenticación: ${event}`, { 
         hasSession: !!session,
-        userEmail: session?.user?.email || 'No user',
-        databaseMode
+        userEmail: session?.user?.email || 'No user'
       });
 
       if (session?.user) {
         setSession(session);
+
         setTimeout(async () => {
           try {
             await loadUserProfile(session.user);
@@ -136,9 +105,7 @@ export const SecureAuthProvider: React.FC<{ children: ReactNode }> = ({ children
         } else if (session?.user) {
           setSession(session);
           await loadUserProfile(session.user);
-          logInfo('auth', `Sesión inicial restaurada - Modo ${databaseMode}`, { 
-            userEmail: session.user.email 
-          });
+          logInfo('auth', 'Sesión inicial restaurada - Demo Database', { userEmail: session.user.email });
         }
       } catch (error) {
         handleError(error as Error, 'Inicialización de sesión', { category: 'auth' });
@@ -153,13 +120,11 @@ export const SecureAuthProvider: React.FC<{ children: ReactNode }> = ({ children
       authListener?.subscription.unsubscribe();
       logInfo('auth', 'SecureAuthProvider limpiado');
     };
-  }, [databaseMode, detectDatabaseMode, checkSystemHealth, handleError, logInfo]);
+  }, []);
 
   const loadUserProfile = async (supabaseUser: SupabaseUser) => {
     try {
-      logInfo('auth', `Cargando perfil de usuario - Modo ${databaseMode}`, { 
-        userId: supabaseUser.id 
-      });
+      logInfo('auth', 'Cargando perfil de usuario desde base demo', { userId: supabaseUser.id });
       
       const { data: profile, error } = await supabase
         .from('profiles')
@@ -172,43 +137,35 @@ export const SecureAuthProvider: React.FC<{ children: ReactNode }> = ({ children
       }
 
       if (profile) {
-        // Determinar si es usuario demo basado en el email
-        const isDemoUser = supabaseUser.email?.includes('micampana.com') || 
-                          supabaseUser.email?.includes('demo.com') ||
-                          databaseMode === 'demo';
-
         const userData: User = {
           id: profile.id,
-          name: profile.name || supabaseUser.email || 'Usuario',
+          name: profile.name || supabaseUser.email || 'Usuario Demo',
           role: profile.role as User['role'],
           email: supabaseUser.email || '',
-          isDemoUser,
-          territory: isDemoUser ? 'DEMO' : undefined
         };
 
         setUser(userData);
         setAuthError(null);
         
-        logInfo('auth', `Perfil cargado exitosamente - ${databaseMode.toUpperCase()}`, {
+        logInfo('auth', 'Perfil de usuario demo cargado exitosamente', {
           userId: userData.id,
           role: userData.role,
           name: userData.name,
-          isDemoUser: userData.isDemoUser,
-          databaseMode
+          databaseType: 'demo'
         });
       } else {
-        throw new Error(`Perfil de usuario no encontrado en base ${databaseMode}`);
+        throw new Error('Perfil de usuario no encontrado en base demo');
       }
     } catch (error) {
-      const errorMsg = `Error cargando perfil ${databaseMode}: ${(error as Error).message}`;
+      const errorMsg = `Error cargando perfil demo: ${(error as Error).message}`;
       setAuthError(errorMsg);
-      logError('auth', `Error cargando perfil de usuario ${databaseMode}`, error as Error);
+      logError('auth', 'Error cargando perfil de usuario demo', error as Error);
       throw error;
     }
   };
 
   const login = async (email: string, password: string): Promise<boolean> => {
-    logInfo('auth', `Intento de login iniciado - Modo ${databaseMode}`, { email });
+    logInfo('auth', 'Intento de login iniciado - Base Demo', { email });
     setAuthError(null);
 
     try {
@@ -218,48 +175,41 @@ export const SecureAuthProvider: React.FC<{ children: ReactNode }> = ({ children
       });
 
       if (error) {
-        let errorMsg = `Error de autenticación en modo ${databaseMode}: `;
+        let errorMsg = 'Error de autenticación en base demo: ';
         
         if (error.message.includes('Invalid login credentials')) {
-          errorMsg = databaseMode === 'demo' 
-            ? 'Credenciales incorrectas. Usa las credenciales demo proporcionadas.'
-            : 'Credenciales incorrectas. Verifica tu email y contraseña.';
+          errorMsg = 'Credenciales incorrectas. Usa las credenciales demo proporcionadas.';
         } else if (error.message.includes('Email not confirmed')) {
-          errorMsg = databaseMode === 'demo'
-            ? 'Email no confirmado. Los usuarios demo están preconfigurados.'
-            : 'Por favor confirma tu email antes de iniciar sesión.';
+          errorMsg = 'Email no confirmado. Los usuarios demo están preconfigurados.';
         } else {
           errorMsg += error.message;
         }
         
         setAuthError(errorMsg);
-        logError('auth', `Error en login ${databaseMode}`, error);
+        logError('auth', 'Error en login demo', error);
         return false;
       }
 
       if (data.user) {
-        logInfo('auth', `Login exitoso - ${databaseMode.toUpperCase()}`, { 
+        logInfo('auth', 'Login demo exitoso', { 
           userId: data.user.id,
           email: data.user.email,
-          databaseMode
+          databaseType: 'demo'
         });
         return true;
       }
 
       return false;
     } catch (error) {
-      const errorMsg = `Error inesperado durante el login ${databaseMode}`;
+      const errorMsg = 'Error inesperado durante el login demo';
       setAuthError(errorMsg);
-      logError('auth', `Error crítico en login ${databaseMode}`, error as Error);
+      logError('auth', 'Error crítico en login demo', error as Error);
       return false;
     }
   };
 
   const logout = async () => {
-    logInfo('auth', 'Cerrando sesión de usuario', { 
-      userId: user?.id,
-      databaseMode 
-    });
+    logInfo('auth', 'Cerrando sesión de usuario', { userId: user?.id });
     
     try {
       const { error } = await supabase.auth.signOut();
@@ -270,7 +220,7 @@ export const SecureAuthProvider: React.FC<{ children: ReactNode }> = ({ children
         setUser(null);
         setSession(null);
         setAuthError(null);
-        logInfo('auth', `Sesión cerrada exitosamente - ${databaseMode}`);
+        logInfo('auth', 'Sesión cerrada exitosamente');
       }
     } catch (error) {
       handleError(error as Error, 'Cierre de sesión', { category: 'auth' });
@@ -287,7 +237,6 @@ export const SecureAuthProvider: React.FC<{ children: ReactNode }> = ({ children
     authError,
     clearAuthError,
     systemHealth,
-    databaseMode,
   };
 
   return (
