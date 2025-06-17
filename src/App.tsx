@@ -1,4 +1,3 @@
-
 import {
   BrowserRouter,
   Routes,
@@ -19,7 +18,6 @@ import RedAyudantes from "./pages/RedAyudantes";
 import TasksPage from "./pages/TasksPage";
 import EventsPage from "./pages/EventsPage";
 import QuickActionsPage from "./pages/QuickActionsPage";
-import VisitorFunnelPage from "./pages/VisitorFunnelPage";
 import { SecureAuthProvider } from "./contexts/SecureAuthContext";
 import TrackingProvider from './components/TrackingProvider';
 import ChatbotManager from './components/ChatbotManager';
@@ -49,7 +47,6 @@ function App() {
               <Routes>
                 <Route path="/" element={<Login />} />
                 <Route path="/login" element={<Login />} />
-                <Route path="/visitor-funnel" element={<VisitorFunnelPage />} />
                 <Route path="/index" element={<Index />} />
                 <Route path="/dashboard" element={<Dashboard />} />
                 <Route path="/mapa-alertas" element={<MapaAlertas />} />
