@@ -1,3 +1,4 @@
+
 /*
  * MI CAMPAÑA 2025 - Sistema Electoral con IA
  * Copyright © 2025 sademarquezDLL. Todos los derechos reservados.
