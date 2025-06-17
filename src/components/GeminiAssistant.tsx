@@ -3,7 +3,7 @@ import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Badge } from '@/components/ui/badge';
-import { useSecureAuth } from '../contexts/SecureAuthContext';
+import { useSimpleAuth } from '../contexts/SimpleAuthContext';
 import { geminiService } from '@/services/geminiService';
 import { 
   Sparkles, 
@@ -22,7 +22,7 @@ import {
 import { toast } from 'sonner';
 
 const GeminiAssistant = () => {
-  const { user } = useSecureAuth();
+  const { user } = useSimpleAuth();
   const [isOpen, setIsOpen] = useState(false);
   const [isMinimized, setIsMinimized] = useState(false);
   const [message, setMessage] = useState('');
@@ -60,12 +60,38 @@ const GeminiAssistant = () => {
     setConversation(newConversation);
 
     try {
-      const response = await geminiService.generateAssistantResponse(
-        userMessage,
-        user?.role || 'visitante',
-        user?.name || 'Usuario'
-      );
-      
+      const contextPrompt = `
+        Eres el asistente electoral IA más avanzado del mundo para MI CAMPAÑA 2025.
+        Usuario: ${user?.name || 'Visitante'} (Rol: ${user?.role || 'visitante'})
+        
+        CONTEXTO ELECTORAL:
+        - Plataforma líder con automatización IA que garantiza victorias
+        - Gemini AI + N8N para campañas dominantes
+        - ROI promedio +280%, engagement +340%
+        - Base demo: 100K+ votantes, 5 candidatos ganadores
+        - Análisis predictivo, geolocalización, mensajes que convierten
+        
+        PERSONALIDAD:
+        - Estratega electoral experto y persuasivo
+        - Confianza absoluta en resultados
+        - Enfoque en ganar elecciones y dominar competencia
+        - Tono motivacional pero profesional
+        - Usa datos reales para generar confianza
+        
+        Pregunta: "${userMessage}"
+        
+        INSTRUCCIONES:
+        - Responde como estratega electoral que garantiza victorias
+        - Usa ejemplos concretos de la plataforma (candidatos demo, métricas reales)
+        - Enfócate en cómo ganar elecciones y derrotar competencia
+        - Menciona funcionalidades específicas que aseguran triunfos
+        - Sé persuasivo y genera urgencia por actuar
+        - Máximo 180 palabras, usa emojis estratégicamente
+        
+        FORMATO: Solo la respuesta estratégica directa.
+      `;
+
+      const response = await geminiService.makeRequest(contextPrompt);
       setConversation(prev => [...prev, { role: 'assistant', content: response }]);
       
     } catch (error) {

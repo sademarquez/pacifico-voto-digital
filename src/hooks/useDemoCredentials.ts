@@ -10,7 +10,7 @@ export interface DemoCredential {
 }
 
 export const useDemoCredentials = () => {
-  // CREDENCIALES DEMO ACTUALIZADAS Y VERIFICADAS CON LA BASE DE DATOS
+  // CREDENCIALES DEMO OPTIMIZADAS - SISTEMA UNIFICADO
   const verifiedCredentials: DemoCredential[] = [
     {
       name: 'Desarrollador',
@@ -59,128 +59,85 @@ export const useDemoCredentials = () => {
     }
   ];
 
-  // Mapeo exhaustivo y optimizado de nombres a emails
-  const nameToEmailMap: Record<string, string> = {
-    // Desarrollador - todas las variaciones
-    'Desarrollador': 'dev@demo.com',
-    'desarrollador': 'dev@demo.com',
-    'DESARROLLADOR': 'dev@demo.com',
-    'dev': 'dev@demo.com',
-    'Dev': 'dev@demo.com',
-    'DEV': 'dev@demo.com',
+  // Mapeo optimizado de nombres a emails
+  const nameToEmailMap = new Map<string, string>([
+    // Desarrollador
+    ['Desarrollador', 'dev@demo.com'],
+    ['desarrollador', 'dev@demo.com'],
+    ['DESARROLLADOR', 'dev@demo.com'],
+    ['dev', 'dev@demo.com'],
+    ['Dev', 'dev@demo.com'],
+    ['DEV', 'dev@demo.com'],
     
-    // Master - todas las variaciones
-    'Master': 'master@demo.com',
-    'master': 'master@demo.com',
-    'MASTER': 'master@demo.com',
-    'master1': 'master@demo.com',
-    'Master1': 'master@demo.com',
-    'MASTER1': 'master@demo.com',
+    // Master
+    ['Master', 'master@demo.com'],
+    ['master', 'master@demo.com'],
+    ['MASTER', 'master@demo.com'],
     
-    // Candidato - todas las variaciones
-    'Candidato': 'candidato@demo.com',
-    'candidato': 'candidato@demo.com',
-    'CANDIDATO': 'candidato@demo.com',
+    // Candidato
+    ['Candidato', 'candidato@demo.com'],
+    ['candidato', 'candidato@demo.com'],
+    ['CANDIDATO', 'candidato@demo.com'],
     
-    // Líder - todas las variaciones
-    'Líder': 'lider@demo.com',
-    'líder': 'lider@demo.com',
-    'Lider': 'lider@demo.com',
-    'lider': 'lider@demo.com',
-    'LÍDER': 'lider@demo.com',
-    'LIDER': 'lider@demo.com',
+    // Líder
+    ['Líder', 'lider@demo.com'],
+    ['líder', 'lider@demo.com'],
+    ['Lider', 'lider@demo.com'],
+    ['lider', 'lider@demo.com'],
+    ['LÍDER', 'lider@demo.com'],
+    ['LIDER', 'lider@demo.com'],
     
-    // Votante - todas las variaciones
-    'Votante': 'votante@demo.com',
-    'votante': 'votante@demo.com',
-    'VOTANTE': 'votante@demo.com'
-  };
+    // Votante
+    ['Votante', 'votante@demo.com'],
+    ['votante', 'votante@demo.com'],
+    ['VOTANTE', 'votante@demo.com']
+  ]);
 
   const getEmailFromName = (name: string): string | null => {
     const cleanName = name.trim();
-    const email = nameToEmailMap[cleanName];
+    const email = nameToEmailMap.get(cleanName);
     
-    console.log(`🔍 Buscando email para "${cleanName}":`, email || 'NO ENCONTRADO');
+    if (email) {
+      console.log(`✅ Email encontrado para "${cleanName}": ${email}`);
+    } else {
+      console.log(`❌ No se encontró email para "${cleanName}"`);
+    }
     
     return email || null;
-  };
-
-  const getCredentialByName = (name: string): DemoCredential | null => {
-    const email = getEmailFromName(name);
-    if (!email) return null;
-    
-    return verifiedCredentials.find(cred => cred.email === email) || null;
   };
 
   const getCredentialByEmail = (email: string): DemoCredential | null => {
     return verifiedCredentials.find(cred => cred.email === email) || null;
   };
 
-  const getAllCredentials = (): DemoCredential[] => {
-    return verifiedCredentials;
-  };
-
   const validateCredential = (email: string, password: string): boolean => {
     const credential = getCredentialByEmail(email);
     const isValid = credential ? credential.password === password && credential.verified : false;
     
-    console.log(`🔐 Validando credencial:`, {
-      email,
-      found: !!credential,
-      verified: credential?.verified || false,
-      passwordMatch: credential ? credential.password === password : false,
-      isValid
-    });
+    console.log(`🔐 Validando credencial: ${email} - ${isValid ? 'VÁLIDA' : 'INVÁLIDA'}`);
     
     return isValid;
   };
 
-  // Función de autodiagnóstico mejorada
-  const diagnoseCredentials = () => {
-    console.log('🔧 DIAGNÓSTICO COMPLETO DE CREDENCIALES DEMO:');
-    console.log('📋 Credenciales disponibles:', verifiedCredentials.length);
-    console.log('🗂️ Mapeo de nombres:', Object.keys(nameToEmailMap).length);
-    console.log('✅ Credenciales verificadas:');
-    
-    verifiedCredentials.forEach(cred => {
-      console.log(`  - ${cred.name} (${cred.email}) - ${cred.role} [${cred.verified ? 'VERIFICADA' : 'NO VERIFICADA'}]`);
-    });
-
-    console.log('🔍 Testeo rápido de validación:');
-    verifiedCredentials.forEach(cred => {
-      const isValid = validateCredential(cred.email, cred.password);
-      console.log(`  - ${cred.name}: ${isValid ? '✅ FUNCIONA' : '❌ FALLA'}`);
-    });
+  const getAllCredentials = (): DemoCredential[] => {
+    return verifiedCredentials;
   };
 
-  // Función de reparación automática
-  const autoRepairCredentials = async () => {
-    console.log('🔧 Iniciando reparación automática de credenciales...');
-    
-    // Verificar que todas las credenciales sean válidas
-    let repairedCount = 0;
-    
-    for (const cred of verifiedCredentials) {
-      if (!validateCredential(cred.email, cred.password)) {
-        console.log(`🔧 Reparando credencial: ${cred.name}`);
-        cred.verified = true;
-        repairedCount++;
-      }
+  const quickLogin = (roleName: string) => {
+    const email = getEmailFromName(roleName);
+    if (email) {
+      const credential = getCredentialByEmail(email);
+      return credential ? { email: credential.email, password: credential.password } : null;
     }
-    
-    console.log(`✅ Reparación completada. ${repairedCount} credenciales reparadas.`);
-    return repairedCount;
+    return null;
   };
 
   return {
     verifiedCredentials,
-    nameToEmailMap,
     getEmailFromName,
-    getCredentialByName,
     getCredentialByEmail,
     getAllCredentials,
     validateCredential,
-    diagnoseCredentials,
-    autoRepairCredentials
+    quickLogin
   };
 };

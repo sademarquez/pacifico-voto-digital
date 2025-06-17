@@ -11,7 +11,7 @@ const config: CapacitorConfig = {
   },
   plugins: {
     SplashScreen: {
-      launchShowDuration: 3000,
+      launchShowDuration: 2000,
       backgroundColor: '#1e40af',
       androidSplashResourceName: 'splash',
       androidScaleType: 'CENTER_CROP',
@@ -40,44 +40,28 @@ const config: CapacitorConfig = {
     },
     Storage: {
       enabled: true
-    },
-    Geolocation: {
-      enabled: true
-    },
-    Camera: {
-      enabled: true
-    },
-    LocalNotifications: {
-      enabled: true,
-      smallIcon: 'ic_stat_icon_config_sample',
-      iconColor: '#1e40af'
-    },
-    PushNotifications: {
-      enabled: true
     }
   },
   android: {
     allowMixedContent: true,
     captureInput: true,
-    webContentsDebuggingEnabled: false,
-    loggingBehavior: 'production',
-    minWebViewVersion: 70,
+    webContentsDebuggingEnabled: true,
+    loggingBehavior: 'debug',
+    minWebViewVersion: 60,
     flavor: 'main',
     buildOptions: {
       keystorePath: undefined,
       keystoreAlias: undefined,
       releaseType: 'AAB',
       signingType: 'apksigner'
-    },
-    appendUserAgent: 'MiCampana2025/2.0.0'
+    }
   },
   ios: {
     contentInset: 'automatic',
     scrollEnabled: true,
     preferredContentMode: 'mobile',
     allowsLinkPreview: false,
-    handleApplicationURL: true,
-    appendUserAgent: 'MiCampana2025/2.0.0'
+    handleApplicationURL: true
   }
 };
 

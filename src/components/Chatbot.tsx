@@ -4,8 +4,7 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Badge } from "@/components/ui/badge";
 import { ScrollArea } from "@/components/ui/scroll-area";
-import { useAuth } from "../contexts/AuthContext";
-import { geminiService } from "@/services/geminiService";
+import { useSimpleAuth } from "@/contexts/SimpleAuthContext";
 import { 
   MessageSquare, 
   Send, 
@@ -37,11 +36,14 @@ interface ChatbotProps {
 }
 
 const Chatbot = ({ isMinimized = false, onToggleMinimize, onClose }: ChatbotProps) => {
-  const { user } = useAuth();
+  const { user } = useSimpleAuth();
   const [messages, setMessages] = useState<Message[]>([]);
   const [inputMessage, setInputMessage] = useState('');
   const [isLoading, setIsLoading] = useState(false);
   const messagesEndRef = useRef<HTMLDivElement>(null);
+
+  // API Key de Gemini configurada
+  const GEMINI_API_KEY = "AIzaSyB0EL5it0LTQOHChULpQSa7BGvdPQPzNkY";
 
   const getWelcomeMessage = () => {
     const baseMessage = '🚀 ¡Hola! Soy tu asistente IA especializado de MI CAMPAÑA 2025. Powered by Gemini AI.';
@@ -167,7 +169,34 @@ const Chatbot = ({ isMinimized = false, onToggleMinimize, onClose }: ChatbotProp
       
       Responde máximo en 150 palabras con un enfoque profesional, motivador y estratégico, usando emojis apropiados:`;
 
-      return await geminiService.generateAssistantResponse(userMessage, user?.role || 'visitante', user?.name || 'Usuario');
+      const response = await fetch(`https://generativelanguage.googleapis.com/v1beta/models/gemini-pro:generateContent?key=${GEMINI_API_KEY}`, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({
+          contents: [{
+            parts: [{
+              text: prompt
+            }]
+          }]
+        })
+      });
+
+      if (!response.ok) {
+        const errorData = await response.json();
+        console.error('Gemini API Error:', errorData);
+        throw new Error(`Error ${response.status}: ${errorData.error?.message || 'Error desconocido'}`);
+      }
+
+      const data = await response.json();
+      
+      if (data.candidates && data.candidates[0]?.content?.parts?.[0]?.text) {
+        return data.candidates[0].content.parts[0].text;
+      } else {
+        console.error('Respuesta inesperada de Gemini:', data);
+        return "🤖 Disculpa, estoy procesando tu mensaje. ¿Puedes intentar de nuevo?";
+      }
     } catch (error) {
       console.error('Error calling Gemini API:', error);
       return "⚠️ Temporalmente tengo dificultades técnicas. MI CAMPAÑA 2025 sigue activa y transparente. ¿Puedes intentar más tarde?";

@@ -1,8 +1,12 @@
-import { useState, useEffect } from 'react';
-import { useSecureAuth } from '@/contexts/SecureAuthContext';
-import { MessageCircle, X, Minimize2, Maximize2 } from 'lucide-react';
+import { useState, useEffect, useRef } from 'react';
+import { useSimpleAuth } from '@/contexts/SimpleAuthContext';
+import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
-import { Card, CardContent, CardHeader } from '@/components/ui/card';
+import { Input } from '@/components/ui/input';
+import { Badge } from '@/components/ui/badge';
+import { Textarea } from '@/components/ui/textarea';
+import { MessageCircle, Send, Bot, User, Settings, Zap, TrendingUp, BarChart3, Plus, X, Clock, Maximize2, Minimize2 } from 'lucide-react';
+import { geminiService } from '@/services/geminiService';
 
 interface BotConfig {
   botId: string;
@@ -17,7 +21,7 @@ interface BotConfig {
 }
 
 const ChatbotManager = () => {
-  const { user } = useSecureAuth();
+  const { user } = useSimpleAuth();
   const [isOpen, setIsOpen] = useState(false);
   const [isMinimized, setIsMinimized] = useState(false);
   const [botConfig, setBotConfig] = useState<BotConfig | null>(null);
@@ -27,8 +31,8 @@ const ChatbotManager = () => {
     sender: 'user' | 'bot';
     timestamp: Date;
   }>>([]);
+  const messageAreaRef = useRef<HTMLDivElement>(null);
 
-  // Configurar bot según el rol del usuario
   useEffect(() => {
     if (!user) return;
 
@@ -94,7 +98,6 @@ const ChatbotManager = () => {
     setBotConfig(getBotConfig());
   }, [user]);
 
-  // Verificar si el bot está activo según las horas configuradas
   const isBotActive = (): boolean => {
     if (!botConfig) return false;
     
@@ -104,16 +107,13 @@ const ChatbotManager = () => {
     return currentTime >= botConfig.activeHours.start && currentTime <= botConfig.activeHours.end;
   };
 
-  // Simular respuesta del bot (en producción se conectaría a N8N)
   const getBotResponse = async (userMessage: string): Promise<string> => {
     if (!botConfig || !isBotActive()) {
       return `Lo siento, ${botConfig?.name || 'el asistente'} no está disponible en este momento. Horario de atención: ${botConfig?.activeHours.start} - ${botConfig?.activeHours.end}`;
     }
 
-    // Simular delay de respuesta
     await new Promise(resolve => setTimeout(resolve, 1000));
 
-    // Respuestas contextuales según el rol
     const responses = {
       desarrollador: [
         'Como desarrollador, puedo ayudarte con la arquitectura del sistema.',
@@ -154,7 +154,6 @@ const ChatbotManager = () => {
   const sendMessage = async (text: string) => {
     if (!text.trim()) return;
 
-    // Agregar mensaje del usuario
     const userMessage = {
       id: Date.now().toString(),
       text,
@@ -163,7 +162,6 @@ const ChatbotManager = () => {
     };
     setMessages(prev => [...prev, userMessage]);
 
-    // Obtener respuesta del bot
     const botResponse = await getBotResponse(text);
     const botMessage = {
       id: (Date.now() + 1).toString(),
@@ -173,29 +171,36 @@ const ChatbotManager = () => {
     };
     setMessages(prev => [...prev, botMessage]);
 
-    // Tracking para analytics
-    if (window.fbq) {
-      window.fbq('track', 'Contact', {
-        content_name: 'Bot Interaction',
-        content_category: user?.role,
-        value: 1.00
-      });
-    }
+    trackConversion('message_sent');
+  };
 
-    if (window.gtag) {
-      window.gtag('event', 'bot_interaction', {
-        bot_name: botConfig?.name,
-        user_role: user?.role,
-        message_length: text.length
-      });
+  const trackConversion = (action: string) => {
+    try {
+      if (typeof window !== 'undefined' && (window as any).fbq) {
+        (window as any).fbq('track', 'Lead');
+        (window as any).fbq('track', 'ViewContent');
+      }
+
+      if (typeof window !== 'undefined' && (window as any).gtag) {
+        (window as any).gtag('event', 'conversion', {
+          send_to: 'AW-CONVERSION_ID/CONVERSION_LABEL',
+        });
+      }
+    } catch (error) {
+      console.error('Error tracking conversion:', error);
     }
   };
+
+  useEffect(() => {
+    if (messageAreaRef.current) {
+      messageAreaRef.current.scrollTop = messageAreaRef.current.scrollHeight;
+    }
+  }, [messages]);
 
   if (!botConfig) return null;
 
   return (
     <>
-      {/* Botón flotante del chatbot */}
       {!isOpen && (
         <Button
           onClick={() => setIsOpen(true)}
@@ -205,7 +210,6 @@ const ChatbotManager = () => {
         </Button>
       )}
 
-      {/* Panel del chatbot */}
       {isOpen && (
         <Card className={`fixed bottom-6 right-6 w-80 h-96 shadow-elegant z-50 transition-all duration-300 ${
           isMinimized ? 'h-14' : 'h-96'
@@ -242,8 +246,7 @@ const ChatbotManager = () => {
 
           {!isMinimized && (
             <CardContent className="p-3 flex flex-col h-full">
-              {/* Área de mensajes */}
-              <div className="flex-1 overflow-y-auto mb-3 space-y-2">
+              <div ref={messageAreaRef} className="flex-1 overflow-y-auto mb-3 space-y-2">
                 {messages.length === 0 && (
                   <div className="text-center text-slate-500 text-sm py-4">
                     <p>¡Hola! Soy <strong>{botConfig.name}</strong></p>
@@ -269,9 +272,8 @@ const ChatbotManager = () => {
                 ))}
               </div>
 
-              {/* Input para mensajes */}
               <div className="flex gap-2">
-                <input
+                <Input
                   type="text"
                   placeholder="Escribe tu mensaje..."
                   className="flex-1 px-3 py-2 text-xs border rounded-lg input-elegant"

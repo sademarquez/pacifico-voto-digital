@@ -1,37 +1,52 @@
 
-import { useState } from "react";
-import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
-import { supabase } from "@/integrations/supabase/client";
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { Button } from "@/components/ui/button";
-import { Input } from "@/components/ui/input";
-import { Label } from "@/components/ui/label";
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
-import { Badge } from "@/components/ui/badge";
-import { User, Plus, Shield, Mail, Calendar } from "lucide-react";
-import { useSecureAuth } from "../contexts/SecureAuthContext";
-import { useToast } from "@/hooks/use-toast";
+import { useState, useEffect } from 'react';
+import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
+import { supabase } from '@/integrations/supabase/client';
+import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
+import { Button } from '@/components/ui/button';
+import { Input } from '@/components/ui/input';
+import { Label } from '@/components/ui/label';
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
+import { Badge } from '@/components/ui/badge';
+import { AlertTriangle, Settings, Plus, User, UserPlus } from 'lucide-react';
+import { useSimpleAuth } from '../contexts/SimpleAuthContext';
+import { useDataSegregation } from '../hooks/useDataSegregation';
+import { useToast } from '@/hooks/use-toast';
 
-type UserRole = 'desarrollador' | 'master' | 'candidato' | 'lider' | 'votante' | 'visitante';
+type UserRole = 'votante' | 'desarrollador' | 'master' | 'candidato' | 'lider' | 'visitante';
+
+interface UserProfile {
+  id: string;
+  name: string;
+  role: UserRole;
+  created_at: string;
+}
 
 const UserManagement = () => {
-  const { user } = useSecureAuth();
-  const { toast } = useToast();
+  const { user } = useSimpleAuth();
+  const { canCreateDesarrollador, canCreateMaster, canCreateCandidatos, canCreateLideres, canCreateVotantes, canManageUsers } = useDataSegregation();
   const queryClient = useQueryClient();
-
+  const { toast } = useToast();
+  const [isCreating, setIsCreating] = useState(false);
   const [newUser, setNewUser] = useState({
+    name: '',
     email: '',
     password: '',
+    role: 'votante' as UserRole
+  });
+  const [editingUser, setEditingUser] = useState<UserProfile | null>(null);
+  const [editedUser, setEditedUser] = useState({
+    id: '',
     name: '',
     role: 'votante' as UserRole
   });
 
-  // Query para obtener usuarios
-  const { data: users = [], isLoading } = useQuery({
-    queryKey: ['users', user?.id],
+  // Fetch users
+  const { data: users, isLoading, refetch } = useQuery({
+    queryKey: ['users'],
     queryFn: async () => {
-      if (!supabase || !user) return [];
-      
+      if (!supabase) return [];
+
       const { data, error } = await supabase
         .from('profiles')
         .select('*')
@@ -43,229 +58,381 @@ const UserManagement = () => {
       }
       return data || [];
     },
-    enabled: !!supabase && !!user
+    enabled: !!supabase && canManageUsers
   });
 
-  // Mutación para crear usuario
+  // Create user
   const createUserMutation = useMutation({
-    mutationFn: async (userData: typeof newUser) => {
-      if (!supabase || !user) {
-        throw new Error('Datos incompletos');
-      }
+    mutationFn: async () => {
+      if (!supabase) throw new Error('No Supabase client found');
 
-      // Crear usuario en auth
-      const { data: authData, error: authError } = await supabase.auth.admin.createUser({
-        email: userData.email,
-        password: userData.password,
-        email_confirm: true
+      const { data: authData, error: authError } = await supabase.auth.signUp({
+        email: newUser.email,
+        password: newUser.password,
+        options: {
+          data: {
+            name: newUser.name,
+            role: newUser.role
+          }
+        }
       });
 
-      if (authError) throw authError;
+      if (authError) {
+        throw authError;
+      }
 
-      // Actualizar perfil
       if (authData.user) {
         const { error: profileError } = await supabase
           .from('profiles')
           .update({
-            name: userData.name,
-            role: userData.role,
-            created_by: user.id
+            name: newUser.name,
+            role: newUser.role
           })
           .eq('id', authData.user.id);
 
-        if (profileError) throw profileError;
+        if (profileError) {
+          console.error('Error updating profile:', profileError);
+          throw profileError;
+        }
       }
 
       return authData;
     },
     onSuccess: () => {
       toast({
-        title: "Usuario creado",
-        description: "El usuario ha sido registrado exitosamente.",
+        title: 'Usuario creado exitosamente',
+        description: 'El usuario ha sido registrado correctamente.',
       });
+      setIsCreating(false);
+      setNewUser({ name: '', email: '', password: '', role: 'votante' });
       queryClient.invalidateQueries({ queryKey: ['users'] });
-      setNewUser({
-        email: '',
-        password: '',
-        name: '',
-        role: 'votante'
-      });
     },
     onError: (error: any) => {
+      console.error('Error creating user:', error);
       toast({
-        title: "Error",
-        description: error.message || "No se pudo crear el usuario.",
-        variant: "destructive",
+        title: 'Error al crear usuario',
+        description: error.message,
+        variant: 'destructive',
       });
     }
   });
 
-  const handleCreateUser = () => {
-    if (!newUser.email || !newUser.password || !newUser.name) {
+  // Update user
+  const updateUserMutation = useMutation({
+    mutationFn: async () => {
+      if (!supabase || !editingUser) throw new Error('No Supabase client or user found');
+
+      const { error } = await supabase
+        .from('profiles')
+        .update({
+          name: editedUser.name,
+          role: editedUser.role
+        })
+        .eq('id', editingUser.id);
+
+      if (error) {
+        console.error('Error updating user:', error);
+        throw error;
+      }
+    },
+    onSuccess: () => {
       toast({
-        title: "Error",
-        description: "Por favor completa todos los campos obligatorios",
-        variant: "destructive"
+        title: 'Usuario actualizado',
+        description: 'Los datos del usuario han sido modificados.',
+      });
+      setEditingUser(null);
+      setEditedUser({ id: '', name: '', role: 'votante' });
+      queryClient.invalidateQueries({ queryKey: ['users'] });
+    },
+    onError: (error: any) => {
+      console.error('Error updating user:', error);
+      toast({
+        title: 'Error al actualizar',
+        description: error.message,
+        variant: 'destructive',
+      });
+    }
+  });
+
+  // Delete user
+  const deleteUserMutation = useMutation({
+    mutationFn: async (userId: string) => {
+      if (!supabase) throw new Error('No Supabase client found');
+
+      const { error } = await supabase
+        .from('profiles')
+        .delete()
+        .eq('id', userId);
+
+      if (error) {
+        console.error('Error deleting user:', error);
+        throw error;
+      }
+    },
+    onSuccess: () => {
+      toast({
+        title: 'Usuario eliminado',
+        description: 'El usuario ha sido removido del sistema.',
+      });
+      queryClient.invalidateQueries({ queryKey: ['users'] });
+    },
+    onError: (error: any) => {
+      console.error('Error deleting user:', error);
+      toast({
+        title: 'Error al eliminar',
+        description: error.message,
+        variant: 'destructive',
+      });
+    }
+  });
+
+  const handleCreateUser = async () => {
+    if (!newUser.name || !newUser.email || !newUser.password) {
+      toast({
+        title: 'Campos requeridos',
+        description: 'Por favor, complete todos los campos.',
+        variant: 'destructive',
       });
       return;
     }
-    createUserMutation.mutate(newUser);
+
+    createUserMutation.mutate();
   };
 
-  const getRoleColor = (role: string) => {
+  const handleUpdateUser = async () => {
+    if (!editedUser.name || !editedUser.role) {
+      toast({
+        title: 'Campos requeridos',
+        description: 'Por favor, complete todos los campos.',
+        variant: 'destructive',
+      });
+      return;
+    }
+
+    updateUserMutation.mutate();
+  };
+
+  const handleDeleteUser = async (userId: string) => {
+    deleteUserMutation.mutate(userId);
+  };
+
+  const getRoleBadgeColor = (role: string) => {
     switch (role) {
-      case 'desarrollador': return 'bg-purple-100 text-purple-800';
-      case 'master': return 'bg-red-100 text-red-800';
+      case 'desarrollador': return 'bg-red-100 text-red-800';
+      case 'master': return 'bg-purple-100 text-purple-800';
       case 'candidato': return 'bg-blue-100 text-blue-800';
       case 'lider': return 'bg-green-100 text-green-800';
       case 'votante': return 'bg-yellow-100 text-yellow-800';
-      case 'visitante': return 'bg-gray-100 text-gray-800';
       default: return 'bg-gray-100 text-gray-800';
     }
   };
 
-  const getRoleLabel = (role: string) => {
+  const canCreateRole = (role: string) => {
     switch (role) {
-      case 'desarrollador': return 'Desarrollador';
-      case 'master': return 'Master';
-      case 'candidato': return 'Candidato';
-      case 'lider': return 'Líder';
-      case 'votante': return 'Votante';
-      case 'visitante': return 'Visitante';
-      default: return role;
+      case 'desarrollador': return canCreateDesarrollador;
+      case 'master': return canCreateMaster;
+      case 'candidato': return canCreateCandidatos;
+      case 'lider': return canCreateLideres;
+      case 'votante': return canCreateVotantes;
+      default: return false;
     }
   };
 
+  if (!canManageUsers) {
+    return (
+      <Card>
+        <CardContent className="p-6 text-center">
+          <h3 className="text-lg font-semibold text-gray-700 mb-4">
+            Acceso Denegado
+          </h3>
+          <p className="text-gray-500">
+            No tienes permisos para gestionar usuarios.
+          </p>
+        </CardContent>
+      </Card>
+    );
+  }
+
   return (
     <div className="space-y-6">
-      {/* Formulario para crear nuevo usuario */}
-      <Card className="border-gray-200 shadow-sm">
-        <CardHeader className="bg-blue-50">
-          <CardTitle className="flex items-center gap-2 text-blue-800">
-            <Plus className="w-5 h-5" />
-            Nuevo Usuario del Sistema
-          </CardTitle>
-        </CardHeader>
-        <CardContent className="space-y-4 pt-6">
-          <div className="grid md:grid-cols-2 gap-4">
-            <div className="space-y-2">
-              <Label htmlFor="name" className="text-gray-700 font-medium">Nombre Completo *</Label>
+      <div className="flex justify-between items-center">
+        <h2 className="text-2xl font-bold text-gray-800">Gestión de Usuarios</h2>
+        <Button onClick={() => setIsCreating(true)} disabled={!canCreateDesarrollador && !canCreateMaster && !canCreateCandidatos && !canCreateLideres && !canCreateVotantes}>
+          <Plus className="w-4 h-4 mr-2" />
+          Crear Usuario
+        </Button>
+      </div>
+
+      {isCreating && (
+        <Card>
+          <CardHeader>
+            <CardTitle className="text-lg font-semibold">Crear Nuevo Usuario</CardTitle>
+          </CardHeader>
+          <CardContent className="space-y-4">
+            <div>
+              <Label htmlFor="name">Nombre</Label>
               <Input
                 id="name"
+                placeholder="Nombre completo"
                 value={newUser.name}
-                onChange={(e) => setNewUser({...newUser, name: e.target.value})}
-                placeholder="Ej: Juan Pérez García"
-                className="border-gray-300 focus:border-blue-500"
+                onChange={(e) => setNewUser({ ...newUser, name: e.target.value })}
               />
             </div>
-            <div className="space-y-2">
-              <Label htmlFor="email" className="text-gray-700 font-medium">Email *</Label>
+            <div>
+              <Label htmlFor="email">Email</Label>
               <Input
-                id="email"
                 type="email"
+                id="email"
+                placeholder="Email del usuario"
                 value={newUser.email}
-                onChange={(e) => setNewUser({...newUser, email: e.target.value})}
-                placeholder="Ej: juan@micampana.com"
-                className="border-gray-300 focus:border-blue-500"
+                onChange={(e) => setNewUser({ ...newUser, email: e.target.value })}
               />
             </div>
-          </div>
-
-          <div className="grid md:grid-cols-2 gap-4">
-            <div className="space-y-2">
-              <Label htmlFor="password" className="text-gray-700 font-medium">Contraseña *</Label>
+            <div>
+              <Label htmlFor="password">Contraseña</Label>
               <Input
-                id="password"
                 type="password"
+                id="password"
+                placeholder="Contraseña"
                 value={newUser.password}
-                onChange={(e) => setNewUser({...newUser, password: e.target.value})}
-                placeholder="Mínimo 8 caracteres"
-                className="border-gray-300 focus:border-blue-500"
+                onChange={(e) => setNewUser({ ...newUser, password: e.target.value })}
               />
             </div>
-            <div className="space-y-2">
-              <Label className="text-gray-700 font-medium">Rol del Usuario</Label>
-              <Select 
-                value={newUser.role} 
-                onValueChange={(value: UserRole) => setNewUser({...newUser, role: value})}
-              >
-                <SelectTrigger className="border-gray-300 focus:border-blue-500">
-                  <SelectValue />
+            <div>
+              <Label htmlFor="role">Rol</Label>
+              <Select value={newUser.role} onValueChange={(value: UserRole) => setNewUser({ ...newUser, role: value })}>
+                <SelectTrigger className="w-full">
+                  <SelectValue placeholder="Selecciona un rol" />
                 </SelectTrigger>
                 <SelectContent>
-                  <SelectItem value="visitante">Visitante</SelectItem>
-                  <SelectItem value="votante">Votante</SelectItem>
-                  <SelectItem value="lider">Líder</SelectItem>
-                  <SelectItem value="candidato">Candidato</SelectItem>
-                  <SelectItem value="master">Master</SelectItem>
-                  <SelectItem value="desarrollador">Desarrollador</SelectItem>
+                  {canCreateRole('desarrollador') && <SelectItem value="desarrollador">Desarrollador</SelectItem>}
+                  {canCreateRole('master') && <SelectItem value="master">Master</SelectItem>}
+                  {canCreateRole('candidato') && <SelectItem value="candidato">Candidato</SelectItem>}
+                  {canCreateRole('lider') && <SelectItem value="lider">Lider</SelectItem>}
+                  {canCreateRole('votante') && <SelectItem value="votante">Votante</SelectItem>}
                 </SelectContent>
               </Select>
             </div>
-          </div>
-
-          <Button 
-            onClick={handleCreateUser} 
-            disabled={createUserMutation.isPending}
-            className="w-full bg-blue-600 hover:bg-blue-700 text-white"
-          >
-            {createUserMutation.isPending ? "Creando..." : "Crear Usuario"}
-          </Button>
-        </CardContent>
-      </Card>
-
-      {/* Lista de usuarios */}
-      <Card className="border-gray-200 shadow-sm">
-        <CardHeader className="bg-gray-50">
-          <CardTitle className="flex items-center gap-2 text-gray-800">
-            <User className="w-5 h-5" />
-            Usuarios del Sistema ({users.length})
-          </CardTitle>
-        </CardHeader>
-        <CardContent className="pt-6">
-          {isLoading ? (
-            <div className="text-center py-8 text-gray-500">Cargando usuarios...</div>
-          ) : users.length === 0 ? (
-            <div className="text-center py-8 text-gray-500">
-              No hay usuarios registrados
+            <div className="flex justify-end">
+              <Button type="button" variant="ghost" onClick={() => setIsCreating(false)}>
+                Cancelar
+              </Button>
+              <Button onClick={handleCreateUser} disabled={createUserMutation.isPending}>
+                {createUserMutation.isPending ? "Creando..." : "Crear Usuario"}
+              </Button>
             </div>
+          </CardContent>
+        </Card>
+      )}
+
+      <Card>
+        <CardHeader>
+          <CardTitle>Lista de Usuarios</CardTitle>
+        </CardHeader>
+        <CardContent>
+          {isLoading ? (
+            <div className="text-center py-4">Cargando usuarios...</div>
           ) : (
-            <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-3">
-              {users.map((userItem) => (
-                <Card key={userItem.id} className="border border-gray-200 hover:shadow-md transition-shadow">
-                  <CardContent className="p-4">
-                    <div className="flex items-start justify-between mb-3">
-                      <div className="flex items-center gap-3">
-                        <div className="w-10 h-10 bg-blue-100 rounded-full flex items-center justify-center">
-                          <User className="w-5 h-5 text-blue-600" />
-                        </div>
-                        <div>
-                          <h3 className="font-semibold text-gray-800">{userItem.name}</h3>
-                          <p className="text-sm text-gray-500">ID: {userItem.id.slice(0, 8)}...</p>
-                        </div>
-                      </div>
-                      <Badge className={getRoleColor(userItem.role)}>
-                        {getRoleLabel(userItem.role)}
-                      </Badge>
-                    </div>
-                    
-                    <div className="space-y-2 text-sm text-gray-600">
-                      <div className="flex items-center gap-2">
-                        <Shield className="w-4 h-4" />
-                        <span>Rol: {getRoleLabel(userItem.role)}</span>
-                      </div>
-                      <div className="flex items-center gap-2">
-                        <Calendar className="w-4 h-4" />
-                        <span>Creado: {new Date(userItem.created_at).toLocaleDateString()}</span>
-                      </div>
-                    </div>
-                  </CardContent>
-                </Card>
-              ))}
+            <div className="overflow-x-auto">
+              <table className="min-w-full divide-y divide-gray-200">
+                <thead className="bg-gray-50">
+                  <tr>
+                    <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                      Nombre
+                    </th>
+                    <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                      Rol
+                    </th>
+                    <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                      Fecha de Creación
+                    </th>
+                    <th className="px-6 py-3 text-right text-xs font-medium text-gray-500 uppercase tracking-wider">
+                      Acciones
+                    </th>
+                  </tr>
+                </thead>
+                <tbody className="bg-white divide-y divide-gray-200">
+                  {users.map((userProfile) => (
+                    <tr key={userProfile.id}>
+                      <td className="px-6 py-4 whitespace-nowrap text-sm font-medium text-gray-900">
+                        {userProfile.name}
+                      </td>
+                      <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
+                        <Badge className={getRoleBadgeColor(userProfile.role)}>{userProfile.role}</Badge>
+                      </td>
+                      <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
+                        {new Date(userProfile.created_at).toLocaleDateString()}
+                      </td>
+                      <td className="px-6 py-4 whitespace-nowrap text-right text-sm font-medium">
+                        <Button
+                          variant="outline"
+                          size="icon"
+                          onClick={() => {
+                            setEditingUser(userProfile);
+                            setEditedUser({ id: userProfile.id, name: userProfile.name, role: userProfile.role });
+                          }}
+                        >
+                          <Settings className="w-4 h-4" />
+                        </Button>
+                        <Button
+                          variant="destructive"
+                          size="icon"
+                          onClick={() => handleDeleteUser(userProfile.id)}
+                          disabled={deleteUserMutation.isPending}
+                        >
+                          <AlertTriangle className="w-4 h-4" />
+                        </Button>
+                      </td>
+                    </tr>
+                  ))}
+                </tbody>
+              </table>
             </div>
           )}
         </CardContent>
       </Card>
+
+      {editingUser && (
+        <Card>
+          <CardHeader>
+            <CardTitle className="text-lg font-semibold">Editar Usuario</CardTitle>
+          </CardHeader>
+          <CardContent className="space-y-4">
+            <div>
+              <Label htmlFor="name">Nombre</Label>
+              <Input
+                id="name"
+                placeholder="Nombre completo"
+                value={editedUser.name}
+                onChange={(e) => setEditedUser({ ...editedUser, name: e.target.value })}
+              />
+            </div>
+            <div>
+              <Label htmlFor="role">Rol</Label>
+              <Select value={editedUser.role} onValueChange={(value: UserRole) => setEditedUser({ ...editedUser, role: value })}>
+                <SelectTrigger className="w-full">
+                  <SelectValue placeholder="Selecciona un rol" />
+                </SelectTrigger>
+                <SelectContent>
+                  {canCreateRole('desarrollador') && <SelectItem value="desarrollador">Desarrollador</SelectItem>}
+                  {canCreateRole('master') && <SelectItem value="master">Master</SelectItem>}
+                  {canCreateRole('candidato') && <SelectItem value="candidato">Candidato</SelectItem>}
+                  {canCreateRole('lider') && <SelectItem value="lider">Lider</SelectItem>}
+                  {canCreateRole('votante') && <SelectItem value="votante">Votante</SelectItem>}
+                </SelectContent>
+              </Select>
+            </div>
+            <div className="flex justify-end">
+              <Button type="button" variant="ghost" onClick={() => setEditingUser(null)}>
+                Cancelar
+              </Button>
+              <Button onClick={handleUpdateUser} disabled={updateUserMutation.isPending}>
+                {updateUserMutation.isPending ? "Guardando..." : "Guardar Cambios"}
+              </Button>
+            </div>
+          </CardContent>
+        </Card>
+      )}
     </div>
   );
 };
