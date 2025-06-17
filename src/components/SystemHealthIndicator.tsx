@@ -3,20 +3,15 @@ import { useEffect, useState } from 'react';
 import { Badge } from '@/components/ui/badge';
 import { Alert, AlertDescription } from '@/components/ui/alert';
 import { Shield, AlertTriangle, XCircle, CheckCircle } from 'lucide-react';
-// Fix: Import correcto del contexto
-import { useSimpleAuth } from '@/contexts/SimpleAuthContext';
+import { useSecureAuth } from '@/contexts/SecureAuthContext';
 
 export const SystemHealthIndicator = () => {
-  // Fix: El SimpleAuthContext no tiene systemHealth, usamos un estado local
-  const [systemHealth, setSystemHealth] = useState<'healthy' | 'warning' | 'error'>('healthy');
+  const { systemHealth } = useSecureAuth();
   const [lastCheck, setLastCheck] = useState<Date>(new Date());
 
   useEffect(() => {
     const interval = setInterval(() => {
       setLastCheck(new Date());
-      // Aquí podrías implementar checks de salud del sistema
-      // Por ahora asumimos que está healthy
-      setSystemHealth('healthy');
     }, 30000); // Actualizar cada 30 segundos
 
     return () => clearInterval(interval);

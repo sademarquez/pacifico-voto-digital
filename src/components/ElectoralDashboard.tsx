@@ -1,454 +1,330 @@
-import { useState, useEffect } from "react";
-import { useQuery } from "@tanstack/react-query";
-import { supabase } from "@/integrations/supabase/client";
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { Button } from "@/components/ui/button";
-import { useSimpleAuth } from "../contexts/SimpleAuthContext";
+
+import { useState, useEffect } from 'react';
+import { useQuery } from '@tanstack/react-query';
+import { supabase } from '@/integrations/supabase/client';
+import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
+import { Button } from '@/components/ui/button';
+import { Badge } from '@/components/ui/badge';
+import { 
+  BarChart, 
+  Bar, 
+  XAxis, 
+  YAxis, 
+  CartesianGrid, 
+  Tooltip, 
+  ResponsiveContainer,
+  LineChart,
+  Line,
+  PieChart,
+  Pie,
+  Cell
+} from 'recharts';
 import { 
   Users, 
-  MapPin, 
-  AlertTriangle, 
-  Calendar, 
-  BarChart3, 
+  TrendingUp, 
   MessageSquare, 
-  Zap, 
-  Target, 
-  TrendingUp,
-  CheckCircle,
-  ArrowRight,
-  Globe,
-  Award
-} from "lucide-react";
-import { Badge } from "@/components/ui/badge";
-import { Progress } from "@/components/ui/progress";
-import { geminiService } from "@/services/geminiService";
-import { geminiMCPService } from "@/services/geminiMCPService";
-import { useNavigate } from "react-router-dom";
+  Target,
+  Calendar,
+  DollarSign,
+  Zap,
+  Bot
+} from 'lucide-react';
+import { useSecureAuth } from '@/contexts/SecureAuthContext';
+import { geminiService } from '@/services/geminiService';
 
 const ElectoralDashboard = () => {
-  const { user } = useSimpleAuth();
-  const navigate = useNavigate();
-  const [aiInsight, setAiInsight] = useState<string | null>(null);
-  const [isLoadingInsight, setIsLoadingInsight] = useState(false);
-  const [territoryStats, setTerritoryStats] = useState({
-    total: 0,
-    active: 0,
-    coverage: 0
-  });
+  const { user } = useSecureAuth();
+  const [optimizationSuggestions, setOptimizationSuggestions] = useState<any>(null);
+  const [isOptimizing, setIsOptimizing] = useState(false);
 
-  // Estadísticas electorales
-  const { data: stats, isLoading: isLoadingStats } = useQuery({
-    queryKey: ['electoral-stats', user?.id],
+  // Query para métricas en tiempo real
+  const { data: metrics, isLoading: metricsLoading } = useQuery({
+    queryKey: ['electoral-metrics'],
     queryFn: async () => {
-      if (!user) return null;
+      const { data, error } = await supabase
+        .from('electoral_metrics')
+        .select('*')
+        .gte('fecha', new Date(Date.now() - 30 * 24 * 60 * 60 * 1000).toISOString())
+        .order('fecha', { ascending: false });
       
-      try {
-        // En producción, esto vendría de la API real
-        await new Promise(resolve => setTimeout(resolve, 1000));
-        
-        return {
-          voters: {
-            total: 12450,
-            registered: 8734,
-            potential: 3716,
-            growth: 23.4
-          },
-          territories: {
-            total: 48,
-            active: 42,
-            coverage: 87.5
-          },
-          engagement: {
-            messages: 15280,
-            responses: 12104,
-            rate: 79.2
-          },
-          events: {
-            total: 156,
-            upcoming: 23,
-            attendance: 84.7
-          },
-          performance: {
-            conversion: 73.8,
-            retention: 91.2,
-            satisfaction: 94.5
-          }
-        };
-      } catch (error) {
-        console.error('Error fetching electoral stats:', error);
-        return null;
-      }
+      if (error) throw error;
+      return data;
     },
-    enabled: !!user
+    refetchInterval: 30000 // Actualizar cada 30 segundos
   });
 
-  // Generar insight con IA
-  const generateAiInsight = async () => {
-    if (!user) return;
-    
-    setIsLoadingInsight(true);
-    
-    try {
-      const prompt = `Genera un insight electoral estratégico basado en estos datos:
+  // Query para votantes
+  const { data: voters } = useQuery({
+    queryKey: ['electoral-voters'],
+    queryFn: async () => {
+      const { data, error } = await supabase
+        .from('electoral_voters')
+        .select('*')
+        .order('created_at', { ascending: false })
+        .limit(100);
       
-- Votantes registrados: ${stats?.voters.registered || 'N/A'}
-- Votantes potenciales: ${stats?.voters.potential || 'N/A'}
-- Territorios activos: ${stats?.territories.active || 'N/A'} de ${stats?.territories.total || 'N/A'}
-- Tasa de engagement: ${stats?.engagement.rate || 'N/A'}%
-- Tasa de conversión: ${stats?.performance.conversion || 'N/A'}%
+      if (error) throw error;
+      return data;
+    }
+  });
 
-Proporciona recomendaciones específicas para optimizar la campaña electoral.`;
+  // Query para interacciones recientes
+  const { data: interactions } = useQuery({
+    queryKey: ['recent-interactions'],
+    queryFn: async () => {
+      const { data, error } = await supabase
+        .from('electoral_interactions')
+        .select(`
+          *,
+          electoral_voters(nombre, apellido, barrio)
+        `)
+        .gte('created_at', new Date(Date.now() - 24 * 60 * 60 * 1000).toISOString())
+        .order('created_at', { ascending: false });
+      
+      if (error) throw error;
+      return data;
+    }
+  });
 
-      const insight = await geminiService.makeRequest(prompt);
-      setAiInsight(insight);
+  // Optimización automática con Gemini
+  const optimizeCampaign = async () => {
+    if (!metrics || metrics.length === 0) return;
+
+    setIsOptimizing(true);
+    try {
+      const aggregatedMetrics = {
+        totalContactos: metrics.reduce((sum, m) => sum + (m.total_contactos || 0), 0),
+        contactosExitosos: metrics.reduce((sum, m) => sum + (m.contactos_exitosos || 0), 0),
+        conversiones: metrics.reduce((sum, m) => sum + (m.conversiones || 0), 0),
+        costoTotal: metrics.reduce((sum, m) => sum + (m.costo_total || 0), 0),
+        sentimentPromedio: metrics.reduce((sum, m) => sum + (m.sentiment_promedio || 0), 0) / metrics.length,
+        roi: metrics.reduce((sum, m) => sum + (m.roi || 0), 0) / metrics.filter(m => m.roi).length
+      };
+
+      const suggestions = await geminiService.optimizeCampaignStrategy(aggregatedMetrics);
+      setOptimizationSuggestions(suggestions);
     } catch (error) {
-      console.error('Error generating AI insight:', error);
-      setAiInsight('Error generando insight. Intenta nuevamente.');
+      console.error('Error optimizing campaign:', error);
     } finally {
-      setIsLoadingInsight(false);
+      setIsOptimizing(false);
     }
   };
 
-  // Cargar datos iniciales
-  useEffect(() => {
-    if (stats) {
-      setTerritoryStats(stats.territories);
-      
-      // Generar insight automáticamente al cargar
-      if (!aiInsight && !isLoadingInsight) {
-        generateAiInsight();
-      }
-    }
-  }, [stats]);
+  // Datos para gráficos
+  const chartData = metrics?.slice(0, 7).reverse().map(m => ({
+    fecha: new Date(m.fecha).toLocaleDateString(),
+    contactos: m.total_contactos,
+    exitosos: m.contactos_exitosos,
+    conversiones: m.conversiones,
+    sentiment: (m.sentiment_promedio * 100).toFixed(1)
+  })) || [];
 
-  // Verificar estado del servicio IA
-  useEffect(() => {
-    const checkAiService = async () => {
-      try {
-        const status = await geminiMCPService.getServiceStatus();
-        console.log('AI Service Status:', status);
-      } catch (error) {
-        console.error('Error checking AI service:', error);
-      }
-    };
-    
-    checkAiService();
-  }, []);
+  const sentimentData = [
+    { name: 'Muy Positivo', value: interactions?.filter(i => i.sentiment_level === 'muy_positivo').length || 0, color: '#22c55e' },
+    { name: 'Positivo', value: interactions?.filter(i => i.sentiment_level === 'positivo').length || 0, color: '#84cc16' },
+    { name: 'Neutral', value: interactions?.filter(i => i.sentiment_level === 'neutral').length || 0, color: '#f59e0b' },
+    { name: 'Negativo', value: interactions?.filter(i => i.sentiment_level === 'negativo').length || 0, color: '#f97316' },
+    { name: 'Muy Negativo', value: interactions?.filter(i => i.sentiment_level === 'muy_negativo').length || 0, color: '#ef4444' }
+  ];
 
-  if (!user) {
-    return (
-      <Card>
-        <CardContent className="p-6">
-          <div className="text-center">
-            <p>Inicia sesión para ver el dashboard electoral</p>
-          </div>
-        </CardContent>
-      </Card>
-    );
-  }
+  // Métricas principales
+  const totalVoters = voters?.length || 0;
+  const totalInteractions = interactions?.length || 0;
+  const averageSentiment = interactions?.reduce((sum, i) => sum + (i.sentiment_score || 0), 0) / (interactions?.length || 1) || 0;
+  const conversionRate = totalInteractions > 0 ? ((interactions?.filter(i => i.exitosa).length || 0) / totalInteractions * 100) : 0;
 
   return (
     <div className="space-y-6">
-      {/* Header con estadísticas principales */}
-      <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-        <Card className="campaign-card border-2 border-blue-200 bg-gradient-to-r from-blue-50 to-purple-50">
-          <CardContent className="p-6">
-            <div className="flex items-center justify-between mb-4">
-              <div>
-                <h2 className="text-2xl font-bold gradient-text-primary">Dashboard Electoral</h2>
-                <p className="text-gray-600">Análisis y métricas de campaña</p>
-              </div>
-              <div className="w-12 h-12 gradient-bg-primary rounded-xl flex items-center justify-center">
-                <BarChart3 className="w-6 h-6 text-white" />
-              </div>
-            </div>
-            
-            <div className="grid grid-cols-3 gap-4 mb-4">
-              <div className="text-center">
-                <p className="text-3xl font-bold text-blue-600">{stats?.voters.registered.toLocaleString() || '0'}</p>
-                <p className="text-sm text-gray-600">Votantes Registrados</p>
-              </div>
-              <div className="text-center">
-                <p className="text-3xl font-bold text-green-600">{stats?.territories.active || '0'}</p>
-                <p className="text-sm text-gray-600">Territorios Activos</p>
-              </div>
-              <div className="text-center">
-                <p className="text-3xl font-bold text-purple-600">{stats?.performance.conversion || '0'}%</p>
-                <p className="text-sm text-gray-600">Tasa Conversión</p>
-              </div>
-            </div>
-            
+      {/* Header con métricas principales */}
+      <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
+        <Card>
+          <CardContent className="p-4">
             <div className="flex items-center justify-between">
-              <Badge className="bg-green-100 text-green-800 border-green-300">
-                <TrendingUp className="w-3 h-3 mr-1" />
-                +{stats?.voters.growth || '0'}% crecimiento
-              </Badge>
-              <Button 
-                size="sm" 
-                className="bg-blue-600 hover:bg-blue-700"
-                onClick={() => navigate('/informes')}
-              >
-                Ver Informes Completos
-                <ArrowRight className="w-4 h-4 ml-2" />
-              </Button>
+              <div>
+                <p className="text-sm font-medium text-gray-600">Total Votantes</p>
+                <p className="text-2xl font-bold text-blue-600">{totalVoters}</p>
+              </div>
+              <Users className="h-8 w-8 text-blue-500" />
             </div>
           </CardContent>
         </Card>
 
-        {/* Tarjeta de IA Electoral */}
-        <Card className="campaign-card border-2 border-purple-200 bg-gradient-to-r from-purple-50 to-pink-50">
-          <CardContent className="p-6">
-            <div className="flex items-center justify-between mb-4">
-              <div>
-                <h2 className="text-2xl font-bold text-purple-700">IA Electoral</h2>
-                <p className="text-gray-600">Insights y recomendaciones</p>
-              </div>
-              <div className="w-12 h-12 bg-gradient-to-br from-purple-600 to-pink-600 rounded-xl flex items-center justify-center">
-                <Zap className="w-6 h-6 text-white" />
-              </div>
-            </div>
-            
-            <div className="bg-white/80 backdrop-blur-sm rounded-xl p-4 border border-purple-200 mb-4 min-h-[120px]">
-              {isLoadingInsight ? (
-                <div className="flex items-center justify-center h-full">
-                  <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-purple-700"></div>
-                </div>
-              ) : (
-                <div className="text-sm text-gray-700">
-                  {aiInsight || 'Cargando insights de IA...'}
-                </div>
-              )}
-            </div>
-            
+        <Card>
+          <CardContent className="p-4">
             <div className="flex items-center justify-between">
-              <Badge className="bg-purple-100 text-purple-800 border-purple-300">
-                <Zap className="w-3 h-3 mr-1" />
-                Gemini AI
-              </Badge>
-              <Button 
-                size="sm" 
-                className="bg-purple-600 hover:bg-purple-700"
-                onClick={generateAiInsight}
-                disabled={isLoadingInsight}
-              >
-                {isLoadingInsight ? 'Generando...' : 'Nuevo Insight'}
-                <Zap className="w-4 h-4 ml-2" />
-              </Button>
+              <div>
+                <p className="text-sm font-medium text-gray-600">Interacciones Hoy</p>
+                <p className="text-2xl font-bold text-green-600">{totalInteractions}</p>
+              </div>
+              <MessageSquare className="h-8 w-8 text-green-500" />
+            </div>
+          </CardContent>
+        </Card>
+
+        <Card>
+          <CardContent className="p-4">
+            <div className="flex items-center justify-between">
+              <div>
+                <p className="text-sm font-medium text-gray-600">Tasa Conversión</p>
+                <p className="text-2xl font-bold text-purple-600">{conversionRate.toFixed(1)}%</p>
+              </div>
+              <Target className="h-8 w-8 text-purple-500" />
+            </div>
+          </CardContent>
+        </Card>
+
+        <Card>
+          <CardContent className="p-4">
+            <div className="flex items-center justify-between">
+              <div>
+                <p className="text-sm font-medium text-gray-600">Sentiment Promedio</p>
+                <p className={`text-2xl font-bold ${averageSentiment >= 0 ? 'text-green-600' : 'text-red-600'}`}>
+                  {(averageSentiment * 100).toFixed(0)}%
+                </p>
+              </div>
+              <TrendingUp className="h-8 w-8 text-orange-500" />
             </div>
           </CardContent>
         </Card>
       </div>
 
-      {/* Métricas detalladas */}
-      <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
-        {/* Votantes */}
-        <Card>
-          <CardHeader className="pb-2">
-            <CardTitle className="text-lg flex items-center gap-2">
-              <Users className="w-5 h-5 text-blue-600" />
-              Votantes
-            </CardTitle>
-          </CardHeader>
-          <CardContent>
-            <div className="space-y-4">
-              <div>
-                <div className="flex items-center justify-between mb-1">
-                  <span className="text-sm text-gray-600">Registrados</span>
-                  <span className="text-sm font-medium">{stats?.voters.registered.toLocaleString() || '0'}</span>
-                </div>
-                <Progress value={stats?.voters.registered / stats?.voters.total * 100 || 0} className="h-2" />
-              </div>
-              
-              <div>
-                <div className="flex items-center justify-between mb-1">
-                  <span className="text-sm text-gray-600">Potenciales</span>
-                  <span className="text-sm font-medium">{stats?.voters.potential.toLocaleString() || '0'}</span>
-                </div>
-                <Progress value={stats?.voters.potential / stats?.voters.total * 100 || 0} className="h-2" />
-              </div>
-              
-              <div className="pt-2 flex items-center justify-between">
-                <span className="text-xs text-gray-500">Total: {stats?.voters.total.toLocaleString() || '0'}</span>
-                <Badge variant="outline" className="text-xs">
-                  <TrendingUp className="w-3 h-3 mr-1" />
-                  +{stats?.voters.growth || '0'}%
-                </Badge>
-              </div>
-            </div>
-          </CardContent>
-        </Card>
-        
-        {/* Territorios */}
-        <Card>
-          <CardHeader className="pb-2">
-            <CardTitle className="text-lg flex items-center gap-2">
-              <MapPin className="w-5 h-5 text-purple-600" />
-              Territorios
-            </CardTitle>
-          </CardHeader>
-          <CardContent>
-            <div className="space-y-4">
-              <div>
-                <div className="flex items-center justify-between mb-1">
-                  <span className="text-sm text-gray-600">Activos</span>
-                  <span className="text-sm font-medium">{stats?.territories.active || '0'}</span>
-                </div>
-                <Progress value={stats?.territories.active / stats?.territories.total * 100 || 0} className="h-2" />
-              </div>
-              
-              <div>
-                <div className="flex items-center justify-between mb-1">
-                  <span className="text-sm text-gray-600">Cobertura</span>
-                  <span className="text-sm font-medium">{stats?.territories.coverage || '0'}%</span>
-                </div>
-                <Progress value={stats?.territories.coverage || 0} className="h-2" />
-              </div>
-              
-              <div className="pt-2 flex items-center justify-between">
-                <span className="text-xs text-gray-500">Total: {stats?.territories.total || '0'}</span>
-                <Button 
-                  size="sm" 
-                  variant="ghost" 
-                  className="h-7 text-xs"
-                  onClick={() => navigate('/mapa-alertas')}
-                >
-                  Ver Mapa
-                  <Globe className="w-3 h-3 ml-1" />
-                </Button>
-              </div>
-            </div>
-          </CardContent>
-        </Card>
-        
-        {/* Engagement */}
-        <Card>
-          <CardHeader className="pb-2">
-            <CardTitle className="text-lg flex items-center gap-2">
-              <MessageSquare className="w-5 h-5 text-green-600" />
-              Engagement
-            </CardTitle>
-          </CardHeader>
-          <CardContent>
-            <div className="space-y-4">
-              <div>
-                <div className="flex items-center justify-between mb-1">
-                  <span className="text-sm text-gray-600">Mensajes</span>
-                  <span className="text-sm font-medium">{stats?.engagement.messages.toLocaleString() || '0'}</span>
-                </div>
-                <Progress value={80} className="h-2" />
-              </div>
-              
-              <div>
-                <div className="flex items-center justify-between mb-1">
-                  <span className="text-sm text-gray-600">Tasa Respuesta</span>
-                  <span className="text-sm font-medium">{stats?.engagement.rate || '0'}%</span>
-                </div>
-                <Progress value={stats?.engagement.rate || 0} className="h-2" />
-              </div>
-              
-              <div className="pt-2 flex items-center justify-between">
-                <span className="text-xs text-gray-500">Respuestas: {stats?.engagement.responses.toLocaleString() || '0'}</span>
-                <Button 
-                  size="sm" 
-                  variant="ghost" 
-                  className="h-7 text-xs"
-                  onClick={() => navigate('/mensajes')}
-                >
-                  Ver Mensajes
-                  <ArrowRight className="w-3 h-3 ml-1" />
-                </Button>
-              </div>
-            </div>
-          </CardContent>
-        </Card>
-      </div>
+      {/* Optimización con IA */}
+      <Card className="bg-gradient-to-r from-purple-50 to-blue-50 border-purple-200">
+        <CardHeader>
+          <CardTitle className="flex items-center gap-2 text-purple-800">
+            <Bot className="w-6 h-6" />
+            Optimización Automática con IA
+            <Badge className="bg-purple-100 text-purple-800">
+              <Zap className="w-3 h-3 mr-1" />
+              Gemini AI
+            </Badge>
+          </CardTitle>
+        </CardHeader>
+        <CardContent className="space-y-4">
+          <Button 
+            onClick={optimizeCampaign}
+            disabled={isOptimizing}
+            className="bg-purple-600 hover:bg-purple-700"
+          >
+            {isOptimizing ? 'Analizando...' : 'Optimizar Campaña con IA'}
+          </Button>
 
-      {/* Eventos y Rendimiento */}
-      <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-        {/* Eventos */}
+          {optimizationSuggestions && (
+            <div className="grid md:grid-cols-2 gap-4">
+              <div className="space-y-2">
+                <h4 className="font-semibold text-purple-800">Recomendaciones:</h4>
+                <ul className="space-y-1 text-sm">
+                  {optimizationSuggestions.recommendations?.map((rec: string, index: number) => (
+                    <li key={index} className="flex items-start gap-2">
+                      <span className="text-purple-600">•</span>
+                      <span>{rec}</span>
+                    </li>
+                  ))}
+                </ul>
+              </div>
+              <div className="space-y-2">
+                <h4 className="font-semibold text-purple-800">Audiencia Objetivo:</h4>
+                <div className="flex flex-wrap gap-2">
+                  {optimizationSuggestions.targetAudience?.map((audience: string, index: number) => (
+                    <Badge key={index} className="bg-purple-100 text-purple-800">
+                      {audience}
+                    </Badge>
+                  ))}
+                </div>
+              </div>
+            </div>
+          )}
+        </CardContent>
+      </Card>
+
+      {/* Gráficos */}
+      <div className="grid md:grid-cols-2 gap-6">
         <Card>
           <CardHeader>
-            <CardTitle className="flex items-center gap-2">
-              <Calendar className="w-5 h-5 text-orange-600" />
-              Eventos
-            </CardTitle>
+            <CardTitle>Tendencia de Contactos (7 días)</CardTitle>
           </CardHeader>
           <CardContent>
-            <div className="space-y-4">
-              <div className="flex items-center justify-between">
-                <div>
-                  <p className="text-2xl font-bold text-gray-900">{stats?.events.upcoming || '0'}</p>
-                  <p className="text-sm text-gray-600">Próximos eventos</p>
-                </div>
-                <div>
-                  <p className="text-2xl font-bold text-gray-900">{stats?.events.total || '0'}</p>
-                  <p className="text-sm text-gray-600">Total eventos</p>
-                </div>
-                <div>
-                  <p className="text-2xl font-bold text-gray-900">{stats?.events.attendance || '0'}%</p>
-                  <p className="text-sm text-gray-600">Asistencia</p>
-                </div>
-              </div>
-              
-              <Button 
-                className="w-full bg-orange-600 hover:bg-orange-700"
-                onClick={() => navigate('/events')}
-              >
-                <Calendar className="w-4 h-4 mr-2" />
-                Ver Calendario de Eventos
-              </Button>
-            </div>
+            <ResponsiveContainer width="100%" height={300}>
+              <LineChart data={chartData}>
+                <CartesianGrid strokeDasharray="3 3" />
+                <XAxis dataKey="fecha" />
+                <YAxis />
+                <Tooltip />
+                <Line type="monotone" dataKey="contactos" stroke="#3b82f6" name="Total Contactos" />
+                <Line type="monotone" dataKey="exitosos" stroke="#10b981" name="Exitosos" />
+                <Line type="monotone" dataKey="conversiones" stroke="#8b5cf6" name="Conversiones" />
+              </LineChart>
+            </ResponsiveContainer>
           </CardContent>
         </Card>
-        
-        {/* Rendimiento */}
+
         <Card>
           <CardHeader>
-            <CardTitle className="flex items-center gap-2">
-              <Award className="w-5 h-5 text-blue-600" />
-              Rendimiento
-            </CardTitle>
+            <CardTitle>Análisis de Sentiment</CardTitle>
           </CardHeader>
           <CardContent>
-            <div className="space-y-4">
-              <div className="grid grid-cols-3 gap-4">
-                <div className="text-center">
-                  <div className="w-12 h-12 bg-blue-100 rounded-full flex items-center justify-center mx-auto mb-2">
-                    <Target className="w-6 h-6 text-blue-600" />
-                  </div>
-                  <p className="text-lg font-bold text-gray-900">{stats?.performance.conversion || '0'}%</p>
-                  <p className="text-xs text-gray-600">Conversión</p>
-                </div>
-                
-                <div className="text-center">
-                  <div className="w-12 h-12 bg-green-100 rounded-full flex items-center justify-center mx-auto mb-2">
-                    <CheckCircle className="w-6 h-6 text-green-600" />
-                  </div>
-                  <p className="text-lg font-bold text-gray-900">{stats?.performance.retention || '0'}%</p>
-                  <p className="text-xs text-gray-600">Retención</p>
-                </div>
-                
-                <div className="text-center">
-                  <div className="w-12 h-12 bg-purple-100 rounded-full flex items-center justify-center mx-auto mb-2">
-                    <TrendingUp className="w-6 h-6 text-purple-600" />
-                  </div>
-                  <p className="text-lg font-bold text-gray-900">{stats?.performance.satisfaction || '0'}%</p>
-                  <p className="text-xs text-gray-600">Satisfacción</p>
-                </div>
-              </div>
-              
-              <Button 
-                variant="outline" 
-                className="w-full border-blue-200 hover:bg-blue-50 hover:border-blue-300"
-                onClick={() => navigate('/informes')}
-              >
-                <BarChart3 className="w-4 h-4 mr-2" />
-                Ver Métricas Detalladas
-              </Button>
-            </div>
+            <ResponsiveContainer width="100%" height={300}>
+              <PieChart>
+                <Pie
+                  data={sentimentData}
+                  cx="50%"
+                  cy="50%"
+                  labelLine={false}
+                  label={({ name, value }) => `${name}: ${value}`}
+                  outerRadius={80}
+                  fill="#8884d8"
+                  dataKey="value"
+                >
+                  {sentimentData.map((entry, index) => (
+                    <Cell key={`cell-${index}`} fill={entry.color} />
+                  ))}
+                </Pie>
+                <Tooltip />
+              </PieChart>
+            </ResponsiveContainer>
           </CardContent>
         </Card>
       </div>
+
+      {/* Interacciones recientes */}
+      <Card>
+        <CardHeader>
+          <CardTitle>Interacciones Recientes (Últimas 24h)</CardTitle>
+        </CardHeader>
+        <CardContent>
+          <div className="space-y-3 max-h-64 overflow-y-auto">
+            {interactions?.slice(0, 10).map((interaction) => (
+              <div key={interaction.id} className="flex items-center justify-between p-3 bg-gray-50 rounded-lg">
+                <div className="flex-1">
+                  <div className="flex items-center gap-2">
+                    <span className="font-medium">
+                      {interaction.electoral_voters?.nombre} {interaction.electoral_voters?.apellido}
+                    </span>
+                    <Badge className={`text-xs ${
+                      interaction.sentiment_level === 'muy_positivo' || interaction.sentiment_level === 'positivo' 
+                        ? 'bg-green-100 text-green-800'
+                        : interaction.sentiment_level === 'neutral'
+                        ? 'bg-yellow-100 text-yellow-800'
+                        : 'bg-red-100 text-red-800'
+                    }`}>
+                      {interaction.sentiment_level}
+                    </Badge>
+                  </div>
+                  <p className="text-sm text-gray-600 truncate">{interaction.mensaje}</p>
+                  <div className="flex items-center gap-4 text-xs text-gray-500 mt-1">
+                    <span>{interaction.canal}</span>
+                    <span>{interaction.electoral_voters?.barrio}</span>
+                    <span>{new Date(interaction.created_at).toLocaleString()}</span>
+                  </div>
+                </div>
+                {interaction.exitosa && (
+                  <Badge className="bg-green-100 text-green-800">Exitosa</Badge>
+                )}
+              </div>
+            ))}
+          </div>
+        </CardContent>
+      </Card>
     </div>
   );
 };
