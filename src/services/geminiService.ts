@@ -1,7 +1,4 @@
-
-const GEMINI_API_KEY = import.meta.env.VITE_GEMINI_API_KEY || 
-  (typeof window !== 'undefined' && (window as any).GEMINI_API_KEY);
-
+const GEMINI_API_KEY = "AIzaSyDaq-_E5FQtTF0mfJsohXvT2OHMgldjq14";
 const GEMINI_API_URL = 'https://generativelanguage.googleapis.com/v1beta/models/gemini-1.5-pro:generateContent';
 
 interface GeminiRequest {
@@ -41,14 +38,10 @@ export class GeminiElectoralService {
   private isConfigured: boolean;
 
   constructor() {
-    this.apiKey = GEMINI_API_KEY || '';
+    this.apiKey = GEMINI_API_KEY;
     this.isConfigured = !!this.apiKey;
     
-    if (this.isConfigured) {
-      console.log('✅ Gemini API configurada correctamente');
-    } else {
-      console.warn('⚠️ Gemini API key not found. Verifica la configuración.');
-    }
+    console.log('✅ Gemini API configurada correctamente con clave integrada');
   }
 
   async makeRequest(prompt: string, config?: any): Promise<string> {

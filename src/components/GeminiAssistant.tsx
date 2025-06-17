@@ -1,4 +1,3 @@
-
 import { useState, useEffect } from 'react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
@@ -61,38 +60,12 @@ const GeminiAssistant = () => {
     setConversation(newConversation);
 
     try {
-      const contextPrompt = `
-        Eres el asistente electoral IA más avanzado del mundo para MI CAMPAÑA 2025.
-        Usuario: ${user?.name || 'Visitante'} (Rol: ${user?.role || 'visitante'})
-        
-        CONTEXTO ELECTORAL:
-        - Plataforma líder con automatización IA que garantiza victorias
-        - Gemini AI + N8N para campañas dominantes
-        - ROI promedio +280%, engagement +340%
-        - Base demo: 100K+ votantes, 5 candidatos ganadores
-        - Análisis predictivo, geolocalización, mensajes que convierten
-        
-        PERSONALIDAD:
-        - Estratega electoral experto y persuasivo
-        - Confianza absoluta en resultados
-        - Enfoque en ganar elecciones y dominar competencia
-        - Tono motivacional pero profesional
-        - Usa datos reales para generar confianza
-        
-        Pregunta: "${userMessage}"
-        
-        INSTRUCCIONES:
-        - Responde como estratega electoral que garantiza victorias
-        - Usa ejemplos concretos de la plataforma (candidatos demo, métricas reales)
-        - Enfócate en cómo ganar elecciones y derrotar competencia
-        - Menciona funcionalidades específicas que aseguran triunfos
-        - Sé persuasivo y genera urgencia por actuar
-        - Máximo 180 palabras, usa emojis estratégicamente
-        
-        FORMATO: Solo la respuesta estratégica directa.
-      `;
-
-      const response = await geminiService.makeRequest(contextPrompt);
+      const response = await geminiService.generateAssistantResponse(
+        userMessage,
+        user?.role || 'visitante',
+        user?.name || 'Usuario'
+      );
+      
       setConversation(prev => [...prev, { role: 'assistant', content: response }]);
       
     } catch (error) {
