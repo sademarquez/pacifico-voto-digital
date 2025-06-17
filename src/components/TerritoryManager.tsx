@@ -1,41 +1,56 @@
 
-import { useState } from "react";
-import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
-import { supabase } from "@/integrations/supabase/client";
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { Button } from "@/components/ui/button";
-import { Input } from "@/components/ui/input";
-import { Label } from "@/components/ui/label";
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
-import { Badge } from "@/components/ui/badge";
-import { MapPin, Plus, Users, BarChart3 } from "lucide-react";
-import { useSecureAuth } from "../contexts/SecureAuthContext";
-import { useToast } from "@/hooks/use-toast";
+import { useState, useEffect } from 'react';
+import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
+import { supabase } from '@/integrations/supabase/client';
+import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
+import { Button } from '@/components/ui/button';
+import { Input } from '@/components/ui/input';
+import { Label } from '@/components/ui/label';
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
+import { Textarea } from '@/components/ui/textarea';
+import { Badge } from '@/components/ui/badge';
+import { MapPin, Users, Plus, Settings, AlertTriangle } from 'lucide-react';
+import { useSimpleAuth } from '../contexts/SimpleAuthContext';
+import { useDataSegregation } from '../hooks/useDataSegregation';
+import { useToast } from '@/hooks/use-toast';
 
-type TerritoryType = 'barrio' | 'departamento' | 'municipio' | 'corregimiento' | 'vereda' | 'sector';
+interface Territory {
+  id: string;
+  name: string;
+  type: 'barrio' | 'departamento' | 'municipio' | 'corregimiento' | 'vereda' | 'sector';
+  responsible_user_id: string | null;
+  created_by: string | null;
+  created_at: string;
+}
 
 const TerritoryManager = () => {
-  const { user } = useSecureAuth();
-  const { toast } = useToast();
+  const { user } = useSimpleAuth();
+  const { getTerritoryFilter, canCreateTerritory, canManageUsers } = useDataSegregation();
   const queryClient = useQueryClient();
+  const { toast } = useToast();
 
+  const [showNewTerritory, setShowNewTerritory] = useState(false);
   const [newTerritory, setNewTerritory] = useState({
     name: '',
-    type: 'barrio' as TerritoryType,
-    population_estimate: '',
-    voter_estimate: ''
+    type: 'barrio' as const,
+    responsible_user_id: user?.id || ''
   });
+  const [selectedTerritory, setSelectedTerritory] = useState<Territory | null>(null);
 
-  // Query para obtener territorios
+  // Fetch territories
   const { data: territories = [], isLoading } = useQuery({
     queryKey: ['territories', user?.id],
     queryFn: async () => {
       if (!supabase || !user) return [];
-      
-      const { data, error } = await supabase
-        .from('territories')
-        .select('*')
-        .order('name');
+
+      const territoryFilter = getTerritoryFilter();
+      let query = supabase.from('territories').select('*').order('created_at', { ascending: false });
+
+      if (territoryFilter && Object.keys(territoryFilter).length > 0) {
+        query = query.or(territoryFilter as string);
+      }
+
+      const { data, error } = await query;
 
       if (error) {
         console.error('Error fetching territories:', error);
@@ -46,11 +61,26 @@ const TerritoryManager = () => {
     enabled: !!supabase && !!user
   });
 
-  // Mutación para crear territorio
+  // Fetch users for assigning territories
+  const { data: users = [] } = useQuery({
+    queryKey: ['users'],
+    queryFn: async () => {
+      if (!supabase) return [];
+      const { data, error } = await supabase.from('profiles').select('id, name, role');
+      if (error) {
+        console.error('Error fetching users:', error);
+        return [];
+      }
+      return data || [];
+    },
+    enabled: canManageUsers
+  });
+
+  // Create territory mutation
   const createTerritoryMutation = useMutation({
     mutationFn: async (territoryData: typeof newTerritory) => {
       if (!supabase || !user) {
-        throw new Error('Datos incompletos');
+        throw new Error('No Supabase client or user found');
       }
 
       const { data, error } = await supabase
@@ -58,10 +88,8 @@ const TerritoryManager = () => {
         .insert({
           name: territoryData.name,
           type: territoryData.type,
-          population_estimate: territoryData.population_estimate ? parseInt(territoryData.population_estimate) : null,
-          voter_estimate: territoryData.voter_estimate ? parseInt(territoryData.voter_estimate) : null,
-          created_by: user.id,
-          responsible_user_id: user.id
+          responsible_user_id: territoryData.responsible_user_id,
+          created_by: user.id
         })
         .select()
         .single();
@@ -77,15 +105,77 @@ const TerritoryManager = () => {
       queryClient.invalidateQueries({ queryKey: ['territories'] });
       setNewTerritory({
         name: '',
-        type: 'barrio',
-        population_estimate: '',
-        voter_estimate: ''
+        type: 'barrio' as const,
+        responsible_user_id: user?.id || ''
       });
+      setShowNewTerritory(false);
     },
     onError: (error: any) => {
       toast({
         title: "Error",
         description: error.message || "No se pudo crear el territorio.",
+        variant: "destructive",
+      });
+    }
+  });
+
+  // Update territory mutation
+  const updateTerritoryMutation = useMutation({
+    mutationFn: async (territoryData: Territory) => {
+      if (!supabase) throw new Error('No Supabase client found');
+
+      const { error } = await supabase
+        .from('territories')
+        .update({
+          name: territoryData.name,
+          type: territoryData.type,
+          responsible_user_id: territoryData.responsible_user_id
+        })
+        .eq('id', territoryData.id);
+
+      if (error) throw error;
+    },
+    onSuccess: () => {
+      toast({
+        title: "Territorio actualizado",
+        description: "El territorio ha sido modificado exitosamente.",
+      });
+      queryClient.invalidateQueries({ queryKey: ['territories'] });
+      setSelectedTerritory(null);
+    },
+    onError: (error: any) => {
+      toast({
+        title: "Error",
+        description: error.message || "No se pudo actualizar el territorio.",
+        variant: "destructive",
+      });
+    }
+  });
+
+  // Delete territory mutation
+  const deleteTerritoryMutation = useMutation({
+    mutationFn: async (territoryId: string) => {
+      if (!supabase) throw new Error('No Supabase client found');
+
+      const { error } = await supabase
+        .from('territories')
+        .delete()
+        .eq('id', territoryId);
+
+      if (error) throw error;
+    },
+    onSuccess: () => {
+      toast({
+        title: "Territorio eliminado",
+        description: "El territorio ha sido removido exitosamente.",
+      });
+      queryClient.invalidateQueries({ queryKey: ['territories'] });
+      setSelectedTerritory(null);
+    },
+    onError: (error: any) => {
+      toast({
+        title: "Error",
+        description: error.message || "No se pudo eliminar el territorio.",
         variant: "destructive",
       });
     }
@@ -103,141 +193,151 @@ const TerritoryManager = () => {
     createTerritoryMutation.mutate(newTerritory);
   };
 
-  const getTypeColor = (type: string) => {
-    switch (type) {
-      case 'departamento': return 'bg-blue-100 text-blue-800';
-      case 'municipio': return 'bg-green-100 text-green-800';
-      case 'corregimiento': return 'bg-purple-100 text-purple-800';
-      case 'barrio': return 'bg-yellow-100 text-yellow-800';
-      case 'sector': return 'bg-orange-100 text-orange-800';
-      case 'vereda': return 'bg-pink-100 text-pink-800';
-      default: return 'bg-gray-100 text-gray-800';
-    }
+  const handleUpdateTerritory = () => {
+    if (!selectedTerritory) return;
+    updateTerritoryMutation.mutate(selectedTerritory);
+  };
+
+  const handleDeleteTerritory = () => {
+    if (!selectedTerritory) return;
+    deleteTerritoryMutation.mutate(selectedTerritory.id);
   };
 
   return (
     <div className="space-y-6">
-      {/* Formulario para crear nuevo territorio */}
-      <Card className="border-gray-200 shadow-sm">
-        <CardHeader className="bg-blue-50">
-          <CardTitle className="flex items-center gap-2 text-blue-800">
-            <Plus className="w-5 h-5" />
-            Nuevo Territorio Electoral
-          </CardTitle>
-        </CardHeader>
-        <CardContent className="space-y-4 pt-6">
-          <div className="grid md:grid-cols-2 gap-4">
-            <div className="space-y-2">
-              <Label htmlFor="name" className="text-gray-700 font-medium">Nombre del Territorio *</Label>
+      <div className="flex justify-between items-center">
+        <div>
+          <h2 className="text-2xl font-bold text-slate-800">Gestión de Territorios</h2>
+          <p className="text-slate-600">Administra las zonas de influencia de la campaña</p>
+        </div>
+        {canCreateTerritory && (
+          <Button
+            onClick={() => setShowNewTerritory(true)}
+            className="bg-slate-600 hover:bg-slate-700"
+          >
+            <Plus className="w-4 h-4 mr-2" />
+            Nuevo Territorio
+          </Button>
+        )}
+      </div>
+
+      {showNewTerritory && (
+        <Card>
+          <CardHeader>
+            <CardTitle className="flex items-center gap-2">
+              <MapPin className="w-5 h-5" />
+              Nuevo Territorio
+            </CardTitle>
+          </CardHeader>
+          <CardContent className="space-y-4">
+            <div>
+              <Label className="block text-sm font-medium mb-2">Nombre del Territorio</Label>
               <Input
-                id="name"
+                placeholder="Nombre descriptivo del territorio..."
                 value={newTerritory.name}
-                onChange={(e) => setNewTerritory({...newTerritory, name: e.target.value})}
-                placeholder="Ej: Barrio Centro, Comuna 1"
-                className="border-gray-300 focus:border-blue-500"
+                onChange={(e) => setNewTerritory(prev => ({ ...prev, name: e.target.value }))}
               />
             </div>
-            <div className="space-y-2">
-              <Label className="text-gray-700 font-medium">Tipo de Territorio</Label>
+            
+            <div>
+              <Label className="block text-sm font-medium mb-2">Tipo de Territorio</Label>
               <Select 
                 value={newTerritory.type} 
-                onValueChange={(value: TerritoryType) => setNewTerritory({...newTerritory, type: value})}
+                onValueChange={(value: any) => setNewTerritory(prev => ({ ...prev, type: value }))}
               >
-                <SelectTrigger className="border-gray-300 focus:border-blue-500">
-                  <SelectValue />
+                <SelectTrigger>
+                  <SelectValue placeholder="Selecciona el tipo..." />
                 </SelectTrigger>
                 <SelectContent>
-                  <SelectItem value="departamento">Departamento</SelectItem>
-                  <SelectItem value="municipio">Municipio</SelectItem>
-                  <SelectItem value="corregimiento">Corregimiento</SelectItem>
                   <SelectItem value="barrio">Barrio</SelectItem>
+                  <SelectItem value="municipio">Municipio</SelectItem>
+                  <SelectItem value="departamento">Departamento</SelectItem>
+                  <SelectItem value="corregimiento">Corregimiento</SelectItem>
                   <SelectItem value="vereda">Vereda</SelectItem>
                   <SelectItem value="sector">Sector</SelectItem>
                 </SelectContent>
               </Select>
             </div>
-          </div>
 
-          <div className="grid md:grid-cols-2 gap-4">
-            <div className="space-y-2">
-              <Label htmlFor="population" className="text-gray-700 font-medium">Población Estimada</Label>
-              <Input
-                id="population"
-                type="number"
-                value={newTerritory.population_estimate}
-                onChange={(e) => setNewTerritory({...newTerritory, population_estimate: e.target.value})}
-                placeholder="Ej: 5000"
-                className="border-gray-300 focus:border-blue-500"
-              />
+            {canManageUsers && (
+              <div>
+                <Label className="block text-sm font-medium mb-2">Responsable del Territorio</Label>
+                <Select 
+                  value={newTerritory.responsible_user_id} 
+                  onValueChange={(value) => setNewTerritory(prev => ({ ...prev, responsible_user_id: value }))}
+                >
+                  <SelectTrigger>
+                    <SelectValue placeholder="Selecciona un responsable..." />
+                  </SelectTrigger>
+                  <SelectContent>
+                    {users.map((user) => (
+                      <SelectItem key={user.id} value={user.id}>{user.name} ({user.role})</SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
+              </div>
+            )}
+            
+            <div className="flex gap-2 justify-end">
+              <Button 
+                variant="outline" 
+                onClick={() => setShowNewTerritory(false)}
+              >
+                Cancelar
+              </Button>
+              <Button 
+                onClick={handleCreateTerritory}
+                className="bg-slate-600 hover:bg-slate-700"
+                disabled={createTerritoryMutation.isPending}
+              >
+                {createTerritoryMutation.isPending ? "Creando..." : "Crear Territorio"}
+              </Button>
             </div>
-            <div className="space-y-2">
-              <Label htmlFor="voters" className="text-gray-700 font-medium">Votantes Estimados</Label>
-              <Input
-                id="voters"
-                type="number"
-                value={newTerritory.voter_estimate}
-                onChange={(e) => setNewTerritory({...newTerritory, voter_estimate: e.target.value})}
-                placeholder="Ej: 3500"
-                className="border-gray-300 focus:border-blue-500"
-              />
-            </div>
-          </div>
+          </CardContent>
+        </Card>
+      )}
 
-          <Button 
-            onClick={handleCreateTerritory} 
-            disabled={createTerritoryMutation.isPending}
-            className="w-full bg-blue-600 hover:bg-blue-700 text-white"
-          >
-            {createTerritoryMutation.isPending ? "Creando..." : "Crear Territorio"}
-          </Button>
-        </CardContent>
-      </Card>
-
-      {/* Lista de territorios */}
-      <Card className="border-gray-200 shadow-sm">
-        <CardHeader className="bg-gray-50">
-          <CardTitle className="flex items-center gap-2 text-gray-800">
+      <Card>
+        <CardHeader>
+          <CardTitle className="flex items-center gap-2">
             <MapPin className="w-5 h-5" />
-            Territorios Registrados ({territories.length})
+            Territorios Existentes ({territories.length})
           </CardTitle>
         </CardHeader>
-        <CardContent className="pt-6">
+        <CardContent>
           {isLoading ? (
             <div className="text-center py-8 text-gray-500">Cargando territorios...</div>
           ) : territories.length === 0 ? (
             <div className="text-center py-8 text-gray-500">
-              No hay territorios registrados
+              <MapPin className="w-12 h-12 mx-auto mb-4 opacity-50" />
+              <p>No hay territorios registrados aún</p>
+              <p className="text-sm mt-2">
+                Usa el botón "Nuevo Territorio" para empezar
+              </p>
             </div>
           ) : (
-            <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-3">
+            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
               {territories.map((territory) => (
-                <Card key={territory.id} className="border border-gray-200 hover:shadow-md transition-shadow">
+                <Card 
+                  key={territory.id} 
+                  className={`hover:shadow-md transition-shadow cursor-pointer ${selectedTerritory?.id === territory.id ? 'border-2 border-blue-500' : ''}`}
+                  onClick={() => setSelectedTerritory(territory)}
+                >
                   <CardContent className="p-4">
-                    <div className="flex items-start justify-between mb-3">
-                      <h3 className="font-semibold text-lg text-gray-800">{territory.name}</h3>
-                      <Badge className={getTypeColor(territory.type)}>
-                        {territory.type}
-                      </Badge>
-                    </div>
-                    
-                    <div className="space-y-2 text-sm text-gray-600">
-                      {territory.population_estimate && (
-                        <div className="flex items-center gap-2">
-                          <Users className="w-4 h-4" />
-                          <span>Población: {territory.population_estimate.toLocaleString()}</span>
-                        </div>
+                    <div className="flex items-start justify-between mb-2">
+                      <h3 className="font-semibold text-slate-800">{territory.name}</h3>
+                      {canManageUsers && (
+                        <Badge variant="secondary">
+                          {users.find(u => u.id === territory.responsible_user_id)?.name || 'Sin Asignar'}
+                        </Badge>
                       )}
-                      {territory.voter_estimate && (
-                        <div className="flex items-center gap-2">
-                          <BarChart3 className="w-4 h-4" />
-                          <span>Votantes: {territory.voter_estimate.toLocaleString()}</span>
-                        </div>
-                      )}
-                      <div className="flex items-center gap-2">
-                        <MapPin className="w-4 h-4" />
-                        <span>Creado: {new Date(territory.created_at).toLocaleDateString()}</span>
-                      </div>
                     </div>
+                    <p className="text-sm text-slate-600">
+                      Tipo: {territory.type}
+                    </p>
+                    <p className="text-xs text-slate-500 mt-2">
+                      Creado: {new Date(territory.created_at).toLocaleDateString()}
+                    </p>
                   </CardContent>
                 </Card>
               ))}
@@ -245,6 +345,88 @@ const TerritoryManager = () => {
           )}
         </CardContent>
       </Card>
+
+      {selectedTerritory && (
+        <Card>
+          <CardHeader>
+            <CardTitle className="flex items-center gap-2">
+              <Settings className="w-5 h-5" />
+              Editar Territorio
+            </CardTitle>
+          </CardHeader>
+          <CardContent className="space-y-4">
+            <div>
+              <Label className="block text-sm font-medium mb-2">Nombre del Territorio</Label>
+              <Input
+                placeholder="Nombre descriptivo del territorio..."
+                value={selectedTerritory.name}
+                onChange={(e) => setSelectedTerritory(prev => prev ? ({ ...prev, name: e.target.value }) : null)}
+              />
+            </div>
+            
+            <div>
+              <Label className="block text-sm font-medium mb-2">Tipo de Territorio</Label>
+              <Select 
+                value={selectedTerritory.type} 
+                onValueChange={(value: any) => setSelectedTerritory(prev => prev ? ({ ...prev, type: value }) : null)}
+              >
+                <SelectTrigger>
+                  <SelectValue placeholder="Selecciona el tipo..." />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="barrio">Barrio</SelectItem>
+                  <SelectItem value="municipio">Municipio</SelectItem>
+                  <SelectItem value="departamento">Departamento</SelectItem>
+                  <SelectItem value="corregimiento">Corregimiento</SelectItem>
+                  <SelectItem value="vereda">Vereda</SelectItem>
+                  <SelectItem value="sector">Sector</SelectItem>
+                </SelectContent>
+              </Select>
+            </div>
+
+            {canManageUsers && (
+              <div>
+                <Label className="block text-sm font-medium mb-2">Responsable del Territorio</Label>
+                <Select 
+                  value={selectedTerritory.responsible_user_id || ''} 
+                  onValueChange={(value) => setSelectedTerritory(prev => prev ? ({ ...prev, responsible_user_id: value }) : null)}
+                >
+                  <SelectTrigger>
+                    <SelectValue placeholder="Selecciona un responsable..." />
+                  </SelectTrigger>
+                  <SelectContent>
+                    {users.map((user) => (
+                      <SelectItem key={user.id} value={user.id}>{user.name} ({user.role})</SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
+              </div>
+            )}
+            
+            <div className="flex gap-2 justify-end">
+              <Button 
+                variant="destructive" 
+                onClick={handleDeleteTerritory}
+                disabled={deleteTerritoryMutation.isPending}
+              >
+                {deleteTerritoryMutation.isPending ? "Eliminando..." : (
+                  <>
+                    <AlertTriangle className="w-4 h-4 mr-2" />
+                    Eliminar
+                  </>
+                )}
+              </Button>
+              <Button 
+                onClick={handleUpdateTerritory}
+                className="bg-slate-600 hover:bg-slate-700"
+                disabled={updateTerritoryMutation.isPending}
+              >
+                {updateTerritoryMutation.isPending ? "Actualizando..." : "Actualizar Territorio"}
+              </Button>
+            </div>
+          </CardContent>
+        </Card>
+      )}
     </div>
   );
 };

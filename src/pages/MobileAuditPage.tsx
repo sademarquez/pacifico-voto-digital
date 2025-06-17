@@ -1,16 +1,12 @@
 
+import MobileAppAuditComplete from '@/components/MobileAppAuditComplete';
 import PageLayout from '@/components/PageLayout';
-import MobileAppAudit from '@/components/MobileAppAudit';
 
 const MobileAuditPage = () => {
   return (
-    <PageLayout 
-      borderVariant="animated" 
-      borderColor="blue"
-      className="bg-gradient-to-br from-slate-50 via-blue-50 to-indigo-50"
-    >
-      <div className="container mx-auto py-6">
-        <MobileAppAudit />
+    <PageLayout borderVariant="glow" borderColor="purple">
+      <div className="min-h-screen bg-gradient-to-br from-slate-50 via-purple-50 to-pink-50">
+        <MobileAppAuditComplete />
       </div>
     </PageLayout>
   );
