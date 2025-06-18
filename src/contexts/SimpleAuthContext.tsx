@@ -37,7 +37,7 @@ export const SimpleAuthProvider: React.FC<{ children: ReactNode }> = ({ children
     try {
       console.log('🔄 Cargando perfil para:', supabaseUser.email);
       
-      const { data: profile, error } = await supabase
+      const { data: profileData, error } = await supabase
         .from('profiles')
         .select('id, name, role')
         .eq('id', supabaseUser.id)
@@ -54,7 +54,7 @@ export const SimpleAuthProvider: React.FC<{ children: ReactNode }> = ({ children
             .insert({
               id: supabaseUser.id,
               name: supabaseUser.email?.split('@')[0] || 'Usuario',
-              role: 'votante',
+              role: 'votante' as const,
               created_at: new Date().toISOString()
             });
 
@@ -71,7 +71,7 @@ export const SimpleAuthProvider: React.FC<{ children: ReactNode }> = ({ children
             .single();
 
           if (newError) throw newError;
-          profile = newProfile;
+          profileData = newProfile;
         } else {
           throw error;
         }
@@ -79,8 +79,8 @@ export const SimpleAuthProvider: React.FC<{ children: ReactNode }> = ({ children
 
       const userData: User = {
         id: supabaseUser.id,
-        name: profile?.name || supabaseUser.email?.split('@')[0] || 'Usuario',
-        role: (profile?.role as User['role']) || 'votante',
+        name: profileData?.name || supabaseUser.email?.split('@')[0] || 'Usuario',
+        role: (profileData?.role as User['role']) || 'votante',
         email: supabaseUser.email || '',
         phone: supabaseUser.user_metadata?.phone,
         territory: 'PRINCIPAL'
@@ -209,8 +209,67 @@ export const SimpleAuthProvider: React.FC<{ children: ReactNode }> = ({ children
   const value = {
     user,
     session,
-    login,
-    logout,
+    login: async (email: string, password: string) => {
+      console.log('🔐 Iniciando login:', { email });
+      setIsLoading(true);
+      setAuthError(null);
+
+      try {
+        const { data, error } = await supabase.auth.signInWithPassword({
+          email: email.trim(),
+          password: password.trim(),
+        });
+
+        if (error) {
+          let errorMsg = 'Error de autenticación';
+          
+          if (error.message.includes('Invalid login credentials')) {
+            errorMsg = 'Credenciales incorrectas. Verifica email y contraseña.';
+          } else if (error.message.includes('Email not confirmed')) {
+            errorMsg = 'Email no confirmado. Contacta al administrador.';
+          } else if (error.message.includes('Too many requests')) {
+            errorMsg = 'Demasiados intentos. Espera un momento.';
+          }
+          
+          console.error('❌ Error de login:', error);
+          setAuthError(errorMsg);
+          setIsLoading(false);
+          return { success: false, error: errorMsg };
+        }
+
+        if (data.user && data.session) {
+          console.log('✅ Login exitoso para:', email);
+          return { success: true };
+        }
+
+        setAuthError('Login sin datos válidos');
+        setIsLoading(false);
+        return { success: false, error: 'Login sin datos válidos' };
+      } catch (error) {
+        console.error('❌ Error crítico en login:', error);
+        const errorMsg = 'Error inesperado durante el login';
+        setAuthError(errorMsg);
+        setIsLoading(false);
+        return { success: false, error: errorMsg };
+      }
+    },
+    logout: async () => {
+      try {
+        setIsLoading(true);
+        const { error } = await supabase.auth.signOut();
+        if (error) {
+          console.error('❌ Error en logout:', error);
+        }
+        setUser(null);
+        setSession(null);
+        setAuthError(null);
+        console.log('👋 Logout exitoso');
+      } catch (error) {
+        console.error('❌ Error crítico en logout:', error);
+      } finally {
+        setIsLoading(false);
+      }
+    },
     isAuthenticated: !!user && !!session,
     isLoading,
     authError,

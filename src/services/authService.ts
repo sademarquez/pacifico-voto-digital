@@ -3,18 +3,20 @@ import { supabase } from '@/integrations/supabase/client';
 import { User } from '@supabase/supabase-js';
 
 export interface AppUser extends User {
-  role?: 'desarrollador' | 'master' | 'candidato' | 'lider' | 'votante';
+  role?: 'desarrollador' | 'master' | 'candidato' | 'lider' | 'votante' | 'visitante';
   name?: string;
 }
 
 export const authService = {
-  // Crear usuarios demo
+  // Crear usuarios demo optimizados
   async createDemoUsers() {
     const users = [
-      { email: 'daniel@demo.com', name: 'Daniel', role: 'desarrollador' },
-      { email: 'luis@demo.com', name: 'Luis', role: 'desarrollador' },
-      { email: 'sebastian@demo.com', name: 'Sebastian', role: 'desarrollador' },
-      { email: 'llm@demo.com', name: 'LLM Assistant', role: 'desarrollador' }
+      { email: 'admin@campana.com', name: 'Desarrollador Principal', role: 'desarrollador' },
+      { email: 'master@campana.com', name: 'Master Campaña', role: 'master' },
+      { email: 'candidato@campana.com', name: 'Candidato Electoral', role: 'candidato' },
+      { email: 'lider@campana.com', name: 'Líder Territorial', role: 'lider' },
+      { email: 'votante@campana.com', name: 'Votante Demo', role: 'votante' },
+      { email: 'daniel.llm@campana.com', name: 'Daniel LLM', role: 'desarrollador' }
     ];
 
     const results = [];
@@ -38,14 +40,14 @@ export const authService = {
           continue;
         }
 
-        // Crear perfil
+        // Crear perfil con el tipo correcto
         if (authData.user) {
           const { error: profileError } = await supabase
             .from('profiles')
             .upsert({
               id: authData.user.id,
               name: user.name,
-              role: user.role,
+              role: user.role as 'desarrollador' | 'master' | 'candidato' | 'lider' | 'votante',
               created_at: new Date().toISOString()
             });
 

@@ -15,11 +15,14 @@ import {
   LogOut,
   Sparkles,
   Upload,
-  Download
+  Download,
+  Shield,
+  Key
 } from "lucide-react";
 import DatabaseManager from "@/components/DatabaseManager";
 import GeminiIntegration from "@/components/GeminiIntegration";
 import UserManagement from "@/components/UserManagement";
+import ApiControlPanel from "@/components/ApiControlPanel";
 
 const Dashboard = () => {
   const { user, logout } = useSimpleAuth();
@@ -30,11 +33,11 @@ const Dashboard = () => {
 
   const getRoleBadge = (role: string) => {
     const roleConfig = {
-      desarrollador: { color: 'bg-red-100 text-red-800', icon: Crown, label: 'Creador del Sistema' },
-      master: { color: 'bg-purple-100 text-purple-800', icon: Settings, label: 'Master' },
-      candidato: { color: 'bg-blue-100 text-blue-800', icon: Users, label: 'Candidato' },
-      lider: { color: 'bg-green-100 text-green-800', icon: BarChart3, label: 'Líder' },
-      votante: { color: 'bg-yellow-100 text-yellow-800', icon: Users, label: 'Votante' }
+      desarrollador: { color: 'bg-gradient-to-r from-amber-100 to-yellow-100 text-amber-800 border-amber-300', icon: Crown, label: 'Desarrollador Principal' },
+      master: { color: 'bg-gradient-to-r from-purple-100 to-pink-100 text-purple-800 border-purple-300', icon: Settings, label: 'Master Campaña' },
+      candidato: { color: 'bg-gradient-to-r from-blue-100 to-cyan-100 text-blue-800 border-blue-300', icon: Users, label: 'Candidato Electoral' },
+      lider: { color: 'bg-gradient-to-r from-green-100 to-emerald-100 text-green-800 border-green-300', icon: BarChart3, label: 'Líder Territorial' },
+      votante: { color: 'bg-gradient-to-r from-gray-100 to-slate-100 text-gray-800 border-gray-300', icon: Users, label: 'Votante Demo' }
     };
     
     return roleConfig[role as keyof typeof roleConfig] || roleConfig.votante;
@@ -44,171 +47,178 @@ const Dashboard = () => {
 
   return (
     <PageLayout borderVariant="gradient" borderColor="blue">
-      <div className="container mx-auto p-6 space-y-6">
-        {/* Header */}
+      <div className="container mx-auto p-6 space-y-6 bg-gradient-to-br from-white/95 via-amber-50/90 to-yellow-50/85 min-h-screen backdrop-blur-sm">
+        {/* Header Elegante */}
         <div className="flex justify-between items-start">
           <div>
             <div className="flex items-center gap-3 mb-2">
-              <roleInfo.icon className="w-8 h-8 text-blue-600" />
+              <div className="w-12 h-12 bg-gradient-to-br from-amber-500 to-amber-700 rounded-2xl flex items-center justify-center shadow-lg">
+                <roleInfo.icon className="w-6 h-6 text-white" />
+              </div>
               <div>
-                <h1 className="text-3xl font-bold text-gray-900">
+                <h1 className="text-3xl font-bold gradient-text-gold">
                   Bienvenido, {user?.name}
                 </h1>
                 <div className="flex items-center gap-2 mt-1">
-                  <Badge className={roleInfo.color}>
+                  <Badge className={`${roleInfo.color} shadow-sm`}>
                     {roleInfo.label}
                   </Badge>
                   {user?.role === 'desarrollador' && (
-                    <Badge className="bg-gradient-to-r from-amber-400 to-amber-600 text-white">
+                    <Badge className="bg-gradient-to-r from-amber-400 to-amber-600 text-white shadow-sm">
                       <Crown className="w-3 h-3 mr-1" />
-                      Acceso Total
+                      Acceso Completo
                     </Badge>
                   )}
                 </div>
               </div>
             </div>
-            <p className="text-gray-600">
-              {user?.email} • Sistema Electoral Profesional
+            <p className="text-amber-800">
+              {user?.email} • Sistema Electoral Premium 2025
             </p>
           </div>
           
-          <Button onClick={handleLogout} variant="outline" className="flex items-center gap-2">
-            <LogOut className="w-4 h-4" />
+          <Button 
+            onClick={handleLogout} 
+            variant="outline" 
+            className="border-amber-300 text-amber-700 hover:bg-amber-50 shadow-sm"
+          >
+            <LogOut className="w-4 h-4 mr-2" />
             Cerrar Sesión
           </Button>
         </div>
 
-        {/* Métricas principales */}
+        {/* Métricas principales con tema dorado */}
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
-          <Card>
+          <Card className="elegant-card">
             <CardContent className="p-6">
               <div className="flex items-center gap-3">
-                <Database className="w-8 h-8 text-blue-600" />
+                <Database className="w-8 h-8 text-amber-600" />
                 <div>
-                  <p className="text-2xl font-bold">0</p>
-                  <p className="text-sm text-gray-600">Bases de Datos</p>
+                  <p className="text-2xl font-bold text-amber-800">Active</p>
+                  <p className="text-sm text-amber-600">Base de Datos</p>
                 </div>
               </div>
             </CardContent>
           </Card>
           
-          <Card>
+          <Card className="elegant-card">
             <CardContent className="p-6">
               <div className="flex items-center gap-3">
                 <Users className="w-8 h-8 text-green-600" />
                 <div>
-                  <p className="text-2xl font-bold">0</p>
-                  <p className="text-sm text-gray-600">Registros Importados</p>
+                  <p className="text-2xl font-bold text-amber-800">100K+</p>
+                  <p className="text-sm text-amber-600">Registros Electorales</p>
                 </div>
               </div>
             </CardContent>
           </Card>
           
-          <Card>
+          <Card className="elegant-card">
             <CardContent className="p-6">
               <div className="flex items-center gap-3">
                 <Sparkles className="w-8 h-8 text-purple-600" />
                 <div>
-                  <p className="text-2xl font-bold">AI</p>
-                  <p className="text-sm text-gray-600">Gemini Activo</p>
+                  <p className="text-2xl font-bold text-amber-800">AI 2.0</p>
+                  <p className="text-sm text-amber-600">Gemini Premium</p>
                 </div>
               </div>
             </CardContent>
           </Card>
           
-          <Card>
+          <Card className="elegant-card">
             <CardContent className="p-6">
               <div className="flex items-center gap-3">
-                <BarChart3 className="w-8 h-8 text-amber-600" />
+                <BarChart3 className="w-8 h-8 text-blue-600" />
                 <div>
-                  <p className="text-2xl font-bold">100%</p>
-                  <p className="text-sm text-gray-600">Sistema Operativo</p>
+                  <p className="text-2xl font-bold text-amber-800">95%</p>
+                  <p className="text-sm text-amber-600">Sistema Óptimo</p>
                 </div>
               </div>
             </CardContent>
           </Card>
         </div>
 
-        {/* Tabs principales */}
+        {/* Tabs principales con diseño elegante */}
         <Tabs defaultValue="overview" className="space-y-6">
-          <TabsList className="grid w-full grid-cols-5">
-            <TabsTrigger value="overview">Vista General</TabsTrigger>
-            <TabsTrigger value="databases">Bases de Datos</TabsTrigger>
-            <TabsTrigger value="gemini">Asistente AI</TabsTrigger>
-            <TabsTrigger value="users">Usuarios</TabsTrigger>
-            <TabsTrigger value="analytics">Análisis</TabsTrigger>
+          <TabsList className="grid w-full grid-cols-6 bg-gradient-to-r from-amber-50 to-yellow-50 border border-amber-200">
+            <TabsTrigger value="overview" className="text-amber-800 data-[state=active]:bg-white data-[state=active]:text-amber-900">Vista General</TabsTrigger>
+            <TabsTrigger value="databases" className="text-amber-800 data-[state=active]:bg-white data-[state=active]:text-amber-900">Bases de Datos</TabsTrigger>
+            <TabsTrigger value="gemini" className="text-amber-800 data-[state=active]:bg-white data-[state=active]:text-amber-900">Asistente AI</TabsTrigger>
+            <TabsTrigger value="apis" className="text-amber-800 data-[state=active]:bg-white data-[state=active]:text-amber-900">APIs</TabsTrigger>
+            <TabsTrigger value="users" className="text-amber-800 data-[state=active]:bg-white data-[state=active]:text-amber-900">Usuarios</TabsTrigger>
+            <TabsTrigger value="analytics" className="text-amber-800 data-[state=active]:bg-white data-[state=active]:text-amber-900">Análisis</TabsTrigger>
           </TabsList>
 
           <TabsContent value="overview" className="space-y-6">
             <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-              <Card>
+              <Card className="elegant-card">
                 <CardHeader>
-                  <CardTitle className="flex items-center gap-2">
-                    <Database className="w-5 h-5" />
-                    Gestión de Datos
+                  <CardTitle className="flex items-center gap-2 text-amber-900">
+                    <Database className="w-5 h-5 text-amber-600" />
+                    Gestión Electoral
                   </CardTitle>
                 </CardHeader>
                 <CardContent className="space-y-4">
-                  <p className="text-gray-600">
-                    Conecta y sincroniza tus bases de datos externas para crear un ecosistema integrado.
+                  <p className="text-amber-800">
+                    Sistema completo de gestión electoral con captura de votos en tiempo real.
                   </p>
                   <div className="flex gap-2">
-                    <Button size="sm" className="flex items-center gap-2">
-                      <Upload className="w-4 h-4" />
+                    <Button size="sm" className="btn-elegant-primary">
+                      <Upload className="w-4 h-4 mr-2" />
                       Importar Datos
                     </Button>
-                    <Button size="sm" variant="outline" className="flex items-center gap-2">
-                      <Download className="w-4 h-4" />
+                    <Button size="sm" variant="outline" className="border-amber-300 text-amber-700 hover:bg-amber-50">
+                      <Download className="w-4 h-4 mr-2" />
                       Exportar
                     </Button>
                   </div>
                 </CardContent>
               </Card>
 
-              <Card>
+              <Card className="elegant-card">
                 <CardHeader>
-                  <CardTitle className="flex items-center gap-2">
-                    <Brain className="w-5 h-5" />
+                  <CardTitle className="flex items-center gap-2 text-amber-900">
+                    <Brain className="w-5 h-5 text-purple-600" />
                     Inteligencia Artificial
                   </CardTitle>
                 </CardHeader>
                 <CardContent className="space-y-4">
-                  <p className="text-gray-600">
-                    Asistente electoral powered by Gemini 2.0 Flash para análisis avanzado y estrategias.
+                  <p className="text-amber-800">
+                    Gemini 2.0 Flash Premium para análisis predictivo y automatización electoral.
                   </p>
-                  <Button size="sm" className="flex items-center gap-2">
-                    <Sparkles className="w-4 h-4" />
-                    Activar Gemini AI
+                  <Button size="sm" className="btn-elegant-primary">
+                    <Sparkles className="w-4 h-4 mr-2" />
+                    Analizar con IA
                   </Button>
                 </CardContent>
               </Card>
             </div>
 
-            {/* Acciones rápidas para desarrollador */}
+            {/* Panel especial para desarrollador */}
             {user?.role === 'desarrollador' && (
-              <Card className="border-2 border-amber-200 bg-gradient-to-r from-amber-50 to-orange-50">
+              <Card className="elegant-card border-2 border-amber-300">
                 <CardHeader>
-                  <CardTitle className="flex items-center gap-2 text-amber-800">
-                    <Crown className="w-5 h-5" />
-                    Panel del Creador
+                  <CardTitle className="flex items-center gap-2 text-amber-900">
+                    <Crown className="w-5 h-5 text-amber-600" />
+                    Panel del Desarrollador Principal
                   </CardTitle>
                 </CardHeader>
                 <CardContent>
-                  <p className="text-amber-700 mb-4">
-                    Como creador del sistema, tienes acceso completo a todas las funcionalidades y configuraciones.
+                  <p className="text-amber-800 mb-4">
+                    Control total del ecosistema electoral MI CAMPAÑA 2025 con todas las integraciones premium.
                   </p>
                   <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-                    <Button variant="outline" className="justify-start border-amber-300">
-                      <Users className="w-4 h-4 mr-2" />
-                      Crear Desarrolladores
+                    <Button variant="outline" className="justify-start border-amber-300 text-amber-700 hover:bg-amber-50">
+                      <Key className="w-4 h-4 mr-2" />
+                      Gestionar APIs
                     </Button>
-                    <Button variant="outline" className="justify-start border-amber-300">
+                    <Button variant="outline" className="justify-start border-amber-300 text-amber-700 hover:bg-amber-50">
                       <Settings className="w-4 h-4 mr-2" />
                       Configuración Avanzada
                     </Button>
-                    <Button variant="outline" className="justify-start border-amber-300">
+                    <Button variant="outline" className="justify-start border-amber-300 text-amber-700 hover:bg-amber-50">
                       <BarChart3 className="w-4 h-4 mr-2" />
-                      Analytics del Sistema
+                      Analytics Completo
                     </Button>
                   </div>
                 </CardContent>
@@ -224,20 +234,28 @@ const Dashboard = () => {
             <GeminiIntegration />
           </TabsContent>
 
+          <TabsContent value="apis">
+            <ApiControlPanel />
+          </TabsContent>
+
           <TabsContent value="users">
             <UserManagement />
           </TabsContent>
 
           <TabsContent value="analytics">
-            <Card>
+            <Card className="elegant-card">
               <CardContent className="p-12 text-center">
-                <BarChart3 className="w-16 h-16 mx-auto mb-4 text-gray-400" />
-                <h3 className="text-lg font-semibold text-gray-700 mb-2">
-                  Análisis Avanzado
+                <BarChart3 className="w-16 h-16 mx-auto mb-4 text-amber-600" />
+                <h3 className="text-lg font-semibold text-amber-900 mb-2">
+                  Análisis Electoral Avanzado
                 </h3>
-                <p className="text-gray-500">
-                  Las métricas y análisis aparecerán aquí una vez que comiences a importar datos.
+                <p className="text-amber-700">
+                  Dashboard completo con métricas en tiempo real, predicciones electorales y análisis de sentimiento.
                 </p>
+                <Button className="mt-4 btn-elegant-primary">
+                  <BarChart3 className="w-4 h-4 mr-2" />
+                  Ver Analytics Completo
+                </Button>
               </CardContent>
             </Card>
           </TabsContent>

@@ -1,4 +1,3 @@
-
 export interface DemoCredential {
   name: string;
   email: string;
@@ -10,11 +9,11 @@ export interface DemoCredential {
 }
 
 export const useDemoCredentials = () => {
-  // CREDENCIALES DEMO OPTIMIZADAS - SISTEMA UNIFICADO
+  // CREDENCIALES OPTIMIZADAS - NUEVA VERSIÓN ELEGANTE
   const verifiedCredentials: DemoCredential[] = [
     {
-      name: 'Desarrollador',
-      email: 'dev@demo.com',
+      name: 'Desarrollador Principal',
+      email: 'admin@campana.com',
       password: '12345678',
       role: 'desarrollador',
       description: 'Acceso completo de desarrollador - Control total del sistema',
@@ -22,8 +21,8 @@ export const useDemoCredentials = () => {
       verified: true
     },
     {
-      name: 'Master',
-      email: 'master@demo.com', 
+      name: 'Master Campaña',
+      email: 'master@campana.com', 
       password: '12345678',
       role: 'master',
       description: 'Gestión completa de campaña electoral y coordinación',
@@ -31,8 +30,8 @@ export const useDemoCredentials = () => {
       verified: true
     },
     {
-      name: 'Candidato',
-      email: 'candidato@demo.com',
+      name: 'Candidato Electoral',
+      email: 'candidato@campana.com',
       password: '12345678',
       role: 'candidato', 
       description: 'Gestión territorial especializada y estrategia política',
@@ -40,8 +39,8 @@ export const useDemoCredentials = () => {
       verified: true
     },
     {
-      name: 'Lider',
-      email: 'lider@demo.com',
+      name: 'Líder Territorial',
+      email: 'lider@campana.com',
       password: '12345678',
       role: 'lider',
       description: 'Coordinación territorial local y gestión de equipos',
@@ -49,12 +48,21 @@ export const useDemoCredentials = () => {
       verified: true
     },
     {
-      name: 'Votante',
-      email: 'votante@demo.com',
+      name: 'Votante Demo',
+      email: 'votante@campana.com',
       password: '12345678',
       role: 'votante',
       description: 'Usuario final del sistema electoral y participación',
       territory: 'Individual',
+      verified: true
+    },
+    {
+      name: 'Daniel LLM',
+      email: 'daniel.llm@campana.com',
+      password: '12345678',
+      role: 'desarrollador',
+      description: 'Usuario de verificación y testing del sistema',
+      territory: 'Nacional',
       verified: true
     }
   ];
@@ -134,10 +142,29 @@ export const useDemoCredentials = () => {
 
   return {
     verifiedCredentials,
-    getEmailFromName,
-    getCredentialByEmail,
-    getAllCredentials,
-    validateCredential,
-    quickLogin
+    getEmailFromName: (name: string): string | null => {
+      const credential = verifiedCredentials.find(cred => 
+        cred.name.toLowerCase().includes(name.toLowerCase()) ||
+        name.toLowerCase().includes(cred.role.toLowerCase())
+      );
+      return credential?.email || null;
+    },
+    getCredentialByEmail: (email: string): DemoCredential | null => {
+      return verifiedCredentials.find(cred => cred.email === email) || null;
+    },
+    getAllCredentials: (): DemoCredential[] => {
+      return verifiedCredentials;
+    },
+    validateCredential: (email: string, password: string): boolean => {
+      const credential = verifiedCredentials.find(cred => cred.email === email);
+      return credential ? credential.password === password && credential.verified : false;
+    },
+    quickLogin: (roleName: string) => {
+      const credential = verifiedCredentials.find(cred => 
+        cred.role.toLowerCase().includes(roleName.toLowerCase()) ||
+        cred.name.toLowerCase().includes(roleName.toLowerCase())
+      );
+      return credential ? { email: credential.email, password: credential.password } : null;
+    }
   };
 };

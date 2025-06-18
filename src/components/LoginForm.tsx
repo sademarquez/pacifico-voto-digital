@@ -5,8 +5,9 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Alert, AlertDescription } from "@/components/ui/alert";
-import { Shield, Eye, EyeOff, AlertCircle, User, Crown, Users } from "lucide-react";
+import { Shield, Eye, EyeOff, AlertCircle, User, Crown, Users, Sparkles } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
+import { useDemoCredentials } from "@/hooks/useDemoCredentials";
 
 interface LoginFormProps {
   onLogin: (email: string, password: string) => Promise<{ success: boolean; error?: string }>;
@@ -20,15 +21,7 @@ const LoginForm = ({ onLogin, isLoading, authError, clearAuthError }: LoginFormP
   const [password, setPassword] = useState("");
   const [showPassword, setShowPassword] = useState(false);
   const { toast } = useToast();
-
-  const demoUsers = [
-    { email: 'daniel@demo.com', name: 'Daniel', role: 'desarrollador' },
-    { email: 'luis@demo.com', name: 'Luis', role: 'desarrollador' },
-    { email: 'sebastian@demo.com', name: 'Sebastian', role: 'desarrollador' },
-    { email: 'llm@demo.com', name: 'LLM Assistant', role: 'desarrollador' },
-    { email: 'dev@demo.com', name: 'Desarrollador', role: 'desarrollador' },
-    { email: 'master@demo.com', name: 'Master', role: 'master' }
-  ];
+  const { verifiedCredentials } = useDemoCredentials();
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -72,17 +65,27 @@ const LoginForm = ({ onLogin, isLoading, authError, clearAuthError }: LoginFormP
     });
   };
 
+  const getRoleIcon = (role: string) => {
+    switch (role) {
+      case 'desarrollador': return <Crown className="w-4 h-4 text-amber-600" />;
+      case 'master': return <Shield className="w-4 h-4 text-purple-600" />;
+      case 'candidato': return <Users className="w-4 h-4 text-blue-600" />;
+      case 'lider': return <User className="w-4 h-4 text-green-600" />;
+      default: return <User className="w-4 h-4 text-gray-500" />;
+    }
+  };
+
   return (
     <div className="max-w-md w-full mx-auto">
-      <Card className="border-2 border-blue-200 shadow-2xl">
+      <Card className="border-2 border-amber-200/50 shadow-2xl bg-white/95 backdrop-blur-md">
         <CardHeader className="text-center">
-          <div className="w-16 h-16 bg-gradient-to-br from-blue-600 to-purple-600 rounded-xl flex items-center justify-center mx-auto mb-4 shadow-lg">
-            <Shield className="text-white w-8 h-8" />
+          <div className="w-16 h-16 bg-gradient-to-br from-amber-500 to-amber-700 rounded-xl flex items-center justify-center mx-auto mb-4 shadow-lg">
+            <Sparkles className="text-white w-8 h-8" />
           </div>
-          <CardTitle className="text-2xl font-bold text-gray-900">
+          <CardTitle className="text-2xl font-bold bg-gradient-to-r from-amber-700 to-amber-900 bg-clip-text text-transparent">
             MI CAMPAÑA 2025
           </CardTitle>
-          <p className="text-gray-600">Sistema Electoral Profesional</p>
+          <p className="text-amber-800">Sistema Electoral Premium</p>
         </CardHeader>
         
         <CardContent>
@@ -95,7 +98,7 @@ const LoginForm = ({ onLogin, isLoading, authError, clearAuthError }: LoginFormP
           
           <form onSubmit={handleSubmit} className="space-y-4">
             <div className="space-y-2">
-              <Label htmlFor="email">Email Corporativo</Label>
+              <Label htmlFor="email" className="text-amber-800 font-medium">Email Corporativo</Label>
               <Input
                 id="email"
                 type="email"
@@ -104,15 +107,15 @@ const LoginForm = ({ onLogin, isLoading, authError, clearAuthError }: LoginFormP
                   setEmail(e.target.value);
                   if (authError) clearAuthError();
                 }}
-                placeholder="tu@demo.com"
-                className="border-2 border-gray-300 focus:border-blue-500"
+                placeholder="tu@campana.com"
+                className="border-2 border-amber-200 focus:border-amber-500 bg-white/90"
                 required
                 disabled={isLoading}
               />
             </div>
             
             <div className="space-y-2">
-              <Label htmlFor="password">Contraseña</Label>
+              <Label htmlFor="password" className="text-amber-800 font-medium">Contraseña</Label>
               <div className="relative">
                 <Input
                   id="password"
@@ -123,7 +126,7 @@ const LoginForm = ({ onLogin, isLoading, authError, clearAuthError }: LoginFormP
                     if (authError) clearAuthError();
                   }}
                   placeholder="12345678"
-                  className="pr-10 border-2 border-gray-300 focus:border-blue-500"
+                  className="pr-10 border-2 border-amber-200 focus:border-amber-500 bg-white/90"
                   required
                   disabled={isLoading}
                 />
@@ -131,7 +134,7 @@ const LoginForm = ({ onLogin, isLoading, authError, clearAuthError }: LoginFormP
                   type="button"
                   variant="ghost"
                   size="icon"
-                  className="absolute right-2 top-1/2 -translate-y-1/2"
+                  className="absolute right-2 top-1/2 -translate-y-1/2 text-amber-600 hover:text-amber-800"
                   onClick={() => setShowPassword(!showPassword)}
                   disabled={isLoading}
                 >
@@ -142,56 +145,52 @@ const LoginForm = ({ onLogin, isLoading, authError, clearAuthError }: LoginFormP
 
             <Button 
               type="submit" 
-              className="w-full bg-gradient-to-r from-blue-600 to-purple-600 hover:from-blue-700 hover:to-purple-700 text-white font-bold py-3" 
+              className="w-full bg-gradient-to-r from-amber-600 to-amber-800 hover:from-amber-700 hover:to-amber-900 text-white font-bold py-3 shadow-lg" 
               disabled={isLoading}
             >
               {isLoading ? "Autenticando..." : "Acceder al Sistema"}
             </Button>
           </form>
 
-          {/* Usuarios de prueba */}
+          {/* Usuarios de prueba con diseño elegante */}
           <div className="mt-6 space-y-3">
             <div className="flex items-center gap-2 mb-3">
-              <Users className="w-5 h-5 text-blue-600" />
-              <strong className="text-blue-900">Usuarios de Prueba:</strong>
+              <Users className="w-5 h-5 text-amber-700" />
+              <strong className="text-amber-900">Credenciales Premium:</strong>
             </div>
             
             <div className="grid grid-cols-1 gap-2 max-h-48 overflow-y-auto">
-              {demoUsers.map((user, index) => (
+              {verifiedCredentials.map((user, index) => (
                 <Button
                   key={index}
                   type="button"
                   variant="outline"
                   onClick={() => fillCredentials(user.email, user.name)}
-                  className="justify-start text-left p-3 h-auto border border-gray-300 hover:bg-blue-50"
+                  className="justify-start text-left p-3 h-auto border border-amber-200 hover:bg-amber-50 hover:border-amber-400 transition-all duration-200"
                   disabled={isLoading}
                 >
                   <div className="flex items-center gap-2 w-full">
-                    {user.role === 'desarrollador' ? (
-                      <Crown className="w-4 h-4 text-amber-500" />
-                    ) : (
-                      <User className="w-4 h-4 text-blue-500" />
-                    )}
+                    {getRoleIcon(user.role)}
                     <div className="flex-1">
-                      <div className="font-medium text-sm">{user.name}</div>
-                      <div className="text-xs text-gray-500">{user.email}</div>
+                      <div className="font-medium text-sm text-amber-900">{user.name}</div>
+                      <div className="text-xs text-amber-600">{user.email}</div>
                     </div>
-                    <div className="text-xs text-gray-400 capitalize">{user.role}</div>
+                    <div className="text-xs text-amber-500 capitalize font-medium">{user.role}</div>
                   </div>
                 </Button>
               ))}
             </div>
           </div>
           
-          <div className="mt-6 p-4 bg-gradient-to-r from-blue-50 to-purple-50 rounded-lg border border-blue-200">
+          <div className="mt-6 p-4 bg-gradient-to-r from-amber-50 to-yellow-50 rounded-lg border border-amber-200">
             <div className="flex items-center gap-2 mb-2">
-              <Shield className="w-5 h-5 text-blue-600" />
-              <strong className="text-blue-900">Sistema Premium Activo</strong>
+              <Sparkles className="w-5 h-5 text-amber-700" />
+              <strong className="text-amber-900">Sistema Premium Activo</strong>
             </div>
-            <p className="text-sm text-blue-700">• ✅ Gemini AI Premium integrado</p>
-            <p className="text-sm text-blue-700">• ✅ Base de datos empresarial</p>
-            <p className="text-sm text-blue-700">• ✅ Gestión multi-usuario</p>
-            <p className="text-sm text-blue-700">• ✅ Auditoría completa disponible</p>
+            <p className="text-sm text-amber-800">• ✅ Gemini AI 2.0 Flash integrado</p>
+            <p className="text-sm text-amber-800">• ✅ Base de datos empresarial</p>
+            <p className="text-sm text-amber-800">• ✅ Gestión multi-usuario completa</p>
+            <p className="text-sm text-amber-800">• ✅ Tema elegante dorado premium</p>
           </div>
         </CardContent>
       </Card>
