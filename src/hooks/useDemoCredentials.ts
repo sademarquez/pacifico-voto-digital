@@ -1,3 +1,4 @@
+
 export interface DemoCredential {
   name: string;
   email: string;
@@ -9,14 +10,14 @@ export interface DemoCredential {
 }
 
 export const useDemoCredentials = () => {
-  // CREDENCIALES OPTIMIZADAS - NUEVA VERSIÓN ELEGANTE
+  // CREDENCIALES FINALES SIMPLIFICADAS - VERSION 3.0
   const verifiedCredentials: DemoCredential[] = [
     {
       name: 'Desarrollador Principal',
       email: 'admin@campana.com',
       password: '12345678',
       role: 'desarrollador',
-      description: 'Acceso completo de desarrollador - Control total del sistema',
+      description: 'Control total del sistema - Acceso completo APIs y configuración',
       territory: 'Nacional',
       verified: true
     },
@@ -25,7 +26,7 @@ export const useDemoCredentials = () => {
       email: 'master@campana.com', 
       password: '12345678',
       role: 'master',
-      description: 'Gestión completa de campaña electoral y coordinación',
+      description: 'Gestión completa de campaña - Coordinación territorial avanzada',
       territory: 'Regional',
       verified: true
     },
@@ -34,7 +35,7 @@ export const useDemoCredentials = () => {
       email: 'candidato@campana.com',
       password: '12345678',
       role: 'candidato', 
-      description: 'Gestión territorial especializada y estrategia política',
+      description: 'Dashboard ejecutivo - Reportes y análisis estratégicos',
       territory: 'Local',
       verified: true
     },
@@ -43,7 +44,7 @@ export const useDemoCredentials = () => {
       email: 'lider@campana.com',
       password: '12345678',
       role: 'lider',
-      description: 'Coordinación territorial local y gestión de equipos',
+      description: 'Coordinación local - Gestión de equipos y territorialidad',
       territory: 'Barrial',
       verified: true
     },
@@ -52,67 +53,20 @@ export const useDemoCredentials = () => {
       email: 'votante@campana.com',
       password: '12345678',
       role: 'votante',
-      description: 'Usuario final del sistema electoral y participación',
+      description: 'Usuario final - Captura de voto y participación ciudadana',
       territory: 'Individual',
       verified: true
     },
     {
-      name: 'Daniel LLM',
+      name: 'Daniel LLM Verificador',
       email: 'daniel.llm@campana.com',
       password: '12345678',
       role: 'desarrollador',
-      description: 'Usuario de verificación y testing del sistema',
+      description: 'Usuario de testing y verificación - Pruebas automatizadas del sistema',
       territory: 'Nacional',
       verified: true
     }
   ];
-
-  // Mapeo optimizado de nombres a emails
-  const nameToEmailMap = new Map<string, string>([
-    // Desarrollador
-    ['Desarrollador', 'dev@demo.com'],
-    ['desarrollador', 'dev@demo.com'],
-    ['DESARROLLADOR', 'dev@demo.com'],
-    ['dev', 'dev@demo.com'],
-    ['Dev', 'dev@demo.com'],
-    ['DEV', 'dev@demo.com'],
-    
-    // Master
-    ['Master', 'master@demo.com'],
-    ['master', 'master@demo.com'],
-    ['MASTER', 'master@demo.com'],
-    
-    // Candidato
-    ['Candidato', 'candidato@demo.com'],
-    ['candidato', 'candidato@demo.com'],
-    ['CANDIDATO', 'candidato@demo.com'],
-    
-    // Líder
-    ['Líder', 'lider@demo.com'],
-    ['líder', 'lider@demo.com'],
-    ['Lider', 'lider@demo.com'],
-    ['lider', 'lider@demo.com'],
-    ['LÍDER', 'lider@demo.com'],
-    ['LIDER', 'lider@demo.com'],
-    
-    // Votante
-    ['Votante', 'votante@demo.com'],
-    ['votante', 'votante@demo.com'],
-    ['VOTANTE', 'votante@demo.com']
-  ]);
-
-  const getEmailFromName = (name: string): string | null => {
-    const cleanName = name.trim();
-    const email = nameToEmailMap.get(cleanName);
-    
-    if (email) {
-      console.log(`✅ Email encontrado para "${cleanName}": ${email}`);
-    } else {
-      console.log(`❌ No se encontró email para "${cleanName}"`);
-    }
-    
-    return email || null;
-  };
 
   const getCredentialByEmail = (email: string): DemoCredential | null => {
     return verifiedCredentials.find(cred => cred.email === email) || null;
@@ -132,39 +86,27 @@ export const useDemoCredentials = () => {
   };
 
   const quickLogin = (roleName: string) => {
-    const email = getEmailFromName(roleName);
-    if (email) {
-      const credential = getCredentialByEmail(email);
-      return credential ? { email: credential.email, password: credential.password } : null;
-    }
-    return null;
+    const credential = verifiedCredentials.find(cred => 
+      cred.role.toLowerCase().includes(roleName.toLowerCase()) ||
+      cred.name.toLowerCase().includes(roleName.toLowerCase())
+    );
+    return credential ? { email: credential.email, password: credential.password } : null;
+  };
+
+  const getEmailFromName = (name: string): string | null => {
+    const credential = verifiedCredentials.find(cred => 
+      cred.name.toLowerCase().includes(name.toLowerCase()) ||
+      name.toLowerCase().includes(cred.role.toLowerCase())
+    );
+    return credential?.email || null;
   };
 
   return {
     verifiedCredentials,
-    getEmailFromName: (name: string): string | null => {
-      const credential = verifiedCredentials.find(cred => 
-        cred.name.toLowerCase().includes(name.toLowerCase()) ||
-        name.toLowerCase().includes(cred.role.toLowerCase())
-      );
-      return credential?.email || null;
-    },
-    getCredentialByEmail: (email: string): DemoCredential | null => {
-      return verifiedCredentials.find(cred => cred.email === email) || null;
-    },
-    getAllCredentials: (): DemoCredential[] => {
-      return verifiedCredentials;
-    },
-    validateCredential: (email: string, password: string): boolean => {
-      const credential = verifiedCredentials.find(cred => cred.email === email);
-      return credential ? credential.password === password && credential.verified : false;
-    },
-    quickLogin: (roleName: string) => {
-      const credential = verifiedCredentials.find(cred => 
-        cred.role.toLowerCase().includes(roleName.toLowerCase()) ||
-        cred.name.toLowerCase().includes(roleName.toLowerCase())
-      );
-      return credential ? { email: credential.email, password: credential.password } : null;
-    }
+    getEmailFromName,
+    getCredentialByEmail,
+    getAllCredentials,
+    validateCredential,
+    quickLogin
   };
 };

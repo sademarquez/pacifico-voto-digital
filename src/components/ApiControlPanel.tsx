@@ -185,7 +185,7 @@ const ApiControlPanel = () => {
                   <div className="flex items-center justify-between">
                     <div className="flex items-center gap-2">
                       <config.icon className={`w-5 h-5 ${config.color}`} />
-                      <Car_Title className="text-lg text-amber-900">{config.name}</CardTitle>
+                      <CardTitle className="text-lg text-amber-900">{config.name}</CardTitle>
                     </div>
                     {getStatusIcon(config.status)}
                   </div>
