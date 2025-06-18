@@ -4,7 +4,7 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Badge } from "@/components/ui/badge";
 import { ScrollArea } from "@/components/ui/scroll-area";
-import { useSimpleAuth } from "@/contexts/SimpleAuthContext";
+import { useAuth } from "../contexts/AuthContext";
 import { 
   MessageSquare, 
   Send, 
@@ -36,14 +36,14 @@ interface ChatbotProps {
 }
 
 const Chatbot = ({ isMinimized = false, onToggleMinimize, onClose }: ChatbotProps) => {
-  const { user } = useSimpleAuth();
+  const { user } = useAuth();
   const [messages, setMessages] = useState<Message[]>([]);
   const [inputMessage, setInputMessage] = useState('');
   const [isLoading, setIsLoading] = useState(false);
   const messagesEndRef = useRef<HTMLDivElement>(null);
 
   // API Key de Gemini configurada
-  const GEMINI_API_KEY = "AIzaSyB0EL5it0LTQOHChULpQSa7BGvdPQPzNkY";
+  const GEMINI_API_KEY = "AIzaSyDaq-_E5FQtTF0mfJsohXvT2OHMgldjq14";
 
   const getWelcomeMessage = () => {
     const baseMessage = '🚀 ¡Hola! Soy tu asistente IA especializado de MI CAMPAÑA 2025. Powered by Gemini AI.';

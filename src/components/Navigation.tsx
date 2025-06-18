@@ -4,13 +4,13 @@ import { Button } from "@/components/ui/button";
 import { Sheet, SheetContent, SheetTrigger } from "@/components/ui/sheet";
 import { Menu, Users, MapPin, User, BarChart3, Network, LogOut, FileText, Shield, Zap } from "lucide-react";
 import { Link, useLocation, useNavigate } from "react-router-dom";
-import { useSimpleAuth } from "@/contexts/SimpleAuthContext";
+import { useSecureAuth } from "../contexts/SecureAuthContext";
 import ModernMobileNavigation from "./ModernMobileNavigation";
 
 const Navigation = () => {
   const [isOpen, setIsOpen] = useState(false);
   const location = useLocation();
-  const { user, logout } = useSimpleAuth();
+  const { user, logout } = useSecureAuth();
   const navigate = useNavigate();
 
   const navigationItems = [
@@ -36,12 +36,8 @@ const Navigation = () => {
   };
 
   const handleLogout = async () => {
-    try {
-      await logout();
-      navigate("/simple-login");
-    } catch (error) {
-      console.error('Error during logout:', error);
-    }
+    await logout();
+    navigate("/login");
   };
 
   // Si no hay usuario autenticado, no mostrar la navegación

@@ -1,6 +1,6 @@
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { useSimpleAuth } from "../contexts/SimpleAuthContext";
+import { useSecureAuth } from "../contexts/SecureAuthContext";
 import { useDataSegregation } from "../hooks/useDataSegregation";
 import { Link } from "react-router-dom";
 import { 
@@ -28,7 +28,7 @@ import {
 } from "lucide-react";
 
 const PersonalizedActions = () => {
-  const { user } = useSimpleAuth();
+  const { user } = useSecureAuth();
   const { getPermissions } = useDataSegregation();
 
   const permissions = getPermissions();

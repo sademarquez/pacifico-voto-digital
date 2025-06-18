@@ -1,11 +1,11 @@
-import { useState, useEffect } from "react";
+
+import { useState } from "react";
 import { useQuery } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
-import { Progress } from "@/components/ui/progress";
-import { useSimpleAuth } from "../contexts/SimpleAuthContext";
+import { useSecureAuth } from "../contexts/SecureAuthContext";
 import { useNavigate } from "react-router-dom";
 import { 
   Users, 
@@ -26,7 +26,7 @@ import {
 } from "lucide-react";
 
 const DashboardVotante = () => {
-  const { user } = useSimpleAuth();
+  const { user } = useSecureAuth();
   const navigate = useNavigate();
   const [activeGoal, setActiveGoal] = useState(0);
 

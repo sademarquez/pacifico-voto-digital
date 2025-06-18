@@ -1,13 +1,32 @@
 
-import { ReactNode } from 'react';
+import { useState } from "react";
+import Chatbot from "./Chatbot";
 
-interface ChatbotProviderProps {
-  children: ReactNode;
-}
+const ChatbotProvider = () => {
+  const [isOpen, setIsOpen] = useState(false);
+  const [isMinimized, setIsMinimized] = useState(true);
 
-// Componente simplificado que solo pasa los children
-const ChatbotProvider = ({ children }: ChatbotProviderProps) => {
-  return <>{children}</>;
+  const handleToggleMinimize = () => {
+    setIsMinimized(!isMinimized);
+    setIsOpen(true);
+  };
+
+  const handleClose = () => {
+    setIsOpen(false);
+    setIsMinimized(true);
+  };
+
+  return (
+    <>
+      {(isOpen || isMinimized) && (
+        <Chatbot
+          isMinimized={isMinimized}
+          onToggleMinimize={handleToggleMinimize}
+          onClose={handleClose}
+        />
+      )}
+    </>
+  );
 };
 
 export default ChatbotProvider;

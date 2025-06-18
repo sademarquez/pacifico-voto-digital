@@ -3,7 +3,7 @@ import { useQuery } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
-import { useSimpleAuth } from "../contexts/SimpleAuthContext";
+import { useSecureAuth } from "../contexts/SecureAuthContext";
 import { useDataSegregation } from "../hooks/useDataSegregation";
 import { 
   Users, 
@@ -20,7 +20,7 @@ import {
 import TestingResults from "./TestingResults";
 
 const RoleBasedStats = () => {
-  const { user, isLoading: authLoading } = useSimpleAuth();
+  const { user, isLoading: authLoading } = useSecureAuth();
   const { getPermissions } = useDataSegregation();
   const [showTesting, setShowTesting] = useState(false);
 
