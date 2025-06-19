@@ -1,292 +1,305 @@
 
-import { useState } from "react";
-import { Button } from "@/components/ui/button";
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { Badge } from "@/components/ui/badge";
+import { useState } from 'react';
+import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
+import { Button } from '@/components/ui/button';
+import { Badge } from '@/components/ui/badge';
+import { Input } from '@/components/ui/input';
+import { Label } from '@/components/ui/label';
+import { Textarea } from '@/components/ui/textarea';
 import { 
-  Zap, 
-  MessageSquare, 
-  Users, 
-  BarChart3, 
-  MapPin, 
+  Settings, 
+  Webhook, 
+  Play, 
+  Pause, 
+  CheckCircle, 
+  AlertCircle,
+  ExternalLink,
+  Copy,
+  RefreshCw,
+  Shield,
+  Users,
+  MessageSquare,
+  MapPin,
+  BarChart3,
   Calendar,
-  Settings,
-  Database,
-  Phone,
-  Mail,
-  Share2,
-  AlertTriangle,
-  CheckCircle
-} from "lucide-react";
-
-interface N8NComponent {
-  id: string;
-  name: string;
-  description: string;
-  icon: any;
-  category: 'auth' | 'data' | 'communication' | 'analytics' | 'automation';
-  status: 'active' | 'inactive' | 'error';
-  n8nWebhook?: string;
-  requiredData?: string[];
-  actions: string[];
-}
+  Bell
+} from 'lucide-react';
+import { useToast } from '@/hooks/use-toast';
+import { useSecureAuth } from '@/contexts/SecureAuthContext';
+import { useComponentFunctions, functionCategories, ComponentFunction } from '@/config/componentFunctions';
+import { useAppConfig } from '@/config/appConfig';
 
 const N8NComponentsManager = () => {
-  const [components] = useState<N8NComponent[]>([
-    {
-      id: 'user-auth',
-      name: 'Autenticación de Usuario',
-      description: 'Gestión de login, registro y perfiles de usuario',
-      icon: Users,
-      category: 'auth',
-      status: 'active',
-      n8nWebhook: '/webhook/user-auth',
-      requiredData: ['email', 'password', 'role'],
-      actions: ['login', 'register', 'logout', 'updateProfile']
-    },
-    {
-      id: 'voter-registration',
-      name: 'Registro de Votantes',
-      description: 'Captura y gestión de información de votantes',
-      icon: Database,
-      category: 'data',
-      status: 'active',
-      n8nWebhook: '/webhook/voter-registration',
-      requiredData: ['name', 'cedula', 'address', 'phone', 'territory'],
-      actions: ['createVoter', 'updateVoter', 'deleteVoter', 'searchVoter']
-    },
-    {
-      id: 'messaging-system',
-      name: 'Sistema de Mensajería',
-      description: 'Envío masivo y personalizado de mensajes',
-      icon: MessageSquare,
-      category: 'communication',
-      status: 'active',
-      n8nWebhook: '/webhook/messaging',
-      requiredData: ['recipients', 'message', 'priority', 'channel'],
-      actions: ['sendMessage', 'scheduleMessage', 'trackDelivery', 'generateReport']
-    },
-    {
-      id: 'territory-management',
-      name: 'Gestión Territorial',
-      description: 'Administración de territorios y estructuras',
-      icon: MapPin,
-      category: 'data',
-      status: 'active',
-      n8nWebhook: '/webhook/territory',
-      requiredData: ['name', 'coordinates', 'responsible', 'population'],
-      actions: ['createTerritory', 'assignLeader', 'updateBoundaries', 'generateStats']
-    },
-    {
-      id: 'analytics-engine',
-      name: 'Motor de Análisis',
-      description: 'Generación de reportes y métricas electorales',
-      icon: BarChart3,
-      category: 'analytics',
-      status: 'active',
-      n8nWebhook: '/webhook/analytics',
-      requiredData: ['metrics', 'period', 'territory', 'filters'],
-      actions: ['generateReport', 'exportData', 'scheduleReport', 'sendAlert']
-    },
-    {
-      id: 'event-coordinator',
-      name: 'Coordinador de Eventos',
-      description: 'Planificación y gestión de eventos de campaña',
-      icon: Calendar,
-      category: 'automation',
-      status: 'active',
-      n8nWebhook: '/webhook/events',
-      requiredData: ['title', 'date', 'location', 'attendees', 'budget'],
-      actions: ['createEvent', 'sendInvitations', 'trackAttendance', 'generateSummary']
-    },
-    {
-      id: 'whatsapp-integration',
-      name: 'Integración WhatsApp',
-      description: 'Comunicación directa vía WhatsApp Business',
-      icon: Phone,
-      category: 'communication',
-      status: 'inactive',
-      n8nWebhook: '/webhook/whatsapp',
-      requiredData: ['phone', 'message', 'template', 'variables'],
-      actions: ['sendWhatsApp', 'receiveMessage', 'updateStatus', 'manageTemplates']
-    },
-    {
-      id: 'email-campaigns',
-      name: 'Campañas de Email',
-      description: 'Envío masivo y seguimiento de emails',
-      icon: Mail,
-      category: 'communication',
-      status: 'inactive',
-      n8nWebhook: '/webhook/email',
-      requiredData: ['recipients', 'subject', 'template', 'attachments'],
-      actions: ['sendEmail', 'trackOpens', 'manageUnsubscribes', 'A/B testing']
-    },
-    {
-      id: 'social-media',
-      name: 'Redes Sociales',
-      description: 'Publicación automática en redes sociales',
-      icon: Share2,
-      category: 'communication',
-      status: 'inactive',
-      n8nWebhook: '/webhook/social',
-      requiredData: ['platform', 'content', 'media', 'schedule'],
-      actions: ['publishPost', 'scheduleContent', 'trackEngagement', 'manageAccounts']
-    },
-    {
-      id: 'alert-system',
-      name: 'Sistema de Alertas',
-      description: 'Monitoreo y alertas automáticas del sistema',
-      icon: AlertTriangle,
-      category: 'automation',
-      status: 'active',
-      n8nWebhook: '/webhook/alerts',
-      requiredData: ['type', 'severity', 'message', 'recipients'],
-      actions: ['createAlert', 'escalateIssue', 'resolveAlert', 'generateReport']
-    }
-  ]);
+  const [selectedFunction, setSelectedFunction] = useState<ComponentFunction | null>(null);
+  const [testData, setTestData] = useState('{}');
+  const [isExecuting, setIsExecuting] = useState(false);
+  const [results, setResults] = useState<any>(null);
+  
+  const { user } = useSecureAuth();
+  const { toast } = useToast();
+  const { functions, executeFunction, getFunctionsByCategory, getFunctionsByPermission } = useComponentFunctions();
+  const { app, components } = useAppConfig();
 
-  const executeN8NAction = async (componentId: string, action: string, data?: any) => {
-    const component = components.find(c => c.id === componentId);
-    if (!component || !component.n8nWebhook) {
-      console.error('Componente o webhook no encontrado');
-      return;
-    }
-
-    const payload = {
-      component: componentId,
-      action: action,
-      data: data || {},
-      timestamp: new Date().toISOString(),
-      user: 'system' // Se reemplazará con datos reales del usuario
-    };
+  const handleExecuteFunction = async () => {
+    if (!selectedFunction) return;
 
     try {
-      console.log(`Ejecutando acción N8N: ${action} en componente ${componentId}`, payload);
+      setIsExecuting(true);
+      const data = JSON.parse(testData);
       
-      // Aquí se haría la llamada real a N8N
-      // const response = await fetch(`${N8N_BASE_URL}${component.n8nWebhook}`, {
-      //   method: 'POST',
-      //   headers: { 'Content-Type': 'application/json' },
-      //   body: JSON.stringify(payload)
-      // });
+      const result = await executeFunction(selectedFunction.id, data, user?.role);
       
-      console.log('✅ Acción ejecutada exitosamente');
-      return { success: true, data: payload };
+      setResults(result);
+      toast({
+        title: "Función ejecutada",
+        description: `${selectedFunction.name} ejecutada correctamente`,
+      });
     } catch (error) {
-      console.error('❌ Error ejecutando acción N8N:', error);
-      return { success: false, error };
+      console.error('Error ejecutando función:', error);
+      toast({
+        title: "Error",
+        description: error instanceof Error ? error.message : 'Error desconocido',
+        variant: "destructive"
+      });
+    } finally {
+      setIsExecuting(false);
     }
   };
 
-  const getCategoryColor = (category: string) => {
-    switch (category) {
-      case 'auth': return 'bg-negro-800 text-white';
-      case 'data': return 'bg-verde-sistema-600 text-white';
-      case 'communication': return 'bg-rojo-acento-600 text-white';
-      case 'analytics': return 'bg-negro-600 text-white';
-      case 'automation': return 'bg-verde-sistema-700 text-white';
-      default: return 'bg-gray-500 text-white';
-    }
+  const copyToClipboard = (text: string) => {
+    navigator.clipboard.writeText(text);
+    toast({
+      title: "Copiado",
+      description: "Texto copiado al portapapeles",
+    });
   };
 
-  const getStatusIcon = (status: string) => {
-    switch (status) {
-      case 'active': return <CheckCircle className="w-4 h-4 text-verde-sistema-600" />;
-      case 'inactive': return <AlertTriangle className="w-4 h-4 text-rojo-acento-500" />;
-      case 'error': return <AlertTriangle className="w-4 h-4 text-rojo-acento-600" />;
-      default: return null;
-    }
+  const getIconComponent = (iconName: string) => {
+    const icons = {
+      Shield, Users, MessageSquare, MapPin, BarChart3, Calendar, Bell
+    };
+    return icons[iconName as keyof typeof icons] || Settings;
   };
+
+  const userFunctions = user?.role ? getFunctionsByPermission(user.role) : [];
 
   return (
-    <div className="p-6 space-y-6">
-      <div className="mb-8">
-        <h1 className="text-3xl font-bold text-negro-950 mb-2">
-          Manager de Componentes N8N
-        </h1>
-        <p className="text-negro-600">
-          Sistema de integración para automatización de procesos electorales
-        </p>
+    <div className="container mx-auto p-6 space-y-6">
+      <div className="flex items-center justify-between">
+        <div>
+          <h1 className="text-3xl font-bold text-negro-900">Gestor de Componentes N8N</h1>
+          <p className="text-negro-600">Configuración y testing de funciones del sistema</p>
+        </div>
+        <Badge className="bg-verde-sistema-600 text-white">
+          {userFunctions.length} funciones disponibles
+        </Badge>
       </div>
 
-      <div className="grid grid-cols-1 lg:grid-cols-2 xl:grid-cols-3 gap-6">
-        {components.map((component) => {
-          const Icon = component.icon;
+      {/* Configuración General */}
+      <Card className="border-2 border-verde-sistema-200">
+        <CardHeader>
+          <CardTitle className="flex items-center gap-2">
+            <Settings className="w-5 h-5" />
+            Configuración General
+          </CardTitle>
+        </CardHeader>
+        <CardContent className="space-y-4">
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+            <div>
+              <Label>URL de Landing (Visitantes)</Label>
+              <div className="flex gap-2">
+                <Input 
+                  value={app.landingUrl} 
+                  readOnly 
+                  className="font-mono text-sm"
+                />
+                <Button
+                  variant="outline"
+                  size="icon"
+                  onClick={() => copyToClipboard(app.landingUrl)}
+                >
+                  <Copy className="w-4 h-4" />
+                </Button>
+              </div>
+              <p className="text-xs text-negro-600 mt-1">
+                Configurable en <code>src/config/appConfig.ts</code>
+              </p>
+            </div>
+            
+            <div>
+              <Label>Versión del Sistema</Label>
+              <Input 
+                value={`${app.companyName} ${app.version}`} 
+                readOnly 
+                className="font-mono text-sm"
+              />
+            </div>
+          </div>
+        </CardContent>
+      </Card>
+
+      {/* Funciones por Categoría */}
+      <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+        {Object.entries(functionCategories).map(([category, config]) => {
+          const categoryFunctions = getFunctionsByCategory(category as ComponentFunction['category']);
+          const availableFunctions = categoryFunctions.filter(f => 
+            !f.requiresAuth || (user?.role && f.permissions.includes(user.role))
+          );
+          
+          if (availableFunctions.length === 0) return null;
+          
+          const IconComponent = getIconComponent(config.icon);
           
           return (
-            <Card key={component.id} className="sistema-card">
-              <CardHeader className="pb-3">
-                <div className="flex items-start justify-between">
-                  <div className="flex items-center space-x-3">
-                    <div className="p-2 bg-verde-sistema-100 rounded-lg">
-                      <Icon className="w-6 h-6 text-verde-sistema-600" />
-                    </div>
-                    <div>
-                      <CardTitle className="text-lg text-negro-900">
-                        {component.name}
-                      </CardTitle>
-                      <Badge className={getCategoryColor(component.category)}>
-                        {component.category}
-                      </Badge>
-                    </div>
-                  </div>
-                  {getStatusIcon(component.status)}
-                </div>
+            <Card key={category} className="border-2 border-negro-200">
+              <CardHeader>
+                <CardTitle className="flex items-center gap-2">
+                  <IconComponent className="w-5 h-5" />
+                  {config.name}
+                  <Badge variant="outline">
+                    {availableFunctions.length}
+                  </Badge>
+                </CardTitle>
               </CardHeader>
-              
-              <CardContent className="space-y-4">
-                <p className="text-sm text-negro-600">
-                  {component.description}
-                </p>
-                
+              <CardContent>
                 <div className="space-y-2">
-                  <h4 className="text-sm font-semibold text-negro-800">
-                    Acciones Disponibles:
-                  </h4>
-                  <div className="grid grid-cols-2 gap-2">
-                    {component.actions.map((action) => (
-                      <Button
-                        key={action}
-                        size="sm"
-                        variant="outline"
-                        onClick={() => executeN8NAction(component.id, action)}
-                        className="text-xs btn-verde border-verde-sistema-300 hover:bg-verde-sistema-50"
-                      >
-                        {action}
-                      </Button>
-                    ))}
-                  </div>
-                </div>
-                
-                {component.requiredData && (
-                  <div>
-                    <h4 className="text-sm font-semibold text-negro-800 mb-1">
-                      Datos Requeridos:
-                    </h4>
-                    <div className="flex flex-wrap gap-1">
-                      {component.requiredData.map((field) => (
-                        <Badge 
-                          key={field} 
-                          variant="secondary" 
-                          className="text-xs bg-negro-100 text-negro-700"
-                        >
-                          {field}
-                        </Badge>
-                      ))}
+                  {availableFunctions.map((func) => (
+                    <div 
+                      key={func.id}
+                      className={`p-3 border rounded-lg cursor-pointer transition-colors ${
+                        selectedFunction?.id === func.id 
+                          ? 'border-verde-sistema-500 bg-verde-sistema-50' 
+                          : 'border-negro-200 hover:border-negro-300'
+                      }`}
+                      onClick={() => setSelectedFunction(func)}
+                    >
+                      <div className="flex items-center justify-between">
+                        <div>
+                          <div className="font-medium text-sm">{func.name}</div>
+                          <div className="text-xs text-negro-600">{func.description}</div>
+                          {func.n8nWebhook && (
+                            <div className="text-xs text-verde-sistema-600 font-mono mt-1">
+                              {func.n8nWebhook}
+                            </div>
+                          )}
+                        </div>
+                        <div className="flex flex-col items-end gap-1">
+                          {func.enabled ? (
+                            <CheckCircle className="w-4 h-4 text-verde-sistema-600" />
+                          ) : (
+                            <AlertCircle className="w-4 h-4 text-negro-400" />
+                          )}
+                          {func.requiresAuth && (
+                            <Shield className="w-3 h-3 text-rojo-acento-600" />
+                          )}
+                        </div>
+                      </div>
                     </div>
-                  </div>
-                )}
-                
-                <div className="pt-2 border-t border-negro-200">
-                  <p className="text-xs text-negro-500">
-                    Webhook: {component.n8nWebhook || 'No configurado'}
-                  </p>
+                  ))}
                 </div>
               </CardContent>
             </Card>
           );
         })}
       </div>
+
+      {/* Panel de Testing */}
+      {selectedFunction && (
+        <Card className="border-2 border-rojo-acento-200">
+          <CardHeader>
+            <CardTitle className="flex items-center gap-2">
+              <Play className="w-5 h-5" />
+              Testing: {selectedFunction.name}
+            </CardTitle>
+          </CardHeader>
+          <CardContent className="space-y-4">
+            <div className="grid grid-cols-1 lg:grid-cols-2 gap-4">
+              <div>
+                <Label>Datos de Prueba (JSON)</Label>
+                <Textarea
+                  value={testData}
+                  onChange={(e) => setTestData(e.target.value)}
+                  placeholder='{"campo": "valor"}'
+                  className="font-mono text-sm h-32"
+                />
+              </div>
+              
+              <div>
+                <Label>Información de la Función</Label>
+                <div className="bg-negro-50 p-3 rounded border text-sm space-y-2">
+                  <div><strong>ID:</strong> {selectedFunction.id}</div>
+                  <div><strong>Categoría:</strong> {selectedFunction.category}</div>
+                  <div><strong>Webhook:</strong> {selectedFunction.n8nWebhook || 'N/A'}</div>
+                  <div><strong>Requiere Auth:</strong> {selectedFunction.requiresAuth ? 'Sí' : 'No'}</div>
+                  <div><strong>Permisos:</strong> {selectedFunction.permissions.join(', ')}</div>
+                </div>
+              </div>
+            </div>
+            
+            <div className="flex gap-2">
+              <Button 
+                onClick={handleExecuteFunction}
+                disabled={isExecuting || !selectedFunction.enabled}
+                className="bg-verde-sistema-600 hover:bg-verde-sistema-700"
+              >
+                {isExecuting ? (
+                  <>
+                    <RefreshCw className="w-4 h-4 mr-2 animate-spin" />
+                    Ejecutando...
+                  </>
+                ) : (
+                  <>
+                    <Play className="w-4 h-4 mr-2" />
+                    Ejecutar Función
+                  </>
+                )}
+              </Button>
+              
+              {selectedFunction.n8nWebhook && (
+                <Button 
+                  variant="outline"
+                  onClick={() => copyToClipboard(selectedFunction.n8nWebhook!)}
+                >
+                  <Copy className="w-4 h-4 mr-2" />
+                  Copiar Webhook
+                </Button>
+              )}
+            </div>
+            
+            {results && (
+              <div>
+                <Label>Resultado</Label>
+                <pre className="bg-negro-900 text-verde-sistema-400 p-3 rounded text-xs overflow-auto max-h-48">
+                  {JSON.stringify(results, null, 2)}
+                </pre>
+              </div>
+            )}
+          </CardContent>
+        </Card>
+      )}
+
+      {/* Información de Configuración */}
+      <Card className="border-2 border-negro-200">
+        <CardHeader>
+          <CardTitle>📋 Guía de Configuración</CardTitle>
+        </CardHeader>
+        <CardContent className="space-y-3 text-sm">
+          <div className="bg-verde-sistema-50 p-3 rounded border border-verde-sistema-200">
+            <strong className="text-verde-sistema-800">1. Configurar URLs:</strong>
+            <p className="text-negro-700">Edita <code>src/config/appConfig.ts</code> para cambiar la URL de landing de visitantes</p>
+          </div>
+          
+          <div className="bg-rojo-acento-50 p-3 rounded border border-rojo-acento-200">
+            <strong className="text-rojo-acento-800">2. Activar/Desactivar Funciones:</strong>
+            <p className="text-negro-700">Modifica <code>src/config/componentFunctions.ts</code> para habilitar o deshabilitar funciones específicas</p>
+          </div>
+          
+          <div className="bg-negro-50 p-3 rounded border border-negro-200">
+            <strong className="text-negro-800">3. Configurar N8N:</strong>
+            <p className="text-negro-700">Actualiza las URLs de webhook en <code>src/config/n8nConfig.ts</code> con tu instancia de N8N</p>
+          </div>
+        </CardContent>
+      </Card>
     </div>
   );
 };
