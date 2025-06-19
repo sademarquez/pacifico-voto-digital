@@ -22,7 +22,8 @@ import {
   MapPin,
   BarChart3,
   Calendar,
-  Bell
+  Bell,
+  Zap
 } from 'lucide-react';
 import { useToast } from '@/hooks/use-toast';
 import { useSecureAuth } from '@/contexts/SecureAuthContext';
@@ -37,7 +38,7 @@ const N8NComponentsManager = () => {
   
   const { user } = useSecureAuth();
   const { toast } = useToast();
-  const { functions, executeFunction, getFunctionsByCategory, getFunctionsByPermission } = useComponentFunctions();
+  const { functions, executeFunction, getFunctionsByCategory, getFunctionsByPermission, demoMode } = useComponentFunctions();
   const { app, components } = useAppConfig();
 
   const handleExecuteFunction = async () => {
@@ -47,7 +48,7 @@ const N8NComponentsManager = () => {
       setIsExecuting(true);
       const data = JSON.parse(testData);
       
-      const result = await executeFunction(selectedFunction.id, data, user?.role);
+      const result = await executeFunction(selectedFunction.id, data, user?.role || 'public');
       
       setResults(result);
       toast({
@@ -81,14 +82,22 @@ const N8NComponentsManager = () => {
     return icons[iconName as keyof typeof icons] || Settings;
   };
 
-  const userFunctions = user?.role ? getFunctionsByPermission(user.role) : [];
+  const userFunctions = demoMode ? functions.filter(f => f.demoAccess) : (user?.role ? getFunctionsByPermission(user.role) : []);
 
   return (
     <div className="container mx-auto p-6 space-y-6">
       <div className="flex items-center justify-between">
         <div>
-          <h1 className="text-3xl font-bold text-negro-900">Gestor de Componentes N8N</h1>
+          <h1 className="text-3xl font-bold text-negro-900 flex items-center gap-2">
+            <Zap className="w-8 h-8 text-verde-sistema-600" />
+            Gestor de Componentes N8N
+          </h1>
           <p className="text-negro-600">Configuración y testing de funciones del sistema</p>
+          {demoMode && (
+            <div className="bg-verde-sistema-100 p-2 rounded-lg mt-2 border border-verde-sistema-300">
+              <p className="text-verde-sistema-800 text-sm font-medium">🎮 MODO DEMO - Todas las funciones disponibles</p>
+            </div>
+          )}
         </div>
         <Badge className="bg-verde-sistema-600 text-white">
           {userFunctions.length} funciones disponibles
@@ -100,13 +109,13 @@ const N8NComponentsManager = () => {
         <CardHeader>
           <CardTitle className="flex items-center gap-2">
             <Settings className="w-5 h-5" />
-            Configuración General
+            Configuración General del Sistema
           </CardTitle>
         </CardHeader>
         <CardContent className="space-y-4">
           <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
             <div>
-              <Label>URL de Landing (Visitantes)</Label>
+              <Label>URL de Landing para Visitantes</Label>
               <div className="flex gap-2">
                 <Input 
                   value={app.landingUrl} 
@@ -122,17 +131,30 @@ const N8NComponentsManager = () => {
                 </Button>
               </div>
               <p className="text-xs text-negro-600 mt-1">
-                Configurable en <code>src/config/appConfig.ts</code>
+                📝 Configurable en <code>src/config/appConfig.ts</code>
               </p>
             </div>
             
             <div>
-              <Label>Versión del Sistema</Label>
+              <Label>Información del Sistema</Label>
               <Input 
                 value={`${app.companyName} ${app.version}`} 
                 readOnly 
                 className="font-mono text-sm"
               />
+              <p className="text-xs text-negro-600 mt-1">
+                Modo Demo: {app.demoMode ? '✅ Activo' : '❌ Inactivo'}
+              </p>
+            </div>
+          </div>
+
+          <div className="bg-negro-100 p-4 rounded-lg border border-negro-300">
+            <h3 className="font-bold text-sm text-negro-800 mb-2">🔧 Configuración N8N</h3>
+            <div className="text-xs text-negro-700 space-y-1">
+              <div>• <strong>Base URL N8N:</strong> Configurable en <code>src/config/n8nConfig.ts</code></div>
+              <div>• <strong>Webhooks:</strong> Mapeo automático por categoría de función</div>
+              <div>• <strong>Timeout:</strong> 30 segundos por defecto</div>
+              <div>• <strong>Reintentos:</strong> 3 intentos automáticos</div>
             </div>
           </div>
         </CardContent>
@@ -142,9 +164,11 @@ const N8NComponentsManager = () => {
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
         {Object.entries(functionCategories).map(([category, config]) => {
           const categoryFunctions = getFunctionsByCategory(category as ComponentFunction['category']);
-          const availableFunctions = categoryFunctions.filter(f => 
-            !f.requiresAuth || (user?.role && f.permissions.includes(user.role))
-          );
+          const availableFunctions = demoMode 
+            ? categoryFunctions.filter(f => f.demoAccess)
+            : categoryFunctions.filter(f => 
+                !f.requiresAuth || (user?.role && f.permissions.includes(user.role))
+              );
           
           if (availableFunctions.length === 0) return null;
           
@@ -159,6 +183,7 @@ const N8NComponentsManager = () => {
                   <Badge variant="outline">
                     {availableFunctions.length}
                   </Badge>
+                  {demoMode && <Badge className="bg-verde-sistema-500 text-white text-xs">DEMO</Badge>}
                 </CardTitle>
               </CardHeader>
               <CardContent>
@@ -179,7 +204,7 @@ const N8NComponentsManager = () => {
                           <div className="text-xs text-negro-600">{func.description}</div>
                           {func.n8nWebhook && (
                             <div className="text-xs text-verde-sistema-600 font-mono mt-1">
-                              {func.n8nWebhook}
+                              🔗 {func.n8nWebhook}
                             </div>
                           )}
                         </div>
@@ -189,8 +214,11 @@ const N8NComponentsManager = () => {
                           ) : (
                             <AlertCircle className="w-4 h-4 text-negro-400" />
                           )}
-                          {func.requiresAuth && (
+                          {func.requiresAuth && !demoMode && (
                             <Shield className="w-3 h-3 text-rojo-acento-600" />
+                          )}
+                          {func.demoAccess && (
+                            <Badge className="bg-verde-sistema-100 text-verde-sistema-800 text-xs">DEMO</Badge>
                           )}
                         </div>
                       </div>
@@ -210,6 +238,7 @@ const N8NComponentsManager = () => {
             <CardTitle className="flex items-center gap-2">
               <Play className="w-5 h-5" />
               Testing: {selectedFunction.name}
+              {demoMode && <Badge className="bg-verde-sistema-500 text-white">MODO DEMO</Badge>}
             </CardTitle>
           </CardHeader>
           <CardContent className="space-y-4">
@@ -219,7 +248,7 @@ const N8NComponentsManager = () => {
                 <Textarea
                   value={testData}
                   onChange={(e) => setTestData(e.target.value)}
-                  placeholder='{"campo": "valor"}'
+                  placeholder='{"campo": "valor", "datos": "ejemplo"}'
                   className="font-mono text-sm h-32"
                 />
               </div>
@@ -229,9 +258,10 @@ const N8NComponentsManager = () => {
                 <div className="bg-negro-50 p-3 rounded border text-sm space-y-2">
                   <div><strong>ID:</strong> {selectedFunction.id}</div>
                   <div><strong>Categoría:</strong> {selectedFunction.category}</div>
-                  <div><strong>Webhook:</strong> {selectedFunction.n8nWebhook || 'N/A'}</div>
-                  <div><strong>Requiere Auth:</strong> {selectedFunction.requiresAuth ? 'Sí' : 'No'}</div>
+                  <div><strong>Webhook N8N:</strong> {selectedFunction.n8nWebhook || 'N/A'}</div>
+                  <div><strong>Requiere Auth:</strong> {selectedFunction.requiresAuth && !demoMode ? 'Sí' : 'No (Demo)'}</div>
                   <div><strong>Permisos:</strong> {selectedFunction.permissions.join(', ')}</div>
+                  <div><strong>Demo Access:</strong> {selectedFunction.demoAccess ? '✅' : '❌'}</div>
                 </div>
               </div>
             </div>
@@ -268,7 +298,7 @@ const N8NComponentsManager = () => {
             
             {results && (
               <div>
-                <Label>Resultado</Label>
+                <Label>Resultado de la Ejecución</Label>
                 <pre className="bg-negro-900 text-verde-sistema-400 p-3 rounded text-xs overflow-auto max-h-48">
                   {JSON.stringify(results, null, 2)}
                 </pre>
@@ -278,26 +308,33 @@ const N8NComponentsManager = () => {
         </Card>
       )}
 
-      {/* Información de Configuración */}
+      {/* Guía de Configuración */}
       <Card className="border-2 border-negro-200">
         <CardHeader>
-          <CardTitle>📋 Guía de Configuración</CardTitle>
+          <CardTitle>📋 Guía de Configuración Final</CardTitle>
         </CardHeader>
         <CardContent className="space-y-3 text-sm">
           <div className="bg-verde-sistema-50 p-3 rounded border border-verde-sistema-200">
-            <strong className="text-verde-sistema-800">1. Configurar URLs:</strong>
-            <p className="text-negro-700">Edita <code>src/config/appConfig.ts</code> para cambiar la URL de landing de visitantes</p>
+            <strong className="text-verde-sistema-800">1. URLs del Sistema:</strong>
+            <p className="text-negro-700">Edita <code>src/config/appConfig.ts</code> para cambiar URL de landing y configuración general</p>
           </div>
           
           <div className="bg-rojo-acento-50 p-3 rounded border border-rojo-acento-200">
-            <strong className="text-rojo-acento-800">2. Activar/Desactivar Funciones:</strong>
-            <p className="text-negro-700">Modifica <code>src/config/componentFunctions.ts</code> para habilitar o deshabilitar funciones específicas</p>
+            <strong className="text-rojo-acento-800">2. Funciones de Componentes:</strong>
+            <p className="text-negro-700">Modifica <code>src/config/componentFunctions.ts</code> para activar/desactivar funciones y configurar permisos</p>
           </div>
           
           <div className="bg-negro-50 p-3 rounded border border-negro-200">
-            <strong className="text-negro-800">3. Configurar N8N:</strong>
-            <p className="text-negro-700">Actualiza las URLs de webhook en <code>src/config/n8nConfig.ts</code> con tu instancia de N8N</p>
+            <strong className="text-negro-800">3. Conexión N8N:</strong>
+            <p className="text-negro-700">Actualiza <code>src/config/n8nConfig.ts</code> con tu instancia de N8N y configura webhooks</p>
           </div>
+
+          {demoMode && (
+            <div className="bg-verde-sistema-100 p-3 rounded border border-verde-sistema-300">
+              <strong className="text-verde-sistema-800">🎮 MODO DEMO ACTIVO:</strong>
+              <p className="text-negro-700">Todas las funciones están disponibles sin restricciones de autenticación para facilitar las pruebas</p>
+            </div>
+          )}
         </CardContent>
       </Card>
     </div>

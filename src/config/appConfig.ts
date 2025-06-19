@@ -6,6 +6,8 @@ export interface AppConfig {
   systemName: string;
   supportEmail: string;
   version: string;
+  demoMode: boolean;
+  autoRedirectVisitors: boolean;
 }
 
 export interface ComponentConfig {
@@ -13,6 +15,7 @@ export interface ComponentConfig {
     enabled: boolean;
     provider: 'supabase' | 'n8n' | 'custom';
     redirectAfterLogin: string;
+    demoMode: boolean;
   };
   voterRegistration: {
     enabled: boolean;
@@ -41,26 +44,29 @@ export interface ComponentConfig {
   };
 }
 
-// Configuración principal de la aplicación
+// Configuración principal de la aplicación - DEMO ABIERTO
 export const appConfig: AppConfig = {
-  landingUrl: "https://tu-dominio.com/landing", // CAMBIAR POR TU URL
+  landingUrl: "https://tu-dominio.com/landing", // CAMBIAR POR TU URL DE LANDING
   visitorFunnelUrl: "/visitor-funnel",
   companyName: "MI CAMPAÑA",
-  systemName: "Sistema Electoral",
+  systemName: "Sistema Electoral Demo",
   supportEmail: "soporte@micampana.com",
-  version: "2.0.0"
+  version: "2.0.0",
+  demoMode: true, // ACCESOS LIBRES PARA DEMO
+  autoRedirectVisitors: true
 };
 
-// Configuración de componentes - PERSONALIZAR SEGÚN NECESIDADES
+// Configuración de componentes - OPTIMIZADA PARA DEMO
 export const componentConfig: ComponentConfig = {
   userAuth: {
     enabled: true,
     provider: 'supabase',
-    redirectAfterLogin: '/dashboard'
+    redirectAfterLogin: '/dashboard',
+    demoMode: true // ACCESO LIBRE AL DEMO
   },
   voterRegistration: {
     enabled: true,
-    requiresApproval: false,
+    requiresApproval: false, // SIN APROBACIÓN PARA DEMO
     fields: ['name', 'email', 'phone', 'address', 'cedula']
   },
   messagingSystem: {

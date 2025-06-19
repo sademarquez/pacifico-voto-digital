@@ -5,6 +5,7 @@ export interface N8NConfig {
   apiKey?: string;
   timeout: number;
   retryAttempts: number;
+  demoMode: boolean;
 }
 
 export interface N8NWebhookPayload {
@@ -15,6 +16,7 @@ export interface N8NWebhookPayload {
   userId?: string;
   userRole?: string;
   sessionId?: string;
+  demoMode?: boolean;
 }
 
 export interface N8NResponse {
@@ -24,29 +26,46 @@ export interface N8NResponse {
   executionId?: string;
 }
 
-// Configuración por defecto para N8N
+// Configuración optimizada para N8N - VERSIÓN FINAL
 export const defaultN8NConfig: N8NConfig = {
-  baseUrl: process.env.N8N_BASE_URL || 'http://localhost:5678',
+  baseUrl: process.env.N8N_BASE_URL || 'http://localhost:5678', // CAMBIAR POR TU INSTANCIA N8N
   webhookPrefix: '/webhook',
   timeout: 30000, // 30 segundos
-  retryAttempts: 3
+  retryAttempts: 3,
+  demoMode: true // MODO DEMO ACTIVADO POR DEFECTO
 };
 
-// Mapeo de componentes a webhooks
+// Mapeo completo de componentes a webhooks N8N
 export const componentWebhooks = {
+  // AUTENTICACIÓN
   'user-auth': '/webhook/user-auth',
+  
+  // GESTIÓN DE VOTANTES
   'voter-registration': '/webhook/voter-registration',
+  
+  // SISTEMA DE MENSAJERÍA
   'messaging-system': '/webhook/messaging',
-  'territory-management': '/webhook/territory',
-  'analytics-engine': '/webhook/analytics',
-  'event-coordinator': '/webhook/events',
   'whatsapp-integration': '/webhook/whatsapp',
   'email-campaigns': '/webhook/email',
-  'social-media': '/webhook/social',
-  'alert-system': '/webhook/alerts'
+  'sms-campaigns': '/webhook/sms',
+  
+  // GESTIÓN TERRITORIAL
+  'territory-management': '/webhook/territory',
+  
+  // ANALYTICS Y REPORTES
+  'analytics-engine': '/webhook/analytics',
+  
+  // COORDINACIÓN DE EVENTOS
+  'event-coordinator': '/webhook/events',
+  
+  // SISTEMA DE ALERTAS
+  'alert-system': '/webhook/alerts',
+  
+  // REDES SOCIALES
+  'social-media': '/webhook/social'
 };
 
-// Clase para manejar las comunicaciones con N8N
+// Cliente N8N optimizado para la versión final
 export class N8NClient {
   private config: N8NConfig;
 
@@ -63,6 +82,22 @@ export class N8NClient {
     const webhook = componentWebhooks[component as keyof typeof componentWebhooks];
     
     if (!webhook) {
+      console.warn(`⚠️ Webhook no encontrado para el componente: ${component}`);
+      
+      // En modo demo, simular respuesta exitosa
+      if (this.config.demoMode) {
+        return {
+          success: true,
+          data: {
+            message: `Función ${component}/${action} ejecutada en modo demo`,
+            component,
+            action,
+            timestamp: new Date().toISOString(),
+            demoMode: true
+          }
+        };
+      }
+      
       return {
         success: false,
         error: `Webhook no encontrado para el componente: ${component}`
@@ -74,11 +109,43 @@ export class N8NClient {
       action,
       data,
       timestamp: new Date().toISOString(),
+      demoMode: this.config.demoMode,
       ...metadata
     };
 
     const url = `${this.config.baseUrl}${webhook}`;
 
+    // En modo demo, simular delay y respuesta
+    if (this.config.demoMode) {
+      console.log(`🎮 MODO DEMO - Simulando ejecución N8N:`, {
+        url,
+        component,
+        action,
+        payload
+      });
+      
+      // Simular delay de red
+      await new Promise(resolve => setTimeout(resolve, 500 + Math.random() * 1000));
+      
+      return {
+        success: true,
+        data: {
+          message: `Función ${component}/${action} ejecutada exitosamente en modo demo`,
+          component,
+          action,
+          timestamp: new Date().toISOString(),
+          simulatedResponse: {
+            status: 'success',
+            processedData: data,
+            executionTime: Math.round(Math.random() * 1000) + 'ms'
+          },
+          demoMode: true
+        },
+        executionId: `demo-${Date.now()}-${Math.random().toString(36).substr(2, 9)}`
+      };
+    }
+
+    // Ejecución real de N8N
     for (let attempt = 1; attempt <= this.config.retryAttempts; attempt++) {
       try {
         console.log(`🔄 Ejecutando N8N webhook (intento ${attempt}):`, {
@@ -138,7 +205,7 @@ export class N8NClient {
     };
   }
 
-  // Métodos específicos para cada componente
+  // Métodos específicos optimizados para cada componente
   async authenticateUser(email: string, password: string) {
     return this.executeWebhook('user-auth', 'login', { email, password });
   }
@@ -171,6 +238,10 @@ export class N8NClient {
     return this.executeWebhook('email-campaigns', 'sendEmail', emailData);
   }
 
+  async sendSMS(smsData: any) {
+    return this.executeWebhook('sms-campaigns', 'sendSMS', smsData);
+  }
+
   async publishSocialMedia(postData: any) {
     return this.executeWebhook('social-media', 'publishPost', postData);
   }
@@ -178,16 +249,31 @@ export class N8NClient {
   async createAlert(alertData: any) {
     return this.executeWebhook('alert-system', 'createAlert', alertData);
   }
+
+  // Configuración de N8N
+  updateConfig(newConfig: Partial<N8NConfig>) {
+    this.config = { ...this.config, ...newConfig };
+  }
+
+  getConfig(): N8NConfig {
+    return { ...this.config };
+  }
 }
 
 // Instancia global del cliente N8N
 export const n8nClient = new N8NClient();
 
-// Hook para usar N8N en componentes React
+// Hook optimizado para usar N8N en componentes React
 export const useN8N = () => {
   return {
     client: n8nClient,
+    config: n8nClient.getConfig(),
+    updateConfig: n8nClient.updateConfig.bind(n8nClient),
+    
+    // Métodos de ejecución
     executeWebhook: n8nClient.executeWebhook.bind(n8nClient),
+    
+    // Métodos específicos
     authenticateUser: n8nClient.authenticateUser.bind(n8nClient),
     registerVoter: n8nClient.registerVoter.bind(n8nClient),
     sendMessage: n8nClient.sendMessage.bind(n8nClient),
@@ -196,6 +282,7 @@ export const useN8N = () => {
     createEvent: n8nClient.createEvent.bind(n8nClient),
     sendWhatsApp: n8nClient.sendWhatsApp.bind(n8nClient),
     sendEmail: n8nClient.sendEmail.bind(n8nClient),
+    sendSMS: n8nClient.sendSMS.bind(n8nClient),
     publishSocialMedia: n8nClient.publishSocialMedia.bind(n8nClient),
     createAlert: n8nClient.createAlert.bind(n8nClient)
   };

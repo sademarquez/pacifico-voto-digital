@@ -1,10 +1,11 @@
+
 import { useState, useEffect } from "react";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Alert, AlertDescription } from "@/components/ui/alert";
-import { Shield, Eye, EyeOff, AlertCircle, CheckCircle, User, Mail, Lock, Users, ExternalLink } from "lucide-react";
+import { Shield, Eye, EyeOff, AlertCircle, CheckCircle, User, Lock, Users, ExternalLink, Play } from "lucide-react";
 import { useSecureAuth } from "@/contexts/SecureAuthContext";
 import { useDemoCredentials } from "@/hooks/useDemoCredentials";
 import { useNavigate, useLocation } from "react-router-dom";
@@ -31,7 +32,6 @@ const Login = () => {
     if (isAuthenticated) {
       console.log('✅ USUARIO AUTENTICADO - REDIRIGIENDO A DASHBOARD');
       
-      // Verificar si viene de una página protegida
       const from = location.state?.from?.pathname || '/dashboard';
       console.log('🎯 REDIRIGIENDO A:', from);
       
@@ -76,10 +76,8 @@ const Login = () => {
     clearAuthError();
 
     try {
-      // Determinar si es email o nombre de usuario
       let emailToUse = username.trim();
       
-      // Si no contiene @, intentar mapear nombre a email
       if (!emailToUse.includes('@')) {
         const mappedEmail = getEmailFromName(username);
         if (mappedEmail) {
@@ -109,7 +107,6 @@ const Login = () => {
           title: "¡Login exitoso!",
           description: `Bienvenido ${username} - Cargando dashboard...`,
         });
-        // La navegación se manejará automáticamente por el useEffect de isAuthenticated
       } else {
         console.log('❌ LOGIN FALLÓ');
       }
@@ -137,22 +134,28 @@ const Login = () => {
   const handleVisitorAccess = () => {
     console.log('🚀 ACCESO DE VISITANTE - REDIRIGIENDO A FUNNEL');
     
-    // Verificar si hay URL externa configurada
     if (app.landingUrl && app.landingUrl !== "https://tu-dominio.com/landing") {
-      // Redireccionar a URL externa
       window.open(app.landingUrl, '_blank');
       toast({
         title: "Acceso de Visitante",
         description: "Abriendo landing page en nueva ventana",
       });
     } else {
-      // Redireccionar a página interna
       navigate(app.visitorFunnelUrl);
       toast({
         title: "Acceso de Visitante",
         description: "Redirigiendo al funnel de visitantes",
       });
     }
+  };
+
+  const handleDemoAccess = () => {
+    console.log('🎮 ACCESO DIRECTO AL DEMO');
+    navigate('/dashboard');
+    toast({
+      title: "¡Acceso Demo Directo!",
+      description: "Explorando el sistema sin restricciones",
+    });
   };
 
   // Si ya está autenticado, mostrar mensaje de carga
@@ -192,6 +195,11 @@ const Login = () => {
                   {app.companyName}
                 </CardTitle>
                 <p className="text-negro-600">{app.systemName}</p>
+                {app.demoMode && (
+                  <div className="bg-verde-sistema-100 p-2 rounded-lg mt-2 border border-verde-sistema-300">
+                    <p className="text-verde-sistema-800 text-sm font-medium">🎮 MODO DEMO ACTIVO - ACCESO LIBRE</p>
+                  </div>
+                )}
               </CardHeader>
               
               <CardContent>
@@ -260,7 +268,22 @@ const Login = () => {
                       {isLoading ? "Autenticando..." : "Iniciar Sesión"}
                     </Button>
                     
-                    {/* NUEVO: Botón de Acceso para Visitantes */}
+                    {/* ACCESO DIRECTO AL DEMO */}
+                    {app.demoMode && (
+                      <Button
+                        type="button"
+                        variant="outline"
+                        onClick={handleDemoAccess}
+                        className="w-full border-2 border-verde-sistema-500 text-verde-sistema-700 hover:bg-verde-sistema-50 flex items-center gap-2 font-bold py-3"
+                        disabled={isLoading}
+                      >
+                        <Play className="w-4 h-4" />
+                        🎮 ACCESO DIRECTO AL DEMO
+                        <Play className="w-4 h-4" />
+                      </Button>
+                    )}
+                    
+                    {/* BOTÓN DE ACCESO PARA VISITANTES */}
                     <Button
                       type="button"
                       variant="outline"
@@ -307,7 +330,8 @@ const Login = () => {
                   <p>• ✅ Login y navegación automática al dashboard</p>
                   <p>• ✅ Redirección automática funcionando perfectamente</p>
                   <p>• ✅ Integración N8N lista para configurar</p>
-                  <p>• 🆕 <strong>Acceso para visitantes configurado</strong></p>
+                  <p>• 🆕 <strong>Acceso directo para demo sin restricciones</strong></p>
+                  <p>• 🎯 <strong>Acceso para visitantes configurado</strong></p>
                 </div>
               </CardContent>
             </Card>
@@ -356,14 +380,18 @@ const Login = () => {
                   <div className="mt-6 p-4 bg-gradient-to-r from-verde-sistema-50 to-negro-50 rounded-lg border-2 border-verde-sistema-200">
                     <h3 className="font-bold text-sm text-verde-sistema-800 mb-3">🚀 SISTEMA 100% FUNCIONAL CON N8N</h3>
                     <div className="text-xs text-negro-700 space-y-2">
-                      <div>1. <strong>Selecciona</strong> una credencial con "Usar"</div>
-                      <div>2. <strong>Haz clic</strong> en "Iniciar Sesión"</div>
-                      <div>3. <strong>Automáticamente</strong> te redirige al dashboard</div>
-                      <div>4. <strong>Interactúa</strong> con la base de datos en tiempo real</div>
-                      <div>5. <strong>Configura N8N</strong> desde el panel de componentes</div>
+                      <div>1. <strong>Acceso Directo:</strong> Botón "ACCESO DIRECTO AL DEMO" para probar sin login</div>
+                      <div>2. <strong>Credenciales:</strong> Selecciona una credencial con "Usar"</div>
+                      <div>3. <strong>Login:</strong> Haz clic en "Iniciar Sesión"</div>
+                      <div>4. <strong>Dashboard:</strong> Automáticamente te redirige al dashboard</div>
+                      <div>5. <strong>N8N:</strong> Configura desde el panel de componentes</div>
                       <div className="mt-3 p-2 bg-verde-sistema-100 rounded border border-verde-sistema-300">
                         <strong className="text-verde-sistema-800">🎯 ACCESO VISITANTES:</strong> 
                         <br />URL configurable en <code>src/config/appConfig.ts</code>
+                      </div>
+                      <div className="mt-2 p-2 bg-rojo-acento-100 rounded border border-rojo-acento-300">
+                        <strong className="text-rojo-acento-800">🎮 MODO DEMO:</strong> 
+                        <br />Acceso libre a todas las funciones sin restricciones
                       </div>
                     </div>
                   </div>

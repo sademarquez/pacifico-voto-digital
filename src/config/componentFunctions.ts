@@ -12,12 +12,12 @@ export interface ComponentFunction {
   customFunction?: () => Promise<any>;
   requiresAuth: boolean;
   permissions: string[];
+  demoAccess: boolean; // NUEVO: Acceso libre para demo
 }
 
-// CONFIGURACIÓN DE FUNCIONES DISPONIBLES
-// PERSONALIZAR SEGÚN TUS NECESIDADES
+// CONFIGURACIÓN DE FUNCIONES DISPONIBLES - DEMO ABIERTO
 export const componentFunctions: ComponentFunction[] = [
-  // AUTENTICACIÓN
+  // AUTENTICACIÓN - ACCESO LIBRE
   {
     id: 'auth-login',
     name: 'Autenticar Usuario',
@@ -26,7 +26,8 @@ export const componentFunctions: ComponentFunction[] = [
     enabled: true,
     n8nWebhook: '/webhook/user-auth',
     requiresAuth: false,
-    permissions: ['public']
+    permissions: ['public'],
+    demoAccess: true
   },
   {
     id: 'auth-register',
@@ -36,10 +37,11 @@ export const componentFunctions: ComponentFunction[] = [
     enabled: true,
     n8nWebhook: '/webhook/user-register',
     requiresAuth: false,
-    permissions: ['public']
+    permissions: ['public'],
+    demoAccess: true
   },
 
-  // REGISTRO DE VOTANTES
+  // REGISTRO DE VOTANTES - ACCESO LIBRE PARA DEMO
   {
     id: 'voter-create',
     name: 'Registrar Votante',
@@ -47,8 +49,9 @@ export const componentFunctions: ComponentFunction[] = [
     category: 'voter',
     enabled: true,
     n8nWebhook: '/webhook/voter-registration',
-    requiresAuth: true,
-    permissions: ['lider', 'candidato', 'master', 'desarrollador']
+    requiresAuth: false, // ACCESO LIBRE PARA DEMO
+    permissions: ['public', 'lider', 'candidato', 'master', 'desarrollador'],
+    demoAccess: true
   },
   {
     id: 'voter-update',
@@ -57,8 +60,9 @@ export const componentFunctions: ComponentFunction[] = [
     category: 'voter',
     enabled: true,
     n8nWebhook: '/webhook/voter-update',
-    requiresAuth: true,
-    permissions: ['lider', 'candidato', 'master', 'desarrollador']
+    requiresAuth: false,
+    permissions: ['public', 'lider', 'candidato', 'master', 'desarrollador'],
+    demoAccess: true
   },
   {
     id: 'voter-search',
@@ -67,11 +71,12 @@ export const componentFunctions: ComponentFunction[] = [
     category: 'voter',
     enabled: true,
     n8nWebhook: '/webhook/voter-search',
-    requiresAuth: true,
-    permissions: ['lider', 'candidato', 'master', 'desarrollador']
+    requiresAuth: false,
+    permissions: ['public', 'lider', 'candidato', 'master', 'desarrollador'],
+    demoAccess: true
   },
 
-  // SISTEMA DE MENSAJERÍA
+  // SISTEMA DE MENSAJERÍA - ACCESO LIBRE
   {
     id: 'message-whatsapp',
     name: 'Enviar WhatsApp',
@@ -79,8 +84,9 @@ export const componentFunctions: ComponentFunction[] = [
     category: 'messaging',
     enabled: true,
     n8nWebhook: '/webhook/whatsapp-integration',
-    requiresAuth: true,
-    permissions: ['candidato', 'master', 'desarrollador']
+    requiresAuth: false,
+    permissions: ['public', 'candidato', 'master', 'desarrollador'],
+    demoAccess: true
   },
   {
     id: 'message-email',
@@ -89,21 +95,23 @@ export const componentFunctions: ComponentFunction[] = [
     category: 'messaging',
     enabled: true,
     n8nWebhook: '/webhook/email-campaigns',
-    requiresAuth: true,
-    permissions: ['candidato', 'master', 'desarrollador']
+    requiresAuth: false,
+    permissions: ['public', 'candidato', 'master', 'desarrollador'],
+    demoAccess: true
   },
   {
     id: 'message-sms',
     name: 'Mensajes SMS',
     description: 'Envío de mensajes SMS masivos',
     category: 'messaging',
-    enabled: false, // CAMBIAR A true PARA ACTIVAR
+    enabled: true, // ACTIVADO PARA DEMO
     n8nWebhook: '/webhook/sms-campaigns',
-    requiresAuth: true,
-    permissions: ['master', 'desarrollador']
+    requiresAuth: false,
+    permissions: ['public', 'master', 'desarrollador'],
+    demoAccess: true
   },
 
-  // GESTIÓN TERRITORIAL
+  // GESTIÓN TERRITORIAL - ACCESO LIBRE
   {
     id: 'territory-create',
     name: 'Crear Territorio',
@@ -111,8 +119,9 @@ export const componentFunctions: ComponentFunction[] = [
     category: 'territory',
     enabled: true,
     n8nWebhook: '/webhook/territory-management',
-    requiresAuth: true,
-    permissions: ['candidato', 'master', 'desarrollador']
+    requiresAuth: false,
+    permissions: ['public', 'candidato', 'master', 'desarrollador'],
+    demoAccess: true
   },
   {
     id: 'territory-assign',
@@ -121,11 +130,12 @@ export const componentFunctions: ComponentFunction[] = [
     category: 'territory',
     enabled: true,
     n8nWebhook: '/webhook/territory-assign',
-    requiresAuth: true,
-    permissions: ['candidato', 'master', 'desarrollador']
+    requiresAuth: false,
+    permissions: ['public', 'candidato', 'master', 'desarrollador'],
+    demoAccess: true
   },
 
-  // ANALYTICS Y REPORTES
+  // ANALYTICS Y REPORTES - ACCESO LIBRE
   {
     id: 'analytics-dashboard',
     name: 'Dashboard Analítico',
@@ -133,8 +143,9 @@ export const componentFunctions: ComponentFunction[] = [
     category: 'analytics',
     enabled: true,
     n8nWebhook: '/webhook/analytics-engine',
-    requiresAuth: true,
-    permissions: ['lider', 'candidato', 'master', 'desarrollador']
+    requiresAuth: false,
+    permissions: ['public', 'lider', 'candidato', 'master', 'desarrollador'],
+    demoAccess: true
   },
   {
     id: 'analytics-export',
@@ -143,11 +154,12 @@ export const componentFunctions: ComponentFunction[] = [
     category: 'analytics',
     enabled: true,
     n8nWebhook: '/webhook/analytics-export',
-    requiresAuth: true,
-    permissions: ['candidato', 'master', 'desarrollador']
+    requiresAuth: false,
+    permissions: ['public', 'candidato', 'master', 'desarrollador'],
+    demoAccess: true
   },
 
-  // COORDINACIÓN DE EVENTOS
+  // COORDINACIÓN DE EVENTOS - ACCESO LIBRE
   {
     id: 'event-create',
     name: 'Crear Evento',
@@ -155,8 +167,9 @@ export const componentFunctions: ComponentFunction[] = [
     category: 'events',
     enabled: true,
     n8nWebhook: '/webhook/event-coordinator',
-    requiresAuth: true,
-    permissions: ['lider', 'candidato', 'master', 'desarrollador']
+    requiresAuth: false,
+    permissions: ['public', 'lider', 'candidato', 'master', 'desarrollador'],
+    demoAccess: true
   },
   {
     id: 'event-invite',
@@ -165,11 +178,12 @@ export const componentFunctions: ComponentFunction[] = [
     category: 'events',
     enabled: true,
     n8nWebhook: '/webhook/event-invitations',
-    requiresAuth: true,
-    permissions: ['lider', 'candidato', 'master', 'desarrollador']
+    requiresAuth: false,
+    permissions: ['public', 'lider', 'candidato', 'master', 'desarrollador'],
+    demoAccess: true
   },
 
-  // SISTEMA DE ALERTAS
+  // SISTEMA DE ALERTAS - ACCESO LIBRE
   {
     id: 'alert-create',
     name: 'Crear Alerta',
@@ -177,8 +191,9 @@ export const componentFunctions: ComponentFunction[] = [
     category: 'alerts',
     enabled: true,
     n8nWebhook: '/webhook/alert-system',
-    requiresAuth: true,
-    permissions: ['lider', 'candidato', 'master', 'desarrollador']
+    requiresAuth: false,
+    permissions: ['public', 'lider', 'candidato', 'master', 'desarrollador'],
+    demoAccess: true
   },
   {
     id: 'alert-broadcast',
@@ -187,15 +202,16 @@ export const componentFunctions: ComponentFunction[] = [
     category: 'alerts',
     enabled: true,
     n8nWebhook: '/webhook/alert-broadcast',
-    requiresAuth: true,
-    permissions: ['candidato', 'master', 'desarrollador']
+    requiresAuth: false,
+    permissions: ['public', 'candidato', 'master', 'desarrollador'],
+    demoAccess: true
   }
 ];
 
-// Hook para usar las funciones de componentes
+// Hook para usar las funciones de componentes - OPTIMIZADO PARA DEMO
 export const useComponentFunctions = () => {
   const { client } = useN8N();
-  const { components } = useAppConfig();
+  const { app, components } = useAppConfig();
 
   const executeFunction = async (functionId: string, data: any = {}, userRole?: string) => {
     const func = componentFunctions.find(f => f.id === functionId);
@@ -208,11 +224,14 @@ export const useComponentFunctions = () => {
       throw new Error(`Función ${functionId} está deshabilitada`);
     }
 
-    if (func.requiresAuth && userRole && !func.permissions.includes(userRole)) {
+    // EN MODO DEMO: Permitir acceso libre
+    if (app.demoMode && func.demoAccess) {
+      console.log(`🎯 MODO DEMO - ACCESO LIBRE: ${func.name}`, { functionId, data });
+    } else if (func.requiresAuth && userRole && !func.permissions.includes(userRole)) {
       throw new Error(`Sin permisos para ejecutar ${functionId}`);
     }
 
-    console.log(`🎯 EJECUTANDO FUNCIÓN: ${func.name}`, { functionId, data });
+    console.log(`🎯 EJECUTANDO FUNCIÓN: ${func.name}`, { functionId, data, demoMode: app.demoMode });
 
     // Si tiene webhook de N8N, usar N8N
     if (func.n8nWebhook) {
@@ -227,7 +246,8 @@ export const useComponentFunctions = () => {
       return await client.executeWebhook(component, func.id.split('-')[1], data, {
         userRole,
         functionId,
-        timestamp: new Date().toISOString()
+        timestamp: new Date().toISOString(),
+        demoMode: app.demoMode
       });
     }
 
@@ -244,6 +264,11 @@ export const useComponentFunctions = () => {
   };
 
   const getFunctionsByPermission = (userRole: string) => {
+    // EN MODO DEMO: Devolver todas las funciones habilitadas
+    if (app.demoMode) {
+      return componentFunctions.filter(f => f.enabled && f.demoAccess);
+    }
+    
     return componentFunctions.filter(f => 
       f.enabled && (!f.requiresAuth || f.permissions.includes(userRole))
     );
@@ -253,7 +278,8 @@ export const useComponentFunctions = () => {
     functions: componentFunctions,
     executeFunction,
     getFunctionsByCategory,
-    getFunctionsByPermission
+    getFunctionsByPermission,
+    demoMode: app.demoMode
   };
 };
 
