@@ -22,7 +22,7 @@ import QuickActionsPage from "./pages/QuickActionsPage";
 import VisitorFunnelPage from "./pages/VisitorFunnelPage";
 import MobileAuditPage from "./pages/MobileAuditPage";
 import { SecureAuthProvider } from "./contexts/SecureAuthContext";
-import EnhancedMobileNavigation from './components/EnhancedMobileNavigation';
+import ModernMobileNavigation from './components/ModernMobileNavigation';
 import ProtectedRoute from './components/ProtectedRoute';
 import N8NComponentsManager from './components/N8NComponentsManager';
 
@@ -41,7 +41,7 @@ function App() {
       <SecureAuthProvider>
         <BrowserRouter>
           <div className="min-h-screen bg-gradient-to-br from-negro-50 to-verde-sistema-50">
-            <EnhancedMobileNavigation />
+            <ModernMobileNavigation />
             
             <Routes>
               <Route path="/" element={<Navigate to="/login" replace />} />
@@ -110,7 +110,6 @@ function App() {
               } />
             </Routes>
             
-            {/* Footer del sistema */}
             <div className="fixed bottom-0 left-0 right-0 bg-negro-900/90 backdrop-blur-sm border-t border-verde-sistema-200 py-2 px-4 text-center text-xs text-verde-sistema-400 z-10">
               © 2025 Sistema Electoral - MI CAMPAÑA. Todos los derechos reservados.
             </div>

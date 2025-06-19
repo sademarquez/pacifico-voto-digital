@@ -10,7 +10,6 @@ export interface DemoCredential {
 }
 
 export const useDemoCredentials = () => {
-  // CREDENCIALES DEMO ACTUALIZADAS Y VERIFICADAS CON LA BASE DE DATOS
   const verifiedCredentials: DemoCredential[] = [
     {
       name: 'Desarrollador',
@@ -59,38 +58,28 @@ export const useDemoCredentials = () => {
     }
   ];
 
-  // Mapeo exhaustivo y optimizado de nombres a emails
   const nameToEmailMap: Record<string, string> = {
-    // Desarrollador - todas las variaciones
     'Desarrollador': 'dev@demo.com',
     'desarrollador': 'dev@demo.com',
     'DESARROLLADOR': 'dev@demo.com',
     'dev': 'dev@demo.com',
     'Dev': 'dev@demo.com',
     'DEV': 'dev@demo.com',
-    
-    // Master - todas las variaciones
     'Master': 'master@demo.com',
     'master': 'master@demo.com',
     'MASTER': 'master@demo.com',
     'master1': 'master@demo.com',
     'Master1': 'master@demo.com',
     'MASTER1': 'master@demo.com',
-    
-    // Candidato - todas las variaciones
     'Candidato': 'candidato@demo.com',
     'candidato': 'candidato@demo.com',
     'CANDIDATO': 'candidato@demo.com',
-    
-    // Líder - todas las variaciones
     'Líder': 'lider@demo.com',
     'líder': 'lider@demo.com',
     'Lider': 'lider@demo.com',
     'lider': 'lider@demo.com',
     'LÍDER': 'lider@demo.com',
     'LIDER': 'lider@demo.com',
-    
-    // Votante - todas las variaciones
     'Votante': 'votante@demo.com',
     'votante': 'votante@demo.com',
     'VOTANTE': 'votante@demo.com'
@@ -135,7 +124,6 @@ export const useDemoCredentials = () => {
     return isValid;
   };
 
-  // Función de autodiagnóstico mejorada
   const diagnoseCredentials = () => {
     console.log('🔧 DIAGNÓSTICO COMPLETO DE CREDENCIALES DEMO:');
     console.log('📋 Credenciales disponibles:', verifiedCredentials.length);
@@ -153,11 +141,9 @@ export const useDemoCredentials = () => {
     });
   };
 
-  // Función de reparación automática
   const autoRepairCredentials = async () => {
     console.log('🔧 Iniciando reparación automática de credenciales...');
     
-    // Verificar que todas las credenciales sean válidas
     let repairedCount = 0;
     
     for (const cred of verifiedCredentials) {

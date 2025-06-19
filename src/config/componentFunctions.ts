@@ -12,12 +12,12 @@ export interface ComponentFunction {
   customFunction?: () => Promise<any>;
   requiresAuth: boolean;
   permissions: string[];
-  demoAccess: boolean; // NUEVO: Acceso libre para demo
+  demoAccess: boolean;
 }
 
-// CONFIGURACIÓN DE FUNCIONES DISPONIBLES - DEMO ABIERTO
+// Configuración de funciones disponibles
 export const componentFunctions: ComponentFunction[] = [
-  // AUTENTICACIÓN - ACCESO LIBRE
+  // AUTENTICACIÓN
   {
     id: 'auth-login',
     name: 'Autenticar Usuario',
@@ -41,7 +41,7 @@ export const componentFunctions: ComponentFunction[] = [
     demoAccess: true
   },
 
-  // REGISTRO DE VOTANTES - ACCESO LIBRE PARA DEMO
+  // REGISTRO DE VOTANTES
   {
     id: 'voter-create',
     name: 'Registrar Votante',
@@ -49,7 +49,7 @@ export const componentFunctions: ComponentFunction[] = [
     category: 'voter',
     enabled: true,
     n8nWebhook: '/webhook/voter-registration',
-    requiresAuth: false, // ACCESO LIBRE PARA DEMO
+    requiresAuth: false,
     permissions: ['public', 'lider', 'candidato', 'master', 'desarrollador'],
     demoAccess: true
   },
@@ -76,7 +76,7 @@ export const componentFunctions: ComponentFunction[] = [
     demoAccess: true
   },
 
-  // SISTEMA DE MENSAJERÍA - ACCESO LIBRE
+  // SISTEMA DE MENSAJERÍA
   {
     id: 'message-whatsapp',
     name: 'Enviar WhatsApp',
@@ -104,14 +104,14 @@ export const componentFunctions: ComponentFunction[] = [
     name: 'Mensajes SMS',
     description: 'Envío de mensajes SMS masivos',
     category: 'messaging',
-    enabled: true, // ACTIVADO PARA DEMO
+    enabled: true,
     n8nWebhook: '/webhook/sms-campaigns',
     requiresAuth: false,
     permissions: ['public', 'master', 'desarrollador'],
     demoAccess: true
   },
 
-  // GESTIÓN TERRITORIAL - ACCESO LIBRE
+  // GESTIÓN TERRITORIAL
   {
     id: 'territory-create',
     name: 'Crear Territorio',
@@ -135,7 +135,7 @@ export const componentFunctions: ComponentFunction[] = [
     demoAccess: true
   },
 
-  // ANALYTICS Y REPORTES - ACCESO LIBRE
+  // ANALYTICS Y REPORTES
   {
     id: 'analytics-dashboard',
     name: 'Dashboard Analítico',
@@ -159,7 +159,7 @@ export const componentFunctions: ComponentFunction[] = [
     demoAccess: true
   },
 
-  // COORDINACIÓN DE EVENTOS - ACCESO LIBRE
+  // COORDINACIÓN DE EVENTOS
   {
     id: 'event-create',
     name: 'Crear Evento',
@@ -183,7 +183,7 @@ export const componentFunctions: ComponentFunction[] = [
     demoAccess: true
   },
 
-  // SISTEMA DE ALERTAS - ACCESO LIBRE
+  // SISTEMA DE ALERTAS
   {
     id: 'alert-create',
     name: 'Crear Alerta',
@@ -208,7 +208,7 @@ export const componentFunctions: ComponentFunction[] = [
   }
 ];
 
-// Hook para usar las funciones de componentes - OPTIMIZADO PARA DEMO
+// Hook para usar las funciones de componentes
 export const useComponentFunctions = () => {
   const { client } = useN8N();
   const { app, components } = useAppConfig();
@@ -224,7 +224,6 @@ export const useComponentFunctions = () => {
       throw new Error(`Función ${functionId} está deshabilitada`);
     }
 
-    // EN MODO DEMO: Permitir acceso libre
     if (app.demoMode && func.demoAccess) {
       console.log(`🎯 MODO DEMO - ACCESO LIBRE: ${func.name}`, { functionId, data });
     } else if (func.requiresAuth && userRole && !func.permissions.includes(userRole)) {
@@ -233,7 +232,6 @@ export const useComponentFunctions = () => {
 
     console.log(`🎯 EJECUTANDO FUNCIÓN: ${func.name}`, { functionId, data, demoMode: app.demoMode });
 
-    // Si tiene webhook de N8N, usar N8N
     if (func.n8nWebhook) {
       const [, component] = func.category === 'auth' ? ['user-auth', 'login'] :
                            func.category === 'voter' ? ['voter-registration', func.id.split('-')[1]] :
@@ -251,7 +249,6 @@ export const useComponentFunctions = () => {
       });
     }
 
-    // Si tiene función personalizada, ejecutarla
     if (func.customFunction) {
       return await func.customFunction();
     }
@@ -264,7 +261,6 @@ export const useComponentFunctions = () => {
   };
 
   const getFunctionsByPermission = (userRole: string) => {
-    // EN MODO DEMO: Devolver todas las funciones habilitadas
     if (app.demoMode) {
       return componentFunctions.filter(f => f.enabled && f.demoAccess);
     }

@@ -26,46 +26,31 @@ export interface N8NResponse {
   executionId?: string;
 }
 
-// Configuración optimizada para N8N - VERSIÓN FINAL
+// Configuración de N8N
 export const defaultN8NConfig: N8NConfig = {
-  baseUrl: process.env.N8N_BASE_URL || 'http://localhost:5678', // CAMBIAR POR TU INSTANCIA N8N
+  baseUrl: process.env.N8N_BASE_URL || 'http://localhost:5678',
   webhookPrefix: '/webhook',
-  timeout: 30000, // 30 segundos
+  timeout: 30000,
   retryAttempts: 3,
-  demoMode: true // MODO DEMO ACTIVADO POR DEFECTO
+  demoMode: true
 };
 
-// Mapeo completo de componentes a webhooks N8N
+// Mapeo de componentes a webhooks N8N
 export const componentWebhooks = {
-  // AUTENTICACIÓN
   'user-auth': '/webhook/user-auth',
-  
-  // GESTIÓN DE VOTANTES
   'voter-registration': '/webhook/voter-registration',
-  
-  // SISTEMA DE MENSAJERÍA
   'messaging-system': '/webhook/messaging',
   'whatsapp-integration': '/webhook/whatsapp',
   'email-campaigns': '/webhook/email',
   'sms-campaigns': '/webhook/sms',
-  
-  // GESTIÓN TERRITORIAL
   'territory-management': '/webhook/territory',
-  
-  // ANALYTICS Y REPORTES
   'analytics-engine': '/webhook/analytics',
-  
-  // COORDINACIÓN DE EVENTOS
   'event-coordinator': '/webhook/events',
-  
-  // SISTEMA DE ALERTAS
   'alert-system': '/webhook/alerts',
-  
-  // REDES SOCIALES
   'social-media': '/webhook/social'
 };
 
-// Cliente N8N optimizado para la versión final
+// Cliente N8N
 export class N8NClient {
   private config: N8NConfig;
 
@@ -84,7 +69,6 @@ export class N8NClient {
     if (!webhook) {
       console.warn(`⚠️ Webhook no encontrado para el componente: ${component}`);
       
-      // En modo demo, simular respuesta exitosa
       if (this.config.demoMode) {
         return {
           success: true,
@@ -115,7 +99,6 @@ export class N8NClient {
 
     const url = `${this.config.baseUrl}${webhook}`;
 
-    // En modo demo, simular delay y respuesta
     if (this.config.demoMode) {
       console.log(`🎮 MODO DEMO - Simulando ejecución N8N:`, {
         url,
@@ -124,7 +107,6 @@ export class N8NClient {
         payload
       });
       
-      // Simular delay de red
       await new Promise(resolve => setTimeout(resolve, 500 + Math.random() * 1000));
       
       return {
@@ -194,7 +176,6 @@ export class N8NClient {
           };
         }
         
-        // Esperar antes del siguiente intento
         await new Promise(resolve => setTimeout(resolve, 1000 * attempt));
       }
     }
@@ -205,7 +186,7 @@ export class N8NClient {
     };
   }
 
-  // Métodos específicos optimizados para cada componente
+  // Métodos específicos para cada componente
   async authenticateUser(email: string, password: string) {
     return this.executeWebhook('user-auth', 'login', { email, password });
   }
@@ -250,7 +231,6 @@ export class N8NClient {
     return this.executeWebhook('alert-system', 'createAlert', alertData);
   }
 
-  // Configuración de N8N
   updateConfig(newConfig: Partial<N8NConfig>) {
     this.config = { ...this.config, ...newConfig };
   }
@@ -263,17 +243,13 @@ export class N8NClient {
 // Instancia global del cliente N8N
 export const n8nClient = new N8NClient();
 
-// Hook optimizado para usar N8N en componentes React
+// Hook para usar N8N en componentes React
 export const useN8N = () => {
   return {
     client: n8nClient,
     config: n8nClient.getConfig(),
     updateConfig: n8nClient.updateConfig.bind(n8nClient),
-    
-    // Métodos de ejecución
     executeWebhook: n8nClient.executeWebhook.bind(n8nClient),
-    
-    // Métodos específicos
     authenticateUser: n8nClient.authenticateUser.bind(n8nClient),
     registerVoter: n8nClient.registerVoter.bind(n8nClient),
     sendMessage: n8nClient.sendMessage.bind(n8nClient),
