@@ -1,4 +1,3 @@
-
 export interface N8NConfig {
   baseUrl: string;
   webhookPrefix: string;
@@ -28,7 +27,7 @@ export interface N8NResponse {
 
 // Configuración de N8N
 export const defaultN8NConfig: N8NConfig = {
-  baseUrl: process.env.N8N_BASE_URL || 'http://localhost:5678',
+  baseUrl: 'http://localhost:5678', // URL por defecto de N8N - configurar según necesidades
   webhookPrefix: '/webhook',
   timeout: 30000,
   retryAttempts: 3,
