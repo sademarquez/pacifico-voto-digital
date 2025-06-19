@@ -14,7 +14,6 @@ import {
   Zap,
   Target,
   MessageSquare,
-  Calendar,
   Shield
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
@@ -26,7 +25,6 @@ const ModernMobileNavigation = () => {
   const navigate = useNavigate();
   const [showMenu, setShowMenu] = useState(false);
 
-  // Cerrar menú al cambiar de ruta
   useEffect(() => {
     setShowMenu(false);
   }, [location.pathname]);
@@ -85,7 +83,6 @@ const ModernMobileNavigation = () => {
 
   const navigationItems = getNavigationItems();
   const primaryItems = navigationItems.filter(item => item.priority === 1).slice(0, 4);
-  const secondaryItems = navigationItems.filter(item => item.priority > 1);
 
   const isActiveRoute = (href: string) => {
     if (href.includes('?tab=')) {
@@ -101,28 +98,28 @@ const ModernMobileNavigation = () => {
 
   return (
     <>
-      {/* Header móvil moderno */}
-      <div className="header-modern sticky top-0 z-40 px-4 py-3 md:hidden">
+      {/* Header móvil */}
+      <div className="sticky top-0 z-40 bg-negro-950 text-white px-4 py-3 md:hidden shadow-lg">
         <div className="flex items-center justify-between">
           <div className="flex items-center space-x-3">
-            <div className="w-10 h-10 gradient-bg-primary rounded-xl flex items-center justify-center shadow-modern-md">
+            <div className="w-10 h-10 bg-verde-sistema-600 rounded-xl flex items-center justify-center">
               <Shield className="w-6 h-6 text-white" />
             </div>
             <div>
-              <h1 className="text-lg font-bold gradient-text-primary">MI CAMPAÑA</h1>
-              <p className="text-xs text-gray-500">2025 - Automatización IA</p>
+              <h1 className="text-lg font-bold text-white">MI CAMPAÑA</h1>
+              <p className="text-xs text-verde-sistema-400">Sistema Electoral</p>
             </div>
           </div>
           
           <div className="flex items-center space-x-2">
-            <Badge className="bg-green-100 text-green-800 text-xs px-2 py-1">
+            <Badge className="bg-verde-sistema-600 text-white text-xs px-2 py-1">
               {user.role.toUpperCase()}
             </Badge>
             <Button
               variant="ghost"
               size="sm"
               onClick={() => setShowMenu(!showMenu)}
-              className="relative p-2"
+              className="relative p-2 text-white hover:bg-negro-800"
             >
               {showMenu ? <X className="w-5 h-5" /> : <Menu className="w-5 h-5" />}
             </Button>
@@ -136,12 +133,12 @@ const ModernMobileNavigation = () => {
           className="fixed inset-0 bg-black bg-opacity-50 z-50 md:hidden"
           onClick={() => setShowMenu(false)}
         >
-          <div className="fixed top-0 right-0 w-80 h-full bg-white shadow-modern-xl animate-slide-up">
+          <div className="fixed top-0 right-0 w-80 h-full bg-white shadow-xl animate-fade-in">
             <div className="p-6">
               <div className="flex items-center justify-between mb-6">
                 <div>
-                  <h2 className="text-lg font-bold text-gray-900">Menú Principal</h2>
-                  <p className="text-sm text-gray-500">{user.name}</p>
+                  <h2 className="text-lg font-bold text-negro-900">Menú Principal</h2>
+                  <p className="text-sm text-negro-600">{user.name}</p>
                 </div>
                 <Button
                   variant="ghost"
@@ -164,8 +161,8 @@ const ModernMobileNavigation = () => {
                       to={item.href}
                       className={`flex items-center space-x-3 p-3 rounded-xl transition-all duration-300 ${
                         active
-                          ? 'gradient-bg-primary text-white shadow-modern-md'
-                          : 'hover:bg-gray-50 text-gray-700'
+                          ? 'bg-verde-sistema-600 text-white'
+                          : 'hover:bg-verde-sistema-50 text-negro-700'
                       }`}
                     >
                       <Icon className="w-5 h-5" />
@@ -178,10 +175,10 @@ const ModernMobileNavigation = () => {
                 })}
               </div>
 
-              <div className="border-t border-gray-200 mt-6 pt-6">
+              <div className="border-t border-negro-200 mt-6 pt-6">
                 <Link
                   to="/configuracion"
-                  className="flex items-center space-x-3 p-3 rounded-xl text-gray-700 hover:bg-gray-50 transition-all duration-300"
+                  className="flex items-center space-x-3 p-3 rounded-xl text-negro-700 hover:bg-negro-50 transition-all duration-300"
                 >
                   <Settings className="w-5 h-5" />
                   <span className="font-medium">Configuración</span>
@@ -189,7 +186,7 @@ const ModernMobileNavigation = () => {
                 
                 <Button
                   onClick={handleLogout}
-                  className="w-full mt-3 flex items-center space-x-3 p-3 rounded-xl bg-red-50 text-red-600 hover:bg-red-100 transition-all duration-300"
+                  className="w-full mt-3 flex items-center space-x-3 p-3 rounded-xl bg-rojo-acento-50 text-rojo-acento-600 hover:bg-rojo-acento-100 transition-all duration-300"
                   variant="ghost"
                 >
                   <LogOut className="w-5 h-5" />
@@ -201,9 +198,9 @@ const ModernMobileNavigation = () => {
         </div>
       )}
 
-      {/* Navegación inferior moderna */}
-      <div className="mobile-nav-modern md:hidden">
-        <div className="grid grid-cols-4 gap-1 h-full">
+      {/* Navegación inferior */}
+      <div className="fixed bottom-0 left-0 right-0 bg-negro-950 text-white z-40 md:hidden">
+        <div className="grid grid-cols-4 gap-1 h-16">
           {primaryItems.map((item) => {
             const Icon = item.icon;
             const active = isActiveRoute(item.href);
@@ -212,7 +209,11 @@ const ModernMobileNavigation = () => {
               <Link
                 key={item.href}
                 to={item.href}
-                className={`mobile-nav-item ${active ? 'active' : ''}`}
+                className={`flex flex-col items-center justify-center p-2 transition-all duration-300 ${
+                  active 
+                    ? 'text-verde-sistema-400 bg-negro-900' 
+                    : 'text-negro-400 hover:text-verde-sistema-400'
+                }`}
               >
                 <Icon className="w-5 h-5 mb-1" />
                 <span className="text-xs font-medium truncate">{item.label}</span>
@@ -223,7 +224,7 @@ const ModernMobileNavigation = () => {
       </div>
 
       {/* Espaciado para navegación inferior */}
-      <div className="h-20 md:hidden"></div>
+      <div className="h-16 md:hidden"></div>
     </>
   );
 };
