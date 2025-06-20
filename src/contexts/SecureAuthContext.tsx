@@ -1,6 +1,6 @@
 
 /*
- * Copyright © 2025 Daniel Lopez - Sademarquez. Todos los derechos reservados.
+ * Copyright © 2025 Sistema Electoral. Todos los derechos reservados.
  */
 
 import React, { createContext, useContext, useState, ReactNode, useEffect, useCallback } from 'react';
@@ -15,7 +15,6 @@ interface User {
   name: string;
   role: 'desarrollador' | 'master' | 'candidato' | 'lider' | 'votante' | 'visitante';
   isProductionUser?: boolean;
-  isDemoUser?: boolean;
   territory?: string;
 }
 

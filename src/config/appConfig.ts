@@ -1,3 +1,4 @@
+
 export interface AppConfig {
   landingUrl: string;
   visitorFunnelUrl: string;
@@ -7,7 +8,6 @@ export interface AppConfig {
   version: string;
   productionMode: boolean;
   autoRedirectVisitors: boolean;
-  demoMode: boolean;
 }
 
 export interface ComponentConfig {
@@ -53,8 +53,7 @@ export const appConfig: AppConfig = {
   supportEmail: "soporte@sistema-electoral.com",
   version: "3.0.0",
   productionMode: true,
-  autoRedirectVisitors: true,
-  demoMode: false
+  autoRedirectVisitors: true
 };
 
 // Configuración de componentes
