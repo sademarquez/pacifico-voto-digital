@@ -1,6 +1,6 @@
 
 /*
- * Copyright © 2025 sademarquezDLL. Todos los derechos reservados.
+ * Copyright © 2025 Sistema Electoral. Todos los derechos reservados.
  */
 
 import React, { createContext, useContext, useState, ReactNode, useEffect, useCallback } from 'react';
@@ -14,7 +14,7 @@ interface User {
   email: string;
   name: string;
   role: 'desarrollador' | 'master' | 'candidato' | 'lider' | 'votante' | 'visitante';
-  isDemoUser?: boolean;
+  isProductionUser?: boolean;
   territory?: string;
 }
 
@@ -28,7 +28,7 @@ interface SecureAuthContextType {
   authError: string | null;
   clearAuthError: () => void;
   systemHealth: 'healthy' | 'warning' | 'error';
-  databaseMode: 'demo' | 'production';
+  databaseMode: 'production' | 'development';
 }
 
 const SecureAuthContext = createContext<SecureAuthContextType | undefined>(undefined);
@@ -39,7 +39,7 @@ export const SecureAuthProvider: React.FC<{ children: ReactNode }> = ({ children
   const [isLoading, setIsLoading] = useState(true);
   const [authError, setAuthError] = useState<string | null>(null);
   const [systemHealth, setSystemHealth] = useState<'healthy' | 'warning' | 'error'>('healthy');
-  const [databaseMode, setDatabaseMode] = useState<'demo' | 'production'>('demo');
+  const [databaseMode, setDatabaseMode] = useState<'production' | 'development'>('production');
 
   const { logInfo, logError, logWarning } = useSystemLogger();
   const { handleError } = useErrorHandler();
@@ -51,15 +51,15 @@ export const SecureAuthProvider: React.FC<{ children: ReactNode }> = ({ children
 
   const detectDatabaseMode = useCallback(async () => {
     try {
-      const isDemoEnvironment = window.location.hostname.includes('lovable') || 
-                               window.location.hostname.includes('localhost') ||
-                               process.env.NODE_ENV === 'development';
+      const isProductionEnvironment = !window.location.hostname.includes('lovable') && 
+                                    !window.location.hostname.includes('localhost') &&
+                                    process.env.NODE_ENV === 'production';
 
-      setDatabaseMode(isDemoEnvironment ? 'demo' : 'production');
-      logInfo('system', `Modo ${isDemoEnvironment ? 'DEMO' : 'PRODUCCIÓN'} activado`);
+      setDatabaseMode(isProductionEnvironment ? 'production' : 'development');
+      logInfo('system', `Modo ${isProductionEnvironment ? 'PRODUCCIÓN' : 'DESARROLLO'} activado`);
     } catch (error) {
       logError('system', 'Error detectando modo de base de datos', error as Error);
-      setDatabaseMode('demo');
+      setDatabaseMode('production');
     }
   }, [logInfo, logError]);
 
@@ -96,16 +96,16 @@ export const SecureAuthProvider: React.FC<{ children: ReactNode }> = ({ children
       }
 
       if (profile) {
-        const isDemoUser = supabaseUser.email?.includes('demo.com') || 
-                          databaseMode === 'demo';
+        const isProductionUser = supabaseUser.email?.includes('@campana.com') || 
+                                databaseMode === 'production';
 
         const userData: User = {
           id: profile.id,
-          name: profile.name || 'Usuario Demo',
+          name: profile.name || 'Usuario Sistema',
           role: profile.role as User['role'] || 'votante',
           email: supabaseUser.email || '',
-          isDemoUser,
-          territory: isDemoUser ? 'DEMO' : 'NACIONAL'
+          isProductionUser,
+          territory: isProductionUser ? 'PRODUCCIÓN' : 'DESARROLLO'
         };
 
         setUser(userData);
@@ -115,17 +115,17 @@ export const SecureAuthProvider: React.FC<{ children: ReactNode }> = ({ children
           userId: userData.id,
           role: userData.role,
           name: userData.name,
-          isDemoUser: userData.isDemoUser
+          isProductionUser: userData.isProductionUser
         });
       } else {
         // Si no existe perfil, crear uno básico
         const fallbackUser: User = {
           id: supabaseUser.id,
-          name: supabaseUser.email?.split('@')[0] || 'Usuario Demo',
+          name: supabaseUser.email?.split('@')[0] || 'Usuario Sistema',
           role: 'votante',
           email: supabaseUser.email || '',
-          isDemoUser: true,
-          territory: 'DEMO'
+          isProductionUser: true,
+          territory: 'SISTEMA'
         };
         
         setUser(fallbackUser);
@@ -144,7 +144,7 @@ export const SecureAuthProvider: React.FC<{ children: ReactNode }> = ({ children
   }, [databaseMode, logInfo, logError]);
 
   const login = async (email: string, password: string): Promise<boolean> => {
-    console.log('🔐 INICIANDO LOGIN DEMO:', { email, password: password ? '[PRESENTE]' : '[VACÍO]' });
+    console.log('🔐 INICIANDO LOGIN PRODUCTIVO:', { email, password: password ? '[PRESENTE]' : '[VACÍO]' });
     logInfo('auth', 'Intento de login iniciado', { email });
     setAuthError(null);
     setIsLoading(true);
@@ -162,9 +162,9 @@ export const SecureAuthProvider: React.FC<{ children: ReactNode }> = ({ children
         let errorMsg = '❌ Error de autenticación: ';
         
         if (error.message.includes('Invalid login credentials')) {
-          errorMsg = '❌ Credenciales incorrectas.\n🔑 Verifica: dev@demo.com / 12345678';
+          errorMsg = '❌ Credenciales incorrectas.\n🔑 Verifica: admin@campana.com / CampAdmin2025!';
         } else if (error.message.includes('Email not confirmed')) {
-          errorMsg = '📧 Email no confirmado. Usando modo demo.';
+          errorMsg = '📧 Email no confirmado. Contacta al administrador.';
         } else if (error.message.includes('Too many requests')) {
           errorMsg = '⏱️ Demasiados intentos. Espera un momento.';
         } else {
@@ -225,8 +225,8 @@ export const SecureAuthProvider: React.FC<{ children: ReactNode }> = ({ children
   };
 
   useEffect(() => {
-    console.log('🚀 INICIALIZANDO SECURE AUTH PROVIDER v6.0');
-    logInfo('auth', 'Inicializando SecureAuthProvider v6.0 - Sistema Demo Mejorado');
+    console.log('🚀 INICIALIZANDO SECURE AUTH PROVIDER v7.0 - PRODUCCIÓN');
+    logInfo('auth', 'Inicializando SecureAuthProvider v7.0 - Sistema Productivo');
     
     detectDatabaseMode();
     checkSystemHealth();

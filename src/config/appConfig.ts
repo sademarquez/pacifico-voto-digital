@@ -6,7 +6,7 @@ export interface AppConfig {
   systemName: string;
   supportEmail: string;
   version: string;
-  demoMode: boolean;
+  productionMode: boolean;
   autoRedirectVisitors: boolean;
 }
 
@@ -15,7 +15,7 @@ export interface ComponentConfig {
     enabled: boolean;
     provider: 'supabase' | 'n8n' | 'custom';
     redirectAfterLogin: string;
-    demoMode: boolean;
+    productionMode: boolean;
   };
   voterRegistration: {
     enabled: boolean;
@@ -46,13 +46,13 @@ export interface ComponentConfig {
 
 // Configuración principal de la aplicación
 export const appConfig: AppConfig = {
-  landingUrl: "https://tu-dominio.com/landing",
+  landingUrl: "https://sistema-electoral.com/landing",
   visitorFunnelUrl: "/visitor-funnel",
-  companyName: "MI CAMPAÑA",
-  systemName: "Sistema Electoral Demo",
-  supportEmail: "soporte@micampana.com",
-  version: "2.0.0",
-  demoMode: true,
+  companyName: "SISTEMA ELECTORAL",
+  systemName: "Plataforma de Gestión Electoral v3.0",
+  supportEmail: "soporte@sistema-electoral.com",
+  version: "3.0.0",
+  productionMode: true,
   autoRedirectVisitors: true
 };
 
@@ -62,7 +62,7 @@ export const componentConfig: ComponentConfig = {
     enabled: true,
     provider: 'supabase',
     redirectAfterLogin: '/dashboard',
-    demoMode: true
+    productionMode: true
   },
   voterRegistration: {
     enabled: true,
@@ -71,7 +71,7 @@ export const componentConfig: ComponentConfig = {
   },
   messagingSystem: {
     enabled: true,
-    providers: ['whatsapp', 'email']
+    providers: ['whatsapp', 'email', 'sms']
   },
   territoryManagement: {
     enabled: true,
@@ -87,7 +87,7 @@ export const componentConfig: ComponentConfig = {
   },
   alertSystem: {
     enabled: true,
-    channels: ['push', 'email']
+    channels: ['push', 'email', 'sms']
   }
 };
 

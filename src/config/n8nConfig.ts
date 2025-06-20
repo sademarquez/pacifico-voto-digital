@@ -1,10 +1,11 @@
+
 export interface N8NConfig {
   baseUrl: string;
   webhookPrefix: string;
   apiKey?: string;
   timeout: number;
   retryAttempts: number;
-  demoMode: boolean;
+  productionMode: boolean;
 }
 
 export interface N8NWebhookPayload {
@@ -15,7 +16,7 @@ export interface N8NWebhookPayload {
   userId?: string;
   userRole?: string;
   sessionId?: string;
-  demoMode?: boolean;
+  productionMode?: boolean;
 }
 
 export interface N8NResponse {
@@ -25,19 +26,19 @@ export interface N8NResponse {
   executionId?: string;
 }
 
-// Configuración de N8N
+// Configuración de N8N para producción
 export const defaultN8NConfig: N8NConfig = {
-  baseUrl: 'http://localhost:5678', // URL por defecto de N8N - configurar según necesidades
+  baseUrl: 'https://n8n.sistema-electoral.com',
   webhookPrefix: '/webhook',
   timeout: 30000,
   retryAttempts: 3,
-  demoMode: true
+  productionMode: true
 };
 
 // Mapeo de componentes a webhooks N8N
 export const componentWebhooks = {
-  'user-auth': '/webhook/user-auth',
-  'voter-registration': '/webhook/voter-registration',
+  'user-auth': '/webhook/auth',
+  'voter-registration': '/webhook/voters',
   'messaging-system': '/webhook/messaging',
   'whatsapp-integration': '/webhook/whatsapp',
   'email-campaigns': '/webhook/email',
@@ -49,7 +50,7 @@ export const componentWebhooks = {
   'social-media': '/webhook/social'
 };
 
-// Cliente N8N
+// Cliente N8N optimizado para producción
 export class N8NClient {
   private config: N8NConfig;
 
@@ -67,20 +68,6 @@ export class N8NClient {
     
     if (!webhook) {
       console.warn(`⚠️ Webhook no encontrado para el componente: ${component}`);
-      
-      if (this.config.demoMode) {
-        return {
-          success: true,
-          data: {
-            message: `Función ${component}/${action} ejecutada en modo demo`,
-            component,
-            action,
-            timestamp: new Date().toISOString(),
-            demoMode: true
-          }
-        };
-      }
-      
       return {
         success: false,
         error: `Webhook no encontrado para el componente: ${component}`
@@ -92,39 +79,11 @@ export class N8NClient {
       action,
       data,
       timestamp: new Date().toISOString(),
-      demoMode: this.config.demoMode,
+      productionMode: this.config.productionMode,
       ...metadata
     };
 
     const url = `${this.config.baseUrl}${webhook}`;
-
-    if (this.config.demoMode) {
-      console.log(`🎮 MODO DEMO - Simulando ejecución N8N:`, {
-        url,
-        component,
-        action,
-        payload
-      });
-      
-      await new Promise(resolve => setTimeout(resolve, 500 + Math.random() * 1000));
-      
-      return {
-        success: true,
-        data: {
-          message: `Función ${component}/${action} ejecutada exitosamente en modo demo`,
-          component,
-          action,
-          timestamp: new Date().toISOString(),
-          simulatedResponse: {
-            status: 'success',
-            processedData: data,
-            executionTime: Math.round(Math.random() * 1000) + 'ms'
-          },
-          demoMode: true
-        },
-        executionId: `demo-${Date.now()}-${Math.random().toString(36).substr(2, 9)}`
-      };
-    }
 
     // Ejecución real de N8N
     for (let attempt = 1; attempt <= this.config.retryAttempts; attempt++) {
@@ -132,8 +91,7 @@ export class N8NClient {
         console.log(`🔄 Ejecutando N8N webhook (intento ${attempt}):`, {
           url,
           component,
-          action,
-          payload
+          action
         });
 
         const controller = new AbortController();
