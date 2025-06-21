@@ -8,12 +8,13 @@ export interface AppConfig {
   version: string;
   productionMode: boolean;
   autoRedirectVisitors: boolean;
+  demoMode: boolean;
 }
 
 export interface ComponentConfig {
   userAuth: {
     enabled: boolean;
-    provider: 'supabase' | 'n8n' | 'custom';
+    provider: 'local' | 'supabase' | 'n8n' | 'custom';
     redirectAfterLogin: string;
     productionMode: boolean;
   };
@@ -46,23 +47,24 @@ export interface ComponentConfig {
 
 // Configuración principal de la aplicación
 export const appConfig: AppConfig = {
-  landingUrl: "https://sistema-electoral.com/landing",
+  landingUrl: "https://sistema-electoral-daniel-lopez.com/landing",
   visitorFunnelUrl: "/visitor-funnel",
-  companyName: "SISTEMA ELECTORAL",
+  companyName: "SISTEMA ELECTORAL DANIEL LOPEZ",
   systemName: "Plataforma de Gestión Electoral v3.0",
-  supportEmail: "soporte@sistema-electoral.com",
+  supportEmail: "info@sademarquez.com",
   version: "3.0.0",
-  productionMode: true,
-  autoRedirectVisitors: true
+  productionMode: false,
+  autoRedirectVisitors: true,
+  demoMode: true
 };
 
 // Configuración de componentes
 export const componentConfig: ComponentConfig = {
   userAuth: {
     enabled: true,
-    provider: 'supabase',
+    provider: 'local',
     redirectAfterLogin: '/dashboard',
-    productionMode: true
+    productionMode: false
   },
   voterRegistration: {
     enabled: true,

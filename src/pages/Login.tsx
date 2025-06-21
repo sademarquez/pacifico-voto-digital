@@ -1,13 +1,17 @@
 
+/*
+ * Copyright © 2025 Daniel Lopez - Sademarquez. Todos los derechos reservados.
+ */
+
 import { useState, useEffect } from "react";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Alert, AlertDescription } from "@/components/ui/alert";
-import { Shield, Eye, EyeOff, AlertCircle, CheckCircle, User, Lock, Users, ExternalLink } from "lucide-react";
+import { Shield, Eye, EyeOff, AlertCircle, CheckCircle, User, Lock, Users, Database } from "lucide-react";
 import { useSecureAuth } from "@/contexts/SecureAuthContext";
-import { useProductionCredentials } from "@/hooks/useProductionCredentials";
+import { useLocalCredentials } from "@/hooks/useLocalCredentials";
 import { useNavigate, useLocation } from "react-router-dom";
 import { useToast } from "@/hooks/use-toast";
 import { useAppConfig } from "@/config/appConfig";
@@ -19,11 +23,13 @@ const Login = () => {
   const [showCredentials, setShowCredentials] = useState(false);
   
   const { login, authError, clearAuthError, isAuthenticated, isLoading } = useSecureAuth();
-  const { productionCredentials, getEmailFromName } = useProductionCredentials();
+  const { getAllActiveCredentials, systemInfo } = useLocalCredentials();
   const { app } = useAppConfig();
   const navigate = useNavigate();
   const location = useLocation();
   const { toast } = useToast();
+
+  const activeCredentials = getAllActiveCredentials();
 
   useEffect(() => {
     if (isAuthenticated) {
@@ -50,7 +56,7 @@ const Login = () => {
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     
-    console.log('🔐 INTENTO DE LOGIN:', { username, hasPassword: !!password });
+    console.log('🔐 INTENTO DE LOGIN LOCAL:', { username, hasPassword: !!password });
     
     if (!username.trim()) {
       toast({
@@ -73,42 +79,24 @@ const Login = () => {
     clearAuthError();
 
     try {
-      let emailToUse = username.trim();
-      
-      if (!emailToUse.includes('@')) {
-        const mappedEmail = getEmailFromName(username);
-        if (mappedEmail) {
-          emailToUse = mappedEmail;
-          console.log(`✅ MAPEANDO USUARIO: "${username}" → "${emailToUse}"`);
-        } else {
-          toast({
-            title: "Usuario no encontrado",
-            description: `No se encontró el usuario "${username}". Usa las credenciales disponibles.`,
-            variant: "destructive"
-          });
-          return;
-        }
-      }
-
-      console.log(`🔐 EJECUTANDO LOGIN:`, { 
-        inputUsername: username,
-        emailToUse,
+      console.log(`🔐 EJECUTANDO LOGIN LOCAL:`, { 
+        username: username.trim(),
         password: password ? '[PRESENTE]' : '[VACÍO]'
       });
 
-      const success = await login(emailToUse, password.trim());
+      const success = await login(username.trim(), password.trim());
       
       if (success) {
-        console.log('🎉 LOGIN EXITOSO - ESPERANDO REDIRECCIÓN AUTOMÁTICA');
+        console.log('🎉 LOGIN LOCAL EXITOSO - ESPERANDO REDIRECCIÓN');
         toast({
           title: "¡Login exitoso!",
           description: `Bienvenido ${username} - Cargando dashboard...`,
         });
       } else {
-        console.log('❌ LOGIN FALLÓ');
+        console.log('❌ LOGIN LOCAL FALLÓ');
       }
     } catch (error) {
-      console.error('💥 ERROR DURANTE EL LOGIN:', error);
+      console.error('💥 ERROR DURANTE EL LOGIN LOCAL:', error);
       toast({
         title: "Error de sistema",
         description: "Error inesperado. Revisa las credenciales.",
@@ -118,32 +106,14 @@ const Login = () => {
   };
 
   const useCredential = (credential: any) => {
-    console.log('🎯 USANDO CREDENCIAL:', credential.name);
-    setUsername(credential.name);
+    console.log('🎯 USANDO CREDENCIAL LOCAL:', credential.name);
+    setUsername(credential.username);
     setPassword(credential.password);
     clearAuthError();
     toast({
       title: "Credenciales cargadas",
       description: `Listo para login como ${credential.name}`,
     });
-  };
-
-  const handleVisitorAccess = () => {
-    console.log('🚀 ACCESO DE VISITANTE - REDIRIGIENDO A FUNNEL');
-    
-    if (app.landingUrl && app.landingUrl !== "https://sistema-electoral.com/landing") {
-      window.open(app.landingUrl, '_blank');
-      toast({
-        title: "Acceso de Visitante",
-        description: "Abriendo landing page en nueva ventana",
-      });
-    } else {
-      navigate(app.visitorFunnelUrl);
-      toast({
-        title: "Acceso de Visitante",
-        description: "Redirigiendo al funnel de visitantes",
-      });
-    }
   };
 
   if (isAuthenticated) {
@@ -170,9 +140,10 @@ const Login = () => {
                 <Shield className="text-white w-8 h-8" />
               </div>
               <CardTitle className="text-2xl font-bold text-negro-900">
-                {app.companyName}
+                {systemInfo.name}
               </CardTitle>
-              <p className="text-negro-600">{app.systemName}</p>
+              <p className="text-negro-600">{systemInfo.description}</p>
+              <p className="text-xs text-verde-sistema-600 font-medium">{systemInfo.version}</p>
             </CardHeader>
             
             <CardContent>
@@ -195,7 +166,7 @@ const Login = () => {
                       type="text"
                       value={username}
                       onChange={(e) => setUsername(e.target.value)}
-                      placeholder="Administrador o admin@campana.com"
+                      placeholder="desarrollador o dev@sademarquez.com"
                       className="pl-10 border-2 border-negro-300 focus:border-verde-sistema-500"
                       required
                       disabled={isLoading}
@@ -244,18 +215,6 @@ const Login = () => {
                   <Button
                     type="button"
                     variant="outline"
-                    onClick={handleVisitorAccess}
-                    className="w-full border-2 border-rojo-acento-500 text-rojo-acento-700 hover:bg-rojo-acento-50 flex items-center gap-2 font-bold py-3"
-                    disabled={isLoading}
-                  >
-                    <Users className="w-4 h-4" />
-                    Acceso Visitantes
-                    <ExternalLink className="w-4 h-4" />
-                  </Button>
-                  
-                  <Button
-                    type="button"
-                    variant="outline"
                     onClick={() => setShowCredentials(!showCredentials)}
                     className="w-full border-2 border-verde-sistema-500 text-verde-sistema-700 hover:bg-verde-sistema-50"
                     disabled={isLoading}
@@ -267,14 +226,14 @@ const Login = () => {
               
               <div className="mt-4 p-3 bg-verde-sistema-50 rounded-lg text-xs text-verde-sistema-700 border border-verde-sistema-200">
                 <div className="flex items-center gap-2 mb-2">
-                  <CheckCircle className="w-4 h-4 text-verde-sistema-600" />
-                  <strong className="text-verde-sistema-900">✅ Sistema Electoral Productivo</strong>
+                  <Database className="w-4 h-4 text-verde-sistema-600" />
+                  <strong className="text-verde-sistema-900">✅ Sistema Local Sin BD</strong>
                 </div>
-                <p>• ✅ Credenciales empresariales verificadas</p>
-                <p>• ✅ Integración N8N configurada</p>
-                <p>• ✅ Base de datos Supabase conectada</p>
-                <p>• ✅ Sistema de roles implementado</p>
-                <p>• ✅ Configuración de producción activa</p>
+                <p>• ✅ Credenciales JSON locales</p>
+                <p>• ✅ Sin dependencia de Supabase</p>
+                <p>• ✅ Sistema de permisos implementado</p>
+                <p>• ✅ Configuración local activa</p>
+                <p>• ✅ Base de datos configurable desde panel</p>
               </div>
             </CardContent>
           </Card>
@@ -285,13 +244,13 @@ const Login = () => {
               <CardHeader>
                 <CardTitle className="text-verde-sistema-800 text-xl flex items-center gap-2">
                   <CheckCircle className="w-6 h-6" />
-                  🏢 Credenciales Empresariales
+                  🔑 Credenciales Locales
                 </CardTitle>
-                <p className="text-verde-sistema-600">Acceso seguro al sistema electoral</p>
+                <p className="text-verde-sistema-600">Sistema sin base de datos</p>
               </CardHeader>
               <CardContent>
                 <div className="space-y-4">
-                  {productionCredentials.map((cred, index) => (
+                  {activeCredentials.map((cred, index) => (
                     <div key={index} className="p-4 border-2 border-verde-sistema-100 rounded-lg hover:bg-verde-sistema-50 transition-colors">
                       <div className="flex items-center justify-between mb-3">
                         <div>
@@ -312,25 +271,26 @@ const Login = () => {
                         </Button>
                       </div>
                       <div className="bg-negro-100 p-2 rounded text-xs font-mono border">
-                        <div><strong>Usuario:</strong> {cred.name}</div>
+                        <div><strong>Usuario:</strong> {cred.username}</div>
                         <div><strong>Email:</strong> {cred.email}</div>
                         <div><strong>Contraseña:</strong> {cred.password}</div>
                         <div><strong>Territorio:</strong> {cred.territory}</div>
+                        <div><strong>Permisos:</strong> {cred.permissions.join(', ')}</div>
                       </div>
                     </div>
                   ))}
                 </div>
                 
                 <div className="mt-6 p-4 bg-gradient-to-r from-verde-sistema-50 to-negro-50 rounded-lg border-2 border-verde-sistema-200">
-                  <h3 className="font-bold text-sm text-verde-sistema-800 mb-3">🚀 INSTRUCCIONES DE ACCESO</h3>
+                  <h3 className="font-bold text-sm text-verde-sistema-800 mb-3">🚀 SISTEMA LOCAL SIN BD</h3>
                   <div className="text-xs text-negro-700 space-y-2">
-                    <div>1. <strong>Seleccionar:</strong> Haz clic en "Usar" junto a la credencial deseada</div>
-                    <div>2. <strong>Login:</strong> Haz clic en "Iniciar Sesión"</div>
-                    <div>3. <strong>Dashboard:</strong> Serás redirigido automáticamente</div>
-                    <div>4. <strong>N8N:</strong> Configura desde el panel de administración</div>
+                    <div>1. <strong>Credenciales:</strong> Almacenadas en credentials.json</div>
+                    <div>2. <strong>Sin BD:</strong> No requiere Supabase ni conexión externa</div>
+                    <div>3. <strong>Local:</strong> Autenticación completamente local</div>
+                    <div>4. <strong>Configurable:</strong> BD se puede configurar desde panel</div>
                     <div className="mt-3 p-2 bg-verde-sistema-100 rounded border border-verde-sistema-300">
-                      <strong className="text-verde-sistema-800">🎯 CREDENCIALES NUEVAS:</strong> 
-                      <br />Todas las contraseñas han sido actualizadas para producción
+                      <strong className="text-verde-sistema-800">🎯 ESQUELETO FUNCIONAL:</strong> 
+                      <br />{systemInfo.copyright}
                     </div>
                   </div>
                 </div>

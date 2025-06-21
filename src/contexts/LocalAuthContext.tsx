@@ -16,29 +16,23 @@ interface User {
   permissions?: string[];
 }
 
-interface SecureAuthContextType {
+interface LocalAuthContextType {
   user: User | null;
-  session: any | null;
   login: (username: string, password: string) => Promise<boolean>;
-  logout: () => Promise<void>;
+  logout: () => void;
   isAuthenticated: boolean;
   isLoading: boolean;
   authError: string | null;
   clearAuthError: () => void;
-  systemHealth: 'healthy' | 'warning' | 'error';
-  databaseMode: 'production' | 'development';
   hasPermission: (permission: string) => boolean;
 }
 
-const SecureAuthContext = createContext<SecureAuthContextType | undefined>(undefined);
+const LocalAuthContext = createContext<LocalAuthContextType | undefined>(undefined);
 
-export const SecureAuthProvider: React.FC<{ children: ReactNode }> = ({ children }) => {
+export const LocalAuthProvider: React.FC<{ children: ReactNode }> = ({ children }) => {
   const [user, setUser] = useState<User | null>(null);
-  const [session, setSession] = useState<any | null>(null);
   const [isLoading, setIsLoading] = useState(true);
   const [authError, setAuthError] = useState<string | null>(null);
-  const [systemHealth] = useState<'healthy' | 'warning' | 'error'>('healthy');
-  const [databaseMode] = useState<'production' | 'development'>('development');
 
   const { validateCredential, hasPermission: checkPermission } = useLocalCredentials();
 
@@ -48,25 +42,22 @@ export const SecureAuthProvider: React.FC<{ children: ReactNode }> = ({ children
 
   // Cargar sesión desde localStorage al inicializar
   useEffect(() => {
-    console.log('🚀 INICIALIZANDO SECURE AUTH PROVIDER v8.0 - SIN BD');
-    
-    const savedUser = localStorage.getItem('electoral_user_secure');
+    const savedUser = localStorage.getItem('electoral_user');
     if (savedUser) {
       try {
         const userData = JSON.parse(savedUser);
         setUser(userData);
-        setSession({ user: userData });
-        console.log('✅ Sesión segura local restaurada:', userData.name);
+        console.log('✅ Sesión local restaurada:', userData.name);
       } catch (error) {
-        console.error('❌ Error cargando sesión segura:', error);
-        localStorage.removeItem('electoral_user_secure');
+        console.error('❌ Error cargando sesión local:', error);
+        localStorage.removeItem('electoral_user');
       }
     }
     setIsLoading(false);
   }, []);
 
   const login = async (username: string, password: string): Promise<boolean> => {
-    console.log('🔐 INICIANDO LOGIN SEGURO LOCAL:', { username });
+    console.log('🔐 INICIANDO LOGIN LOCAL:', { username });
     setAuthError(null);
     setIsLoading(true);
 
@@ -85,10 +76,9 @@ export const SecureAuthProvider: React.FC<{ children: ReactNode }> = ({ children
         };
 
         setUser(userData);
-        setSession({ user: userData, accessToken: 'local_session_token' });
-        localStorage.setItem('electoral_user_secure', JSON.stringify(userData));
+        localStorage.setItem('electoral_user', JSON.stringify(userData));
         
-        console.log('✅ LOGIN SEGURO LOCAL EXITOSO:', {
+        console.log('✅ LOGIN LOCAL EXITOSO:', {
           name: userData.name,
           role: userData.role,
           territory: userData.territory
@@ -98,26 +88,25 @@ export const SecureAuthProvider: React.FC<{ children: ReactNode }> = ({ children
         return true;
       } else {
         setAuthError('❌ Credenciales incorrectas. Verifica usuario y contraseña.');
-        console.log('❌ LOGIN SEGURO LOCAL FALLÓ: Credenciales inválidas');
+        console.log('❌ LOGIN LOCAL FALLÓ: Credenciales inválidas');
         setIsLoading(false);
         return false;
       }
     } catch (error) {
-      const errorMsg = 'Error inesperado durante el login seguro local';
+      const errorMsg = 'Error inesperado durante el login local';
       setAuthError(errorMsg);
-      console.error('💥 ERROR LOGIN SEGURO LOCAL:', error);
+      console.error('💥 ERROR LOGIN LOCAL:', error);
       setIsLoading(false);
       return false;
     }
   };
 
-  const logout = async () => {
-    console.log('🚪 Cerrando sesión segura local...');
+  const logout = () => {
+    console.log('🚪 Cerrando sesión local...');
     setUser(null);
-    setSession(null);
     setAuthError(null);
-    localStorage.removeItem('electoral_user_secure');
-    console.log('✅ Sesión segura local cerrada exitosamente');
+    localStorage.removeItem('electoral_user');
+    console.log('✅ Sesión local cerrada exitosamente');
   };
 
   const hasPermission = (permission: string): boolean => {
@@ -127,29 +116,26 @@ export const SecureAuthProvider: React.FC<{ children: ReactNode }> = ({ children
 
   const value = {
     user,
-    session,
     login,
     logout,
-    isAuthenticated: !!user && !!session,
+    isAuthenticated: !!user,
     isLoading,
     authError,
     clearAuthError,
-    systemHealth,
-    databaseMode,
     hasPermission,
   };
 
   return (
-    <SecureAuthContext.Provider value={value}>
+    <LocalAuthContext.Provider value={value}>
       {children}
-    </SecureAuthContext.Provider>
+    </LocalAuthContext.Provider>
   );
 };
 
-export const useSecureAuth = () => {
-  const context = useContext(SecureAuthContext);
+export const useLocalAuth = () => {
+  const context = useContext(LocalAuthContext);
   if (context === undefined) {
-    throw new Error('useSecureAuth debe ser usado dentro de un SecureAuthProvider');
+    throw new Error('useLocalAuth debe ser usado dentro de un LocalAuthProvider');
   }
   return context;
 };
